@@ -43,6 +43,11 @@ export type AppStackParamList = {
   SetupLeaveTypes: undefined;
   SetupDepartments: undefined;
   SetupPolicies: undefined;
+  Payroll: undefined;
+  /** month is 1–12 of the current year. */
+  PayrollRun: {employeeId: number; name: string; month: number};
+  SalaryComponents: undefined;
+  Reports: undefined;
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

@@ -4,7 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 import DateTimePicker, {DateTimePickerAndroid} from '@react-native-community/datetimepicker';
 import {ArrowLeft, Check, CircleAlert, Plus, type LucideIcon} from 'lucide-react-native';
 import {Button, EmptyState, IconButton, PressableScale, Screen, Skeleton, Text} from '../../components/ui';
-import {atClock, formatClock} from '../../lib/date';
+import {atClock, formatClock, formatDay, parseServerDate, toDateKey, weekdayShort} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import {useTheme} from '../../theme/ThemeProvider';
 import {daysLabel, WEEK} from './setupLogic';
@@ -23,6 +23,7 @@ export function SetupScreen({
   subtitle,
   onAdd,
   addLabel = 'Add',
+  action,
   query,
   children,
 }: {
@@ -30,6 +31,8 @@ export function SetupScreen({
   subtitle?: string | null;
   onAdd?: () => void;
   addLabel?: string;
+  /** Extra header control, shown before Add. */
+  action?: React.ReactNode;
   query?: QueryLike;
   children: React.ReactNode;
 }) {
@@ -61,6 +64,7 @@ export function SetupScreen({
             </Text>
           ) : null}
         </View>
+        {action}
         {onAdd ? <Button title={addLabel} icon={Plus} size="sm" fullWidth={false} onPress={onAdd} /> : null}
       </View>
       <View style={{marginTop: spacing.lg, gap: spacing.md}}>
@@ -212,6 +216,11 @@ export function DayToggles({days, onChange}: {days: boolean[]; onChange: (days: 
   );
 }
 
+const dayLabel = (key: string) => {
+  const d = parseServerDate(key);
+  return d ? `${weekdayShort(d)}, ${formatDay(d)}` : key;
+};
+
 const toHHmm = (d: Date) =>
   `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 
@@ -330,5 +339,67 @@ export function SetupRow({
       </View>
       {value != null ? <Text variant="h3">{value}</Text> : null}
     </Pressable>
+  );
+}
+
+/** A date field; Android opens the calendar dialog, iOS shows an inline calendar. */
+export function DateButton({
+  label,
+  value,
+  onChange,
+  min,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  min?: string;
+}) {
+  const {colors, spacing, radius} = useTheme();
+  const [open, setOpen] = useState(false);
+  const date = parseServerDate(value) ?? new Date();
+  const minDate = min ? parseServerDate(min) ?? undefined : undefined;
+  const press = () => {
+    haptics.select();
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: date,
+        mode: 'date',
+        minimumDate: minDate,
+        onChange: (e, d) => e.type === 'set' && d && onChange(toDateKey(d)),
+      });
+    } else {
+      setOpen(o => !o);
+    }
+  };
+  return (
+    <View style={{flex: 1}}>
+      <Text variant="label">{label}</Text>
+      <PressableScale
+        onPress={press}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${dayLabel(value)}`}
+        style={{
+          marginTop: 6,
+          height: 50,
+          paddingHorizontal: 14,
+          borderRadius: radius.lg,
+          borderWidth: open ? 1.5 : 1,
+          borderColor: open ? colors.primary : colors.borderStrong,
+          justifyContent: 'center',
+        }}>
+        <Text variant="body">{dayLabel(value)}</Text>
+      </PressableScale>
+      {open ? (
+        <View style={{marginTop: spacing.sm}}>
+          <DateTimePicker
+            value={date}
+            mode="date"
+            display="inline"
+            minimumDate={minDate}
+            onChange={(_, d) => d && onChange(toDateKey(d))}
+          />
+        </View>
+      ) : null}
+    </View>
   );
 }

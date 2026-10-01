@@ -1,24 +1,14 @@
 import React, {useState} from 'react';
-import {Platform, Pressable, View} from 'react-native';
-import DateTimePicker, {DateTimePickerAndroid} from '@react-native-community/datetimepicker';
+import {Pressable, View} from 'react-native';
 import {CalendarDays, Trash2} from 'lucide-react-native';
 import type {Holiday} from '../../api/types';
-import {
-  BottomSheet,
-  Button,
-  Card,
-  ConfirmDialog,
-  EmptyState,
-  PressableScale,
-  Text,
-  TextField,
-} from '../../components/ui';
+import {BottomSheet, Button, Card, ConfirmDialog, EmptyState, Text, TextField} from '../../components/ui';
 import {formatDay, parseServerDate, toDateKey, weekdayShort} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
 import {useCreateHoliday, useDeleteHoliday, useHolidays} from './queries';
-import {SetupScreen, Tag} from './parts';
+import {DateButton, SetupScreen, Tag} from './parts';
 import {holidayDays, splitHolidays} from './setupLogic';
 
 const dayLabel = (key: string) => {
@@ -144,67 +134,6 @@ export function HolidaysScreen(_: AppScreenProps<'SetupHolidays'>) {
         onConfirm={() => removing && remove.mutate(removing.id, {onSuccess: () => setRemoving(null)})}
       />
     </SetupScreen>
-  );
-}
-
-function DateButton({
-  label,
-  value,
-  onChange,
-  min,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  min?: string;
-}) {
-  const {colors, spacing, radius} = useTheme();
-  const [open, setOpen] = useState(false);
-  const date = parseServerDate(value) ?? new Date();
-  const minDate = min ? parseServerDate(min) ?? undefined : undefined;
-  const press = () => {
-    haptics.select();
-    if (Platform.OS === 'android') {
-      DateTimePickerAndroid.open({
-        value: date,
-        mode: 'date',
-        minimumDate: minDate,
-        onChange: (e, d) => e.type === 'set' && d && onChange(toDateKey(d)),
-      });
-    } else {
-      setOpen(o => !o);
-    }
-  };
-  return (
-    <View style={{flex: 1}}>
-      <Text variant="label">{label}</Text>
-      <PressableScale
-        onPress={press}
-        accessibilityRole="button"
-        accessibilityLabel={`${label}, ${dayLabel(value)}`}
-        style={{
-          marginTop: 6,
-          height: 50,
-          paddingHorizontal: 14,
-          borderRadius: radius.lg,
-          borderWidth: open ? 1.5 : 1,
-          borderColor: open ? colors.primary : colors.borderStrong,
-          justifyContent: 'center',
-        }}>
-        <Text variant="body">{dayLabel(value)}</Text>
-      </PressableScale>
-      {open ? (
-        <View style={{marginTop: spacing.sm}}>
-          <DateTimePicker
-            value={date}
-            mode="date"
-            display="inline"
-            minimumDate={minDate}
-            onChange={(_, d) => d && onChange(toDateKey(d))}
-          />
-        </View>
-      ) : null}
-    </View>
   );
 }
 

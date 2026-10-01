@@ -480,3 +480,45 @@ export type Policy = {
 
 export type ListResponse<T> = {success?: boolean; status?: boolean; message: string; data: T[]};
 export type PolicyListResponse = ListResponse<Policy> & {file_path?: string | null};
+
+// ---------- Payroll & reports ----------
+
+export type SalaryComponentDef = {
+  id: number;
+  /** "Earning" | "Deduction" */
+  payment_type: string;
+  salary_type: string;
+  salary_type_description?: string | null;
+  amount: string | number;
+  /** "Flat" | "Percentage" */
+  amount_type: string;
+};
+
+export type SalaryLine = {
+  id: number;
+  label: string;
+  amount: number;
+  amount_type: string;
+  payment_type: string;
+  percentage?: number | null;
+};
+
+export type SalaryPreview = {
+  basic_salary: number | string;
+  earning: SalaryLine[];
+  deduction: SalaryLine[];
+  /** Loss of pay for absent days. */
+  other_deduction: number;
+  gross_salary: number;
+  absent_days: number;
+  working_days: number;
+  expense: number;
+};
+
+export type ReportExport = {
+  file_name: string;
+  download_url: string;
+  file_type: string;
+  created_at?: string | null;
+  exported_date?: string | null;
+};

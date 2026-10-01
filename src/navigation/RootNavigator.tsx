@@ -18,6 +18,10 @@ import {ApprovalsScreen} from '../features/approvals/ApprovalsScreen';
 import {OtpScreen} from '../features/auth/screens/OtpScreen';
 import {EmployeeRouteScreen} from '../features/location/EmployeeRouteScreen';
 import {LiveLocationScreen} from '../features/location/LiveLocationScreen';
+import {PayrollRunScreen} from '../features/payroll/PayrollRunScreen';
+import {PayrollScreen} from '../features/payroll/PayrollScreen';
+import {ReportsScreen} from '../features/payroll/ReportsScreen';
+import {SalaryComponentsScreen} from '../features/payroll/SalaryComponentsScreen';
 import {BranchEditScreen} from '../features/setup/BranchEditScreen';
 import {BranchesScreen} from '../features/setup/BranchesScreen';
 import {DepartmentsScreen, PoliciesScreen} from '../features/setup/DepartmentsPoliciesScreens';
@@ -65,6 +69,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       SetupLeaveTypes: 'setup/leave-types',
       SetupDepartments: 'setup/departments',
       SetupPolicies: 'setup/policies',
+      Payroll: 'payroll',
+      SalaryComponents: 'payroll/components',
+      Reports: 'reports',
     },
   },
   // A deep link opened from cold start would otherwise be the only screen, so Back
@@ -196,6 +203,26 @@ export function RootNavigator() {
           <AppStack.Screen
             name="SetupPolicies"
             component={PoliciesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Payroll"
+            component={PayrollScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="PayrollRun"
+            component={PayrollRunScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SalaryComponents"
+            component={SalaryComponentsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Reports"
+            component={ReportsScreen}
             options={{animation: 'slide_from_right'}}
           />
           {/* A card, not a native modal: iOS can't show the next sheet while a modal is dismissing. */}
