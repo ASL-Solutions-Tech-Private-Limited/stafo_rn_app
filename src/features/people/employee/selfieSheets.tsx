@@ -291,7 +291,14 @@ export function SelfieRejectSheet({
         </Text>
       </View>
       <View style={{flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg}}>
-        <Button title="Use camera" icon={Camera} variant="ghost" size="md" style={{flex: 1}} onPress={onCamera} />
+        <Button
+          title="Use camera"
+          icon={Camera}
+          variant="ghost"
+          size="md"
+          style={{flex: 1}}
+          onPress={onCamera}
+        />
         <Button title="Choose another" icon={ImageIcon} size="md" style={{flex: 1}} onPress={onGallery} />
       </View>
     </BottomSheet>

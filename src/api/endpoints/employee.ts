@@ -33,7 +33,10 @@ export async function getEmployeeLeaves(employeeId: number) {
 
 /** All leave requests in the company (used to show who else is off). */
 export async function getCompanyLeaves(companyId: string) {
-  const {data} = await api.post<LeaveListResponse>('api/leave-list', {company_id: companyId, employee_id: ''});
+  const {data} = await api.post<LeaveListResponse>('api/leave-list', {
+    company_id: companyId,
+    employee_id: '',
+  });
   return ensureOk(data).data ?? [];
 }
 
@@ -69,7 +72,10 @@ export async function getSalarySlip(companyId: string, employeeId: number, month
 // ---------- Admin actions ----------
 
 export async function setLeaveStatus(leaveId: number, status: 'approved' | 'rejected') {
-  const {data} = await api.post<BasicResponse>('api/leave-request-status-change', {id: String(leaveId), status});
+  const {data} = await api.post<BasicResponse>('api/leave-request-status-change', {
+    id: String(leaveId),
+    status,
+  });
   return ensureOk(data);
 }
 
@@ -135,10 +141,40 @@ export async function uploadReferenceSelfie(employeeId: number, image: LocalImag
   const form = new FormData();
   form.append('employee_id', String(employeeId));
   form.append('selfie_image', {uri: image.uri, type: image.mime, name: image.name} as unknown as Blob);
-  const {data} = await api.post<BasicResponse & {selfie_image?: string}>('api/employee/selfie-image-upload', form, {
-    headers: {'Content-Type': 'multipart/form-data'},
-    // Uploads can be slow on mobile data.
-    timeout: 60_000,
+  const {data} = await api.post<BasicResponse & {selfie_image?: string}>(
+    'api/employee/selfie-image-upload',
+    form,
+    {
+      headers: {'Content-Type': 'multipart/form-data'},
+      // Uploads can be slow on mobile data.
+      timeout: 60_000,
+    },
+  );
+  return ensureOk(data);
+}
+
+export type AttendanceUpdateFields = {
+  attendance: string;
+  halfday: number;
+  in_time: string | null;
+  out_time: string | null;
+};
+
+/** Corrects one day's attendance record (status and punch times). Only existing records can be edited. */
+export async function updateAttendance(
+  recordId: number,
+  employeeId: number,
+  date: string,
+  fields: AttendanceUpdateFields,
+  reason?: string,
+) {
+  const {data} = await api.post<BasicResponse>(`api/attendance/update/${recordId}`, {
+    employee_id: employeeId,
+    // Don't send company/branch/department ids: the server writes whatever is sent onto
+    // the record, and the old app's zeros fail its foreign keys.
+    date,
+    ...fields,
+    reason: reason?.trim() || null,
   });
   return ensureOk(data);
 }

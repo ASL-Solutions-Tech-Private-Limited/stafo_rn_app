@@ -10,7 +10,11 @@ export async function getDeviceRequests(companyId: string) {
 }
 
 /** Allow or refuse an employee's new phone. Allowing signs their old phone out. */
-export async function decideDeviceRequest(employeeId: number, deviceId: string, decision: 'approve' | 'reject') {
+export async function decideDeviceRequest(
+  employeeId: number,
+  deviceId: string,
+  decision: 'approve' | 'reject',
+) {
   const {data} = await api.post<BasicResponse>('api/company/approve-device', {
     employee_id: employeeId,
     status: decision,

@@ -1,7 +1,19 @@
 import React, {useMemo, useState} from 'react';
 import {Image, Modal, Pressable, View} from 'react-native';
-import {Camera, Check, ChevronLeft, ChevronRight, Clock3, LogIn, LogOut, Timer, X} from 'lucide-react-native';
-import type {MissedPunchRequest} from '../../../../api/types';
+import {
+  Camera,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  Info,
+  LogIn,
+  LogOut,
+  SquarePen,
+  Timer,
+  X,
+} from 'lucide-react-native';
+import type {MissedPunchRequest, ShiftWithDays} from '../../../../api/types';
 import {
   Badge,
   Button,
@@ -17,7 +29,9 @@ import {haptics} from '../../../../lib/haptics';
 import {useTheme} from '../../../../theme/ThemeProvider';
 import {dayWorkedMs, type CalendarDay, type CalendarDayKind} from '../../employeeInsights';
 import {RejectPunchSheet} from '../../../approvals/RejectPunchSheet';
-import {useSetMissedPunchStatus} from '../queries';
+import {FEATURES} from '../../../../config/features';
+import {EditDaySheet} from '../EditDaySheet';
+import {useSetMissedPunchStatus, useUpdateAttendance} from '../queries';
 import {SectionLabel} from '../parts';
 
 const MONTHS = [
@@ -54,12 +68,29 @@ type Props = {
   loading: boolean;
   requests: MissedPunchRequest[];
   requestsLoading: boolean;
+  employeeId: number;
+  name: string;
+  shift?: ShiftWithDays | null;
 };
 
-export function AttendanceTab({month, onMonth, canGoNext, days, loading, requests, requestsLoading}: Props) {
+export function AttendanceTab({
+  month,
+  onMonth,
+  canGoNext,
+  days,
+  loading,
+  requests,
+  requestsLoading,
+  employeeId,
+  name,
+  shift,
+}: Props) {
   const {colors, spacing, radius} = useTheme();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
+  // The day being edited, fixed when Edit is pressed so a refetch can't swap it.
+  const [editing, setEditing] = useState<CalendarDay | null>(null);
+  const update = useUpdateAttendance(employeeId);
 
   const [y, m] = month.split('-').map(Number);
   const shiftMonth = (delta: number) => {
@@ -256,7 +287,49 @@ export function AttendanceTab({month, onMonth, canGoNext, days, loading, request
                 : 'No punch recorded for this day.'}
             </Text>
           )}
+          {FEATURES.editAttendance && selected.record && selected.kind !== 'future' ? (
+            <Button
+              title="Edit"
+              icon={SquarePen}
+              variant="secondary"
+              size="sm"
+              onPress={() => {
+                haptics.tap();
+                setEditing(selected);
+              }}
+            />
+          ) : FEATURES.editAttendance && (selected.kind === 'absent' || selected.kind === 'none') ? (
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm}}>
+              <Info size={14} color={colors.textSubtle} />
+              <Text variant="caption" tone="subtle" style={{flex: 1}}>
+                {selected.kind === 'none'
+                  ? 'Nothing to edit yet. Pick a day with a punch to edit it.'
+                  : `Only days with a punch can be edited. ${
+                      name.split(' ')[0]
+                    } can send a punch fix from their app.`}
+              </Text>
+            </View>
+          ) : null}
         </Card>
+      ) : null}
+
+      {FEATURES.editAttendance ? (
+        <EditDaySheet
+          visible={!!editing}
+          onClose={() => setEditing(null)}
+          name={name}
+          record={editing?.record ?? null}
+          dateKey={editing?.dateKey ?? ''}
+          shift={shift}
+          saving={update.isPending}
+          onSave={(fields, note) =>
+            editing?.record &&
+            update.mutate(
+              {recordId: editing.record.id, date: editing.dateKey, fields, reason: note},
+              {onSuccess: () => setEditing(null)},
+            )
+          }
+        />
       ) : null}
 
       <View>

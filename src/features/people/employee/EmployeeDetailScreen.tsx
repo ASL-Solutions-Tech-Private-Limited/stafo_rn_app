@@ -271,6 +271,9 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
               days={monthDays}
               loading={monthQuery.isPending}
               requests={missed.data ?? []}
+              employeeId={id}
+              name={name}
+              shift={shift}
               requestsLoading={missed.isPending}
             />
           ) : tab === 'Leave' ? (

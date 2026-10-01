@@ -17,6 +17,8 @@ import {
   uploadReferenceSelfie,
   type AttendanceModeValue,
   type RejectedPunchMark,
+  type AttendanceUpdateFields,
+  updateAttendance,
   type LocalImage,
 } from '../../../api/endpoints/employee';
 import {toast} from '../../../components/ui';
@@ -128,6 +130,9 @@ export function useAdminAction<TArgs>(
       queryClient.invalidateQueries({queryKey: ['people']});
     },
     onError: (e: Error) => {
+      if (__DEV__) {
+        console.warn('[admin action] failed:', e.message);
+      }
       haptics.error();
       toast.error(e.message);
     },
@@ -195,5 +200,23 @@ export function useUploadReferenceSelfie(employeeId: number) {
     (image: LocalImage) => uploadReferenceSelfie(employeeId, image),
     () => [employeeKeys.profile(employeeId)],
     'Reference selfie updated',
+  );
+}
+
+export function useUpdateAttendance(employeeId: number) {
+  return useAdminAction(
+    ({
+      recordId,
+      date,
+      fields,
+      reason,
+    }: {
+      recordId: number;
+      date: string;
+      fields: AttendanceUpdateFields;
+      reason?: string;
+    }) => updateAttendance(recordId, employeeId, date, fields, reason),
+    () => [['employee', employeeId]],
+    'Attendance updated',
   );
 }

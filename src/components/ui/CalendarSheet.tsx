@@ -71,7 +71,12 @@ export function CalendarSheet({visible, value, onClose, onChange, title = 'Pick 
   return (
     <BottomSheet visible={visible} onClose={onClose} title={title}>
       <View style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}}>
-        <IconButton icon={ChevronLeft} size={38} accessibilityLabel="Previous month" onPress={() => shift(-1)} />
+        <IconButton
+          icon={ChevronLeft}
+          size={38}
+          accessibilityLabel="Previous month"
+          onPress={() => shift(-1)}
+        />
         <Text variant="h3">
           {MONTHS[cursor.month]} {cursor.year}
         </Text>
