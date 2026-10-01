@@ -5,7 +5,9 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+# ML Kit face detection (react-native-vision-camera-face-detector) needs iOS 15.5.
+IOS_TARGET = [Gem::Version.new(min_ios_version_supported), Gem::Version.new('15.5')].max.to_s
+platform :ios, IOS_TARGET
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -30,5 +32,16 @@ target 'StafoApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Some libraries' resource-bundle targets still declare iOS 9/12, which
+    # current Xcode rejects. Lift every pod target to the app's minimum.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |build_config|
+        current = build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current.nil? || Gem::Version.new(current) < Gem::Version.new(IOS_TARGET)
+          build_config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = IOS_TARGET
+        end
+      end
+    end
   end
 end

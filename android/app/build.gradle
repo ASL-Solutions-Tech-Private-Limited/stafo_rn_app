@@ -82,8 +82,9 @@ android {
         applicationId "com.stafo.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // The native app shipped up to versionCode 17 (1.7.0); this rewrite continues from there.
+        versionCode 18
+        versionName "2.0.0"
     }
     signingConfigs {
         debug {
@@ -96,6 +97,8 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            // Installs beside the Play Store / native STAFO app instead of replacing it.
+            applicationIdSuffix ".dev"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
