@@ -14,6 +14,7 @@ import {
   MapPinned,
   Medal,
   Receipt,
+  Settings2,
   Smartphone,
   Trophy,
   Users,
@@ -41,7 +42,8 @@ export type ModuleId =
   | 'salary-disbursement'
   | 'performance'
   | 'rankings'
-  | 'subscription';
+  | 'subscription'
+  | 'company-setup';
 
 export type ModuleGroup = 'Workday' | 'People' | 'Work' | 'Finance';
 
@@ -103,6 +105,15 @@ export const MODULES: AppModule[] = [
     phase: 3,
   },
 
+  {
+    id: 'company-setup',
+    title: 'Company setup',
+    description: 'Branches, shifts, holidays, leave types and policies',
+    icon: Settings2,
+    group: 'People',
+    roles: ['company'],
+    phase: 2,
+  },
   {
     id: 'employees',
     title: 'Employees',

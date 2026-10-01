@@ -35,6 +35,14 @@ export type AppStackParamList = {
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;
   EmployeeRoute: {id: number; name?: string; date?: string};
+  Setup: undefined;
+  SetupBranches: undefined;
+  SetupBranchEdit: {id?: number};
+  SetupShifts: undefined;
+  SetupHolidays: undefined;
+  SetupLeaveTypes: undefined;
+  SetupDepartments: undefined;
+  SetupPolicies: undefined;
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

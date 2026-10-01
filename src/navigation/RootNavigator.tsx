@@ -5,6 +5,7 @@ import {
   NavigationContainer,
   type LinkingOptions,
   type Theme as NavTheme,
+  getStateFromPath,
 } from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
@@ -17,6 +18,13 @@ import {ApprovalsScreen} from '../features/approvals/ApprovalsScreen';
 import {OtpScreen} from '../features/auth/screens/OtpScreen';
 import {EmployeeRouteScreen} from '../features/location/EmployeeRouteScreen';
 import {LiveLocationScreen} from '../features/location/LiveLocationScreen';
+import {BranchEditScreen} from '../features/setup/BranchEditScreen';
+import {BranchesScreen} from '../features/setup/BranchesScreen';
+import {DepartmentsScreen, PoliciesScreen} from '../features/setup/DepartmentsPoliciesScreens';
+import {HolidaysScreen} from '../features/setup/HolidaysScreen';
+import {LeaveTypesScreen} from '../features/setup/LeaveTypesScreen';
+import {SetupHubScreen} from '../features/setup/SetupHubScreen';
+import {ShiftsScreen} from '../features/setup/ShiftsScreen';
 import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
@@ -49,7 +57,26 @@ const linking: LinkingOptions<AppStackParamList> = {
       Approvals: 'approvals/:filter?',
       LiveLocation: 'live',
       EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
+      Setup: 'setup',
+      SetupBranches: 'setup/branches',
+      SetupBranchEdit: {path: 'setup/branch/:id?', parse: {id: Number}},
+      SetupShifts: 'setup/shifts',
+      SetupHolidays: 'setup/holidays',
+      SetupLeaveTypes: 'setup/leave-types',
+      SetupDepartments: 'setup/departments',
+      SetupPolicies: 'setup/policies',
     },
+  },
+  // A deep link opened from cold start would otherwise be the only screen, so Back
+  // would do nothing. Put the role's home tabs underneath it.
+  getStateFromPath(path, options) {
+    const state = getStateFromPath(path, options);
+    const home = useSession.getState().role === 'company' ? 'CompanyTabs' : 'EmployeeTabs';
+    const first = state?.routes[0];
+    if (state && state.routes.length === 1 && first && first.name !== home) {
+      return {...state, index: 1, routes: [{name: home}, ...state.routes]} as typeof state;
+    }
+    return state;
   },
 };
 
@@ -129,6 +156,46 @@ export function RootNavigator() {
           <AppStack.Screen
             name="EmployeeRoute"
             component={EmployeeRouteScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Setup"
+            component={SetupHubScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupBranches"
+            component={BranchesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupBranchEdit"
+            component={BranchEditScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupShifts"
+            component={ShiftsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupHolidays"
+            component={HolidaysScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupLeaveTypes"
+            component={LeaveTypesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupDepartments"
+            component={DepartmentsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupPolicies"
+            component={PoliciesScreen}
             options={{animation: 'slide_from_right'}}
           />
           {/* A card, not a native modal: iOS can't show the next sheet while a modal is dismissing. */}

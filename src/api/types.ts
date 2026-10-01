@@ -436,3 +436,47 @@ export type RawGeoPoint = {
 };
 
 export type GeoTrackResponse = {status: boolean; message: string; data: RawGeoPoint[]};
+
+// ---------- Company setup ----------
+
+export type Branch = {
+  id: number;
+  branch_name: string;
+  branch_address?: string | null;
+  latitude?: string | null;
+  longitude?: string | null;
+  /** Punch-in radius in metres; 0 when no geofence is set. */
+  radar?: number | string | null;
+  status?: number;
+};
+
+export type Department = {id: number; name: string; description?: string | null};
+
+export type Holiday = {
+  id: number;
+  title: string;
+  description?: string | null;
+  start_date: string;
+  end_date: string;
+  festival_data?: {emoji?: string | null; color?: string | null; category?: string | null} | null;
+};
+
+export type LeaveTypeRecord = {
+  id: number;
+  name: string;
+  no_of_days: number;
+  description?: string | null;
+  /** 1 paid, 0 unpaid. */
+  is_paid: number | string;
+};
+
+export type Policy = {
+  id: number;
+  title: string;
+  description?: string | null;
+  file?: string | null;
+  created_at?: string | null;
+};
+
+export type ListResponse<T> = {success?: boolean; status?: boolean; message: string; data: T[]};
+export type PolicyListResponse = ListResponse<Policy> & {file_path?: string | null};
