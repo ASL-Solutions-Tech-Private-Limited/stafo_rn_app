@@ -15,6 +15,8 @@ import {LoginScreen} from '../features/auth/screens/LoginScreen';
 import {OnboardingScreen} from '../features/auth/screens/OnboardingScreen';
 import {ApprovalsScreen} from '../features/approvals/ApprovalsScreen';
 import {OtpScreen} from '../features/auth/screens/OtpScreen';
+import {EmployeeRouteScreen} from '../features/location/EmployeeRouteScreen';
+import {LiveLocationScreen} from '../features/location/LiveLocationScreen';
 import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
@@ -45,6 +47,8 @@ const linking: LinkingOptions<AppStackParamList> = {
       EmployeeDetail: {path: 'employee/:id', parse: {id: Number}},
       Module: 'module/:id',
       Approvals: 'approvals/:filter?',
+      LiveLocation: 'live',
+      EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
     },
   },
 };
@@ -115,6 +119,16 @@ export function RootNavigator() {
           <AppStack.Screen
             name="Approvals"
             component={ApprovalsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="LiveLocation"
+            component={LiveLocationScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="EmployeeRoute"
+            component={EmployeeRouteScreen}
             options={{animation: 'slide_from_right'}}
           />
           {/* A card, not a native modal: iOS can't show the next sheet while a modal is dismissing. */}

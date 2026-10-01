@@ -424,3 +424,15 @@ export type DeviceRequest = {
 };
 
 export type DeviceRequestsResponse = {success: boolean; message: string; data: DeviceRequest[]};
+
+/** One location fix from get-geo-location. Coordinates arrive as strings. */
+export type RawGeoPoint = {
+  id: number;
+  employee_id: number;
+  latitude: string;
+  longitude: string;
+  battery_status?: string | number | null;
+  created_at: string;
+};
+
+export type GeoTrackResponse = {status: boolean; message: string; data: RawGeoPoint[]};

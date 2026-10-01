@@ -5,6 +5,7 @@ import {Search} from 'lucide-react-native';
 import {Card, PressableScale, Screen, Text, TextField} from '../../../components/ui';
 import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
+import {openModule} from '../openModule';
 import {GROUP_ORDER, modulesFor} from '../catalog';
 
 export function AppsScreen() {
@@ -58,7 +59,7 @@ export function AppsScreen() {
                 <PressableScale
                   key={m.id}
                   scaleTo={0.99}
-                  onPress={() => navigation.navigate('Module', {id: m.id})}
+                  onPress={() => openModule(navigation, m.id, role)}
                   accessibilityRole="button"
                   style={{
                     flexDirection: 'row',

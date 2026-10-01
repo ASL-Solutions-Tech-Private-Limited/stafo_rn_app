@@ -205,9 +205,7 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
       case 'location':
         setSheet(null);
         if (geo === '2') {
-          toast.info(
-            `Live tracking is on for ${firstName}. The live map arrives with the Live location module.`,
-          );
+          navigation.navigate('EmployeeRoute', {id, name});
         } else if (geo === '1') {
           toast.info(`Waiting for ${firstName} to accept the location request.`);
         } else {

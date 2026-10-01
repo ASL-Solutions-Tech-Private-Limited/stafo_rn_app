@@ -33,6 +33,8 @@ export type AppStackParamList = {
   EmployeeDetail: {id: number; name?: string; tab?: string};
   FaceCapture: FaceCaptureParams;
   Approvals: {filter?: ApprovalFilter} | undefined;
+  LiveLocation: undefined;
+  EmployeeRoute: {id: number; name?: string; date?: string};
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

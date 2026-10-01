@@ -2,12 +2,15 @@ import React from 'react';
 import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {PressableScale, Text} from '../../../components/ui';
+import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
+import {openModule} from '../../modules/openModule';
 import {getModule, type ModuleId} from '../../modules/catalog';
 
 export function ShortcutGrid({ids}: {ids: ModuleId[]}) {
   const {colors, spacing, radius} = useTheme();
   const navigation = useNavigation();
+  const role = useSession(s => s.role);
 
   return (
     <View style={{flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.lg}}>
@@ -17,7 +20,7 @@ export function ShortcutGrid({ids}: {ids: ModuleId[]}) {
         return (
           <View key={id} style={{width: '25%', paddingHorizontal: spacing.xs}}>
             <PressableScale
-              onPress={() => navigation.navigate('Module', {id})}
+              onPress={() => openModule(navigation, id, role)}
               accessibilityRole="button"
               accessibilityLabel={module.title}
               style={{alignItems: 'center', gap: spacing.sm}}>
