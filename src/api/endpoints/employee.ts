@@ -73,11 +73,20 @@ export async function setLeaveStatus(leaveId: number, status: 'approved' | 'reje
   return ensureOk(data);
 }
 
-export async function setMissedPunchStatus(requestId: number, status: 'Approved' | 'Rejected', rejectReason?: string) {
+/** How a day is recorded when its missed punch-out request is rejected. */
+export type RejectedPunchMark = 'Absent' | 'Halfday';
+
+export async function setMissedPunchStatus(
+  requestId: number,
+  status: 'Approved' | 'Rejected',
+  rejectReason?: string,
+  markAs?: RejectedPunchMark,
+) {
   const {data} = await api.post<BasicResponse>('api/company/missed-punchout-action', {
     request_id: requestId,
     status,
     reject_reason: rejectReason ?? null,
+    reject_attendance_type: status === 'Rejected' ? markAs ?? null : null,
   });
   return ensureOk(data);
 }

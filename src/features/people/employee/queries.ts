@@ -16,6 +16,7 @@ import {
   setMissedPunchStatus,
   uploadReferenceSelfie,
   type AttendanceModeValue,
+  type RejectedPunchMark,
   type LocalImage,
 } from '../../../api/endpoints/employee';
 import {toast} from '../../../components/ui';
@@ -143,8 +144,17 @@ export function useSetLeaveStatus(employeeId: number) {
 
 export function useSetMissedPunchStatus() {
   return useAdminAction(
-    ({id, status, reason}: {id: number; status: 'Approved' | 'Rejected'; reason?: string}) =>
-      setMissedPunchStatus(id, status, reason),
+    ({
+      id,
+      status,
+      reason,
+      markAs,
+    }: {
+      id: number;
+      status: 'Approved' | 'Rejected';
+      reason?: string;
+      markAs?: RejectedPunchMark;
+    }) => setMissedPunchStatus(id, status, reason, markAs),
     () => [employeeKeys.missedPunch, ['employee']],
   );
 }

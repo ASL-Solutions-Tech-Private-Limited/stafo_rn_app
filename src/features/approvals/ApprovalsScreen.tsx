@@ -1,9 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {RefreshControl, ScrollView, View} from 'react-native';
 import {ArrowLeft, CircleAlert, CircleCheck, Smartphone, X} from 'lucide-react-native';
+import type {RejectedPunchMark} from '../../api/endpoints/employee';
 import {employeePhotoUrl} from '../../api/endpoints/people';
 import {
-  BottomSheet,
   Button,
   ConfirmDialog,
   EmptyState,
@@ -13,15 +13,15 @@ import {
   Screen,
   Skeleton,
   Text,
-  TextField,
 } from '../../components/ui';
-import {toDateKey} from '../../lib/date';
+import {formatDay, parseServerDate, toDateKey} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
 import {useSetMissedPunchStatus} from '../people/employee/queries';
 import {usePeopleOnDate} from '../people/queries';
 import {ApprovalCard, type Decision} from './ApprovalCard';
+import {RejectPunchSheet} from './RejectPunchSheet';
 import {askedToday, leaveContext, type ApprovalItem, type ApprovalKind} from './approvalItems';
 import {useApprovals, useDecideDevice, useDecideLeave} from './queries';
 
@@ -41,8 +41,6 @@ const EMPTY_TITLE: Record<ApprovalFilter, string> = {
   device: 'No new phones waiting',
 };
 
-const REJECT_REASONS = ["Times don't match records", 'Too late to change', 'Talk to me first'];
-
 export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>) {
   const {colors, spacing} = useTheme();
   const [filter, setFilter] = useState<ApprovalFilter>(route.params?.filter ?? 'all');
@@ -56,13 +54,16 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
   const [busy, setBusy] = useState<{key: string; decision: Decision} | null>(null);
   const [confirm, setConfirm] = useState<{item: ApprovalItem; decision: Decision} | null>(null);
   const [rejecting, setRejecting] = useState<Extract<ApprovalItem, {kind: 'punch'}> | null>(null);
-  const [reason, setReason] = useState('');
 
   const visible = approvals.items.filter(i => filter === 'all' || i.kind === filter);
   const today = visible.filter(i => askedToday(i));
   const earlier = visible.filter(i => !askedToday(i));
 
-  const run = (item: ApprovalItem, decision: Decision, rejectReason?: string) => {
+  const run = (
+    item: ApprovalItem,
+    decision: Decision,
+    reject?: {reason: string; markAs: RejectedPunchMark},
+  ) => {
     const done = {onSettled: () => setBusy(null)};
     setBusy({key: item.key, decision});
     if (item.kind === 'leave') {
@@ -76,7 +77,12 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
       );
     } else if (item.kind === 'punch') {
       decidePunch.mutate(
-        {id: item.punch.id, status: decision === 'approve' ? 'Approved' : 'Rejected', reason: rejectReason},
+        {
+          id: item.punch.id,
+          status: decision === 'approve' ? 'Approved' : 'Rejected',
+          reason: reject?.reason,
+          markAs: reject?.markAs,
+        },
         done,
       );
     } else {
@@ -87,7 +93,6 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
   const onDecide = (item: ApprovalItem, decision: Decision) => {
     haptics.tap();
     if (item.kind === 'punch' && decision === 'reject') {
-      setReason('');
       setRejecting(item);
     } else if (decision === 'reject' || item.kind === 'device') {
       // Rejections, and allowing a phone (it signs the old one out), get a confirm.
@@ -122,6 +127,9 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
       />
     </Reveal>
   );
+
+  const rejectingDate = rejecting ? parseServerDate(rejecting.punch.date) : null;
+  const rejectingDay = rejectingDate ? formatDay(rejectingDate) : rejecting?.punch.date ?? '';
 
   const first = confirm?.item.name.split(' ')[0] ?? '';
   const confirmCopy = !confirm
@@ -277,56 +285,18 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
         }}
       />
 
-      <BottomSheet
+      <RejectPunchSheet
         visible={!!rejecting}
         onClose={() => setRejecting(null)}
-        title={`Reject ${rejecting?.name.split(' ')[0] ?? ''}'s punch fix?`}
-        subtitle="The day stays as it is. They see your reason in the app.">
-        <TextField
-          label="Reason"
-          placeholder="For example: CCTV shows arrival at 11:10 AM"
-          value={reason}
-          onChangeText={setReason}
-          multiline
-          style={{minHeight: 24}}
-        />
-        <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md}}>
-          {REJECT_REASONS.map(r => (
-            <PressableScale
-              key={r}
-              onPress={() => {
-                haptics.select();
-                setReason(r);
-              }}
-              accessibilityRole="button"
-              style={{
-                height: 34,
-                paddingHorizontal: 12,
-                borderRadius: 17,
-                borderWidth: 1,
-                borderColor: reason === r ? colors.primary : colors.border,
-                backgroundColor: reason === r ? colors.primarySoft : colors.surface,
-                justifyContent: 'center',
-              }}>
-              <Text variant="label" color={reason === r ? colors.primary : colors.text}>
-                {r}
-              </Text>
-            </PressableScale>
-          ))}
-        </View>
-        <Button
-          title="Reject"
-          variant="danger"
-          style={{marginTop: spacing.xl}}
-          disabled={!reason.trim()}
-          onPress={() => {
-            if (rejecting) {
-              run(rejecting, 'reject', reason.trim());
-            }
-            setRejecting(null);
-          }}
-        />
-      </BottomSheet>
+        firstName={rejecting?.name.split(' ')[0] ?? ''}
+        dayLabel={rejectingDay}
+        onReject={(markAs, reason) => {
+          if (rejecting) {
+            run(rejecting, 'reject', {reason, markAs});
+          }
+          setRejecting(null);
+        }}
+      />
     </Screen>
   );
 }

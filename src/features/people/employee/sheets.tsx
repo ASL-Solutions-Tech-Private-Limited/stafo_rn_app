@@ -23,7 +23,7 @@ import {haptics} from '../../../lib/haptics';
 import {useTheme} from '../../../theme/ThemeProvider';
 import {workingDaysLabel} from './tabs/OverviewTab';
 
-function RadioCard({
+export function RadioCard({
   icon: Icon,
   title,
   description,

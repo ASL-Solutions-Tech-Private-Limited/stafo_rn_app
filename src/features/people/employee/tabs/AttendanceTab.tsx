@@ -4,20 +4,19 @@ import {Camera, Check, ChevronLeft, ChevronRight, Clock3, LogIn, LogOut, Timer, 
 import type {MissedPunchRequest} from '../../../../api/types';
 import {
   Badge,
-  BottomSheet,
   Button,
   Card,
   EmptyState,
   IconButton,
   Skeleton,
   Text,
-  TextField,
   type BadgeTone,
 } from '../../../../components/ui';
 import {formatClock, formatDuration, parseServerDate, weekdayShort, formatDay} from '../../../../lib/date';
 import {haptics} from '../../../../lib/haptics';
 import {useTheme} from '../../../../theme/ThemeProvider';
 import {dayWorkedMs, type CalendarDay, type CalendarDayKind} from '../../employeeInsights';
+import {RejectPunchSheet} from '../../../approvals/RejectPunchSheet';
 import {useSetMissedPunchStatus} from '../queries';
 import {SectionLabel} from '../parts';
 
@@ -365,8 +364,8 @@ function CorrectionCard({request}: {request: MissedPunchRequest}) {
   const {colors, spacing, radius} = useTheme();
   const action = useSetMissedPunchStatus();
   const [rejecting, setRejecting] = useState(false);
-  const [reason, setReason] = useState('');
   const date = parseServerDate(request.date);
+  const firstName = request.employee?.name.split(' ')[0] ?? 'Employee';
   const pending = request.status.toLowerCase() === 'pending';
   const tone: BadgeTone = pending
     ? 'warning'
@@ -423,32 +422,19 @@ function CorrectionCard({request}: {request: MissedPunchRequest}) {
         </View>
       ) : null}
 
-      <BottomSheet
+      <RejectPunchSheet
         visible={rejecting}
         onClose={() => setRejecting(false)}
-        title="Reject this correction?"
-        subtitle="The employee sees your reason.">
-        <TextField
-          placeholder="Reason (for example: out time doesn't match the gate log)"
-          value={reason}
-          onChangeText={setReason}
-          multiline
-          style={{minHeight: 24}}
-        />
-        <Button
-          title="Reject request"
-          variant="danger"
-          style={{marginTop: spacing.lg}}
-          disabled={!reason.trim()}
-          loading={action.isPending}
-          onPress={() =>
-            action.mutate(
-              {id: request.id, status: 'Rejected', reason: reason.trim()},
-              {onSuccess: () => setRejecting(false)},
-            )
-          }
-        />
-      </BottomSheet>
+        firstName={firstName}
+        dayLabel={date ? formatDay(date) : request.date}
+        loading={action.isPending && action.variables?.status === 'Rejected'}
+        onReject={(markAs, reason) =>
+          action.mutate(
+            {id: request.id, status: 'Rejected', reason, markAs},
+            {onSuccess: () => setRejecting(false)},
+          )
+        }
+      />
     </Card>
   );
 }
