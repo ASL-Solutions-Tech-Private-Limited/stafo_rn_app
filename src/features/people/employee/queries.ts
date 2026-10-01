@@ -110,7 +110,7 @@ export function usePayslips(id: number, enabled = true, months = 6) {
  * Wraps an admin action: success toast + haptic, error toast, and refreshes
  * the given queries (plus the People list, whose badges may change).
  */
-function useAdminAction<TArgs>(
+export function useAdminAction<TArgs>(
   fn: (args: TArgs) => Promise<{message?: string}>,
   invalidate: (args: TArgs) => readonly (readonly unknown[])[],
   successMessage?: string,

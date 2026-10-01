@@ -13,6 +13,7 @@ import {AttendanceTabScreen} from '../features/attendance/screens/AttendanceTabS
 import {DeviceApprovalScreen} from '../features/auth/screens/DeviceApprovalScreen';
 import {LoginScreen} from '../features/auth/screens/LoginScreen';
 import {OnboardingScreen} from '../features/auth/screens/OnboardingScreen';
+import {ApprovalsScreen} from '../features/approvals/ApprovalsScreen';
 import {OtpScreen} from '../features/auth/screens/OtpScreen';
 import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
@@ -43,6 +44,7 @@ const linking: LinkingOptions<AppStackParamList> = {
     screens: {
       EmployeeDetail: {path: 'employee/:id', parse: {id: Number}},
       Module: 'module/:id',
+      Approvals: 'approvals/:filter?',
     },
   },
 };
@@ -108,6 +110,11 @@ export function RootNavigator() {
           <AppStack.Screen
             name="EmployeeDetail"
             component={EmployeeDetailScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Approvals"
+            component={ApprovalsScreen}
             options={{animation: 'slide_from_right'}}
           />
           {/* A card, not a native modal: iOS can't show the next sheet while a modal is dismissing. */}

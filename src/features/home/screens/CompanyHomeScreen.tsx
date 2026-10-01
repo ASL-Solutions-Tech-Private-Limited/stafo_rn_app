@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {ChevronRight, CircleAlert, ShieldAlert} from 'lucide-react-native';
 import {Button, Card, EmptyState, Reveal, SectionHeader, Text} from '../../../components/ui';
@@ -9,6 +10,8 @@ import {useTheme} from '../../../theme/ThemeProvider';
 import {HOME_SHORTCUTS} from '../../modules/catalog';
 import {usePeopleOnDate} from '../../people/queries';
 import {toDateKey} from '../../../lib/date';
+import {useApprovals} from '../../approvals/queries';
+import {WaitingCard} from '../../approvals/WaitingCard';
 import {AttendanceSummaryCard} from '../components/AttendanceSummaryCard';
 import {BannerCarousel} from '../components/BannerCarousel';
 import {HomeLayout} from '../components/HomeLayout';
@@ -30,12 +33,17 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
   const verified = data?.companyInfo?.is_verified === 'Yes';
   const onLeave = data?.employeesOnLeave ?? [];
   const team = usePeopleOnDate(toDateKey());
+  const approvals = useApprovals();
+  // Approvals lives on the root stack, outside the tabs.
+  const rootNavigation = useNavigation();
 
   const onRefresh = useCallback(() => {
     queryClient.invalidateQueries({queryKey: queryKeys.companyDashboard});
     queryClient.invalidateQueries({queryKey: queryKeys.companyProfile});
     queryClient.invalidateQueries({queryKey: queryKeys.banners});
     queryClient.invalidateQueries({queryKey: ['people']});
+    approvals.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryClient]);
 
   const section = {paddingHorizontal: spacing.lg, marginTop: spacing.xxl};
@@ -97,6 +105,15 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
             </View>
             <ChevronRight size={18} color={colors.warning} />
           </Card>
+        </Reveal>
+      ) : null}
+
+      {approvals.counts.all ? (
+        <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
+          <WaitingCard
+            counts={approvals.counts}
+            onOpen={kind => rootNavigation.navigate('Approvals', kind ? {filter: kind} : undefined)}
+          />
         </Reveal>
       ) : null}
 

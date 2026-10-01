@@ -1,6 +1,7 @@
 import type {NavigatorScreenParams} from '@react-navigation/native';
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import type {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
+import type {ApprovalFilter} from '../features/approvals/ApprovalsScreen';
 import type {FaceCaptureParams} from '../features/face/captureFace';
 import type {ModuleId} from '../features/modules/catalog';
 
@@ -31,6 +32,7 @@ export type AppStackParamList = {
   Module: {id: ModuleId};
   EmployeeDetail: {id: number; name?: string; tab?: string};
   FaceCapture: FaceCaptureParams;
+  Approvals: {filter?: ApprovalFilter} | undefined;
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

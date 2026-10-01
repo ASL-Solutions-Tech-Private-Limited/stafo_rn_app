@@ -382,6 +382,9 @@ export type MissedPunchRequest = {
   /** "Pending" | "Approved" | "Rejected" */
   status: string;
   created_at?: string | null;
+  employee?: {id: number; name: string; emp_id?: string | null} | null;
+  branch?: {id: number; branch_name: string} | null;
+  department?: {id: number; name: string} | null;
 };
 
 export type MissedPunchListResponse = {status: boolean; message: string; data: MissedPunchRequest[]};
@@ -406,3 +409,18 @@ export type SalarySlipResponse = {
   message: string;
   data?: {filename: string; download_url: string} | null;
 };
+
+/** An employee row from device-requests-list; `device_*` describe the phone asking to sign in. */
+export type DeviceRequest = {
+  id: number;
+  name: string;
+  emp_id?: string | null;
+  image?: string | null;
+  device_id: string;
+  device_name?: string | null;
+  /** "pending" | "approved" | "rejected" */
+  device_status?: string | null;
+  updated_at?: string | null;
+};
+
+export type DeviceRequestsResponse = {success: boolean; message: string; data: DeviceRequest[]};
