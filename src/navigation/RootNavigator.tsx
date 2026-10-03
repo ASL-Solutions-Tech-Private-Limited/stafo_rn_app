@@ -39,6 +39,9 @@ import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
+import {TasksScreen} from '../features/tasks/TasksScreen';
+import {TaskDetailScreen} from '../features/tasks/TaskDetailScreen';
+import {TaskFormScreen} from '../features/tasks/TaskFormScreen';
 import {QrPunchScreen} from '../features/punch/QrPunchScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
@@ -67,6 +70,7 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   EmployeeDetail: 'company',
   Approvals: 'company',
   AttendanceQr: 'company',
+  TaskForm: 'company',
   LiveLocation: 'company',
   EmployeeRoute: 'company',
   Setup: 'company',
@@ -100,6 +104,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       MyHolidays: 'holidays',
       MyPolicies: 'policies',
       AttendanceQr: 'setup/qr',
+      Tasks: 'tasks',
+      TaskDetail: {path: 'task/:id', parse: {id: Number}},
+      TaskForm: 'tasks/new',
       LiveLocation: 'live',
       EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
       Setup: 'setup',
@@ -295,6 +302,9 @@ export function RootNavigator() {
             component={FaceCaptureScreen}
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
+          <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="TaskDetail" component={TaskDetailScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="TaskForm" component={TaskFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="AttendanceQr" component={AttendanceQrScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyHolidays" component={MyHolidaysScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyPolicies" component={MyPoliciesScreen} options={{animation: 'slide_from_right'}} />

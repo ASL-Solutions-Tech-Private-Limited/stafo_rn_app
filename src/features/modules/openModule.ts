@@ -38,6 +38,10 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate(id === 'holidays' ? 'MyHolidays' : 'MyPolicies');
     return;
   }
+  if (id === 'tasks') {
+    navigation.navigate('Tasks');
+    return;
+  }
   if (id === 'payslips') {
     navigation.navigate('MyPayslips');
     return;

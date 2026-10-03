@@ -38,6 +38,9 @@ export type AppStackParamList = {
   MyHolidays: undefined;
   MyPolicies: undefined;
   AttendanceQr: undefined;
+  Tasks: undefined;
+  TaskDetail: {id: number};
+  TaskForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;
