@@ -35,6 +35,8 @@ export type AppStackParamList = {
   GeoPunch: {direction: 'in' | 'out'};
   MyLeave: {apply?: boolean} | undefined;
   MyPayslips: undefined;
+  MyHolidays: undefined;
+  MyPolicies: undefined;
   AttendanceQr: undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;

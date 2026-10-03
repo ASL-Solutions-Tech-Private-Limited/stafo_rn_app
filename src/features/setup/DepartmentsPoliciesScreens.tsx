@@ -6,6 +6,7 @@ import {BottomSheet, Button, Card, EmptyState, Text, TextField, toast} from '../
 import {formatDay, parseServerDate, toDateKey} from '../../lib/date';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
+import {policyUrl} from './setupLogic';
 import {usePeopleOnDate} from '../people/queries';
 import {useCreateDepartment, useCreatePolicy, useDepartments, usePolicies} from './queries';
 import {IconWell, SetupScreen} from './parts';
@@ -144,7 +145,7 @@ export function PoliciesScreen(_: AppScreenProps<'SetupPolicies'>) {
         />
       ) : (
         list.map(p => {
-          const url = p.file ? (/^https?:/.test(p.file) ? p.file : base ? `${base}/${p.file}` : null) : null;
+          const url = policyUrl(p.file, base);
           const date = parseServerDate(p.created_at);
           return (
             <Card

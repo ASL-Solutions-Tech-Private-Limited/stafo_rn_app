@@ -99,3 +99,49 @@ export function splitHolidays(holidays: Holiday[], now = new Date()) {
     past: sorted.filter(h => h.end_date < today).reverse(),
   };
 }
+
+/** Whole days from today until the holiday starts (0 = today). */
+export function daysUntil(h: Pick<Holiday, 'start_date'>, now = new Date()) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const start = new Date(`${h.start_date.slice(0, 10)}T00:00:00`);
+  return Math.round((start.getTime() - today.getTime()) / 86_400_000);
+}
+
+/** "Today", "Tomorrow", "In 18 days". */
+export function untilLabel(days: number) {
+  return days <= 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+}
+
+/**
+ * The weekday when every day of the holiday is already a week-off in their
+ * shift (it gives no extra day off), else null.
+ */
+export function holidayOnWeekOff(h: Pick<Holiday, 'start_date' | 'end_date'>, shift?: ShiftWithDays | null) {
+  if (!shift || KEYS.every(k => shift[k] == null)) {
+    return null;
+  }
+  const days = shiftDays(shift);
+  const from = new Date(`${h.start_date.slice(0, 10)}T00:00:00`);
+  const to = new Date(`${(h.end_date || h.start_date).slice(0, 10)}T00:00:00`);
+  for (const d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+    if (days[(d.getDay() + 6) % 7]) {
+      return null;
+    }
+  }
+  return from.toLocaleDateString('en-GB', {weekday: 'long'});
+}
+
+/** Holidays in a given year (by start date). */
+export const holidaysInYear = <T extends Pick<Holiday, 'start_date'>>(list: T[], year: number) =>
+  list.filter(h => h.start_date.startsWith(String(year)));
+
+/** A policy's file as a full URL, or null. The API gives a bare file name plus a base path. */
+export function policyUrl(file: string | null | undefined, base: string | null | undefined) {
+  if (!file) {
+    return null;
+  }
+  if (/^https?:/.test(file)) {
+    return file;
+  }
+  return base ? `${base.replace(/\/+$/, '')}/${file}` : null;
+}

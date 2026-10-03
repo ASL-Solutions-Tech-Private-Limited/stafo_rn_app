@@ -36,6 +36,8 @@ import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {GeoPunchScreen} from '../features/punch/GeoPunchScreen';
 import {MyLeaveScreen} from '../features/leave/MyLeaveScreen';
 import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
+import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
+import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
 import {QrPunchScreen} from '../features/punch/QrPunchScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
@@ -82,6 +84,8 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   EditEmployee: 'company',
   MyLeave: 'employee',
   MyPayslips: 'employee',
+  MyHolidays: 'employee',
+  MyPolicies: 'employee',
 };
 
 const linking: LinkingOptions<AppStackParamList> = {
@@ -93,6 +97,8 @@ const linking: LinkingOptions<AppStackParamList> = {
       Approvals: 'approvals/:filter?',
       MyLeave: 'leave',
       MyPayslips: 'payslips',
+      MyHolidays: 'holidays',
+      MyPolicies: 'policies',
       AttendanceQr: 'setup/qr',
       LiveLocation: 'live',
       EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
@@ -290,6 +296,8 @@ export function RootNavigator() {
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
           <AppStack.Screen name="AttendanceQr" component={AttendanceQrScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="MyHolidays" component={MyHolidaysScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="MyPolicies" component={MyPoliciesScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyPayslips" component={MyPayslipsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyLeave" component={MyLeaveScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="GeoPunch" component={GeoPunchScreen} options={{animation: 'slide_from_bottom'}} />

@@ -34,6 +34,10 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('MyLeave');
     return;
   }
+  if (role !== 'company' && (id === 'holidays' || id === 'policies')) {
+    navigation.navigate(id === 'holidays' ? 'MyHolidays' : 'MyPolicies');
+    return;
+  }
   if (id === 'payslips') {
     navigation.navigate('MyPayslips');
     return;
