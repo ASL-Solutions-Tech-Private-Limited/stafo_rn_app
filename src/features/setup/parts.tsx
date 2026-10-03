@@ -1,9 +1,18 @@
 import React, {useState} from 'react';
-import {Platform, Pressable, RefreshControl, View} from 'react-native';
+import {Platform, Pressable, RefreshControl, ScrollView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker, {DateTimePickerAndroid} from '@react-native-community/datetimepicker';
 import {ArrowLeft, Check, CircleAlert, Plus, type LucideIcon} from 'lucide-react-native';
-import {Button, EmptyState, IconButton, PressableScale, Screen, Skeleton, Text} from '../../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  IconButton,
+  PressableScale,
+  Screen,
+  Skeleton,
+  Text,
+} from '../../components/ui';
 import {atClock, formatClock, formatDay, parseServerDate, toDateKey, weekdayShort} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import {useTheme} from '../../theme/ThemeProvider';
@@ -218,7 +227,11 @@ export function DayToggles({days, onChange}: {days: boolean[]; onChange: (days: 
 
 const dayLabel = (key: string) => {
   const d = parseServerDate(key);
-  return d ? `${weekdayShort(d)}, ${formatDay(d)}` : key;
+  if (!d) {
+    return key;
+  }
+  const year = d.getFullYear() !== new Date().getFullYear() ? ` ${d.getFullYear()}` : '';
+  return `${weekdayShort(d)}, ${formatDay(d)}${year}`;
 };
 
 const toHHmm = (d: Date) =>
@@ -348,16 +361,22 @@ export function DateButton({
   value,
   onChange,
   min,
+  max,
+  placeholder,
 }: {
   label: string;
+  /** yyyy-MM-dd, or '' when not set (shows the placeholder). */
   value: string;
   onChange: (v: string) => void;
   min?: string;
+  max?: string;
+  placeholder?: string;
 }) {
   const {colors, spacing, radius} = useTheme();
   const [open, setOpen] = useState(false);
-  const date = parseServerDate(value) ?? new Date();
+  const date = parseServerDate(value) ?? parseServerDate(max ?? '') ?? new Date();
   const minDate = min ? parseServerDate(min) ?? undefined : undefined;
+  const maxDate = max ? parseServerDate(max) ?? undefined : undefined;
   const press = () => {
     haptics.select();
     if (Platform.OS === 'android') {
@@ -365,6 +384,7 @@ export function DateButton({
         value: date,
         mode: 'date',
         minimumDate: minDate,
+        maximumDate: maxDate,
         onChange: (e, d) => e.type === 'set' && d && onChange(toDateKey(d)),
       });
     } else {
@@ -377,7 +397,7 @@ export function DateButton({
       <PressableScale
         onPress={press}
         accessibilityRole="button"
-        accessibilityLabel={`${label}, ${dayLabel(value)}`}
+        accessibilityLabel={`${label}, ${value ? dayLabel(value) : placeholder ?? 'not set'}`}
         style={{
           marginTop: 6,
           height: 50,
@@ -387,7 +407,9 @@ export function DateButton({
           borderColor: open ? colors.primary : colors.borderStrong,
           justifyContent: 'center',
         }}>
-        <Text variant="body">{dayLabel(value)}</Text>
+        <Text variant="body" color={value ? colors.text : colors.textSubtle}>
+          {value ? dayLabel(value) : placeholder ?? 'Pick a date'}
+        </Text>
       </PressableScale>
       {open ? (
         <View style={{marginTop: spacing.sm}}>
@@ -396,10 +418,87 @@ export function DateButton({
             mode="date"
             display="inline"
             minimumDate={minDate}
+            maximumDate={maxDate}
             onChange={(_, d) => d && onChange(toDateKey(d))}
           />
         </View>
       ) : null}
     </View>
+  );
+}
+
+/** One-of-many chips; wraps by default, or scrolls sideways for long lists. */
+export function ChoiceChips<T extends string | number>({
+  label,
+  items,
+  value,
+  onChange,
+  scroll,
+}: {
+  label?: string;
+  items: {value: T; label: string}[];
+  value: T | null;
+  onChange: (value: T) => void;
+  scroll?: boolean;
+}) {
+  const {colors, spacing} = useTheme();
+  const chips = items.map(i => {
+    const on = i.value === value;
+    return (
+      <PressableScale
+        key={String(i.value)}
+        onPress={() => {
+          haptics.select();
+          onChange(i.value);
+        }}
+        accessibilityRole="radio"
+        accessibilityState={{checked: on}}
+        style={{
+          height: 38,
+          paddingHorizontal: 14,
+          borderRadius: 12,
+          borderWidth: 1,
+          borderColor: on ? colors.primary : colors.border,
+          backgroundColor: on ? colors.primarySoft : colors.surface,
+          justifyContent: 'center',
+        }}>
+        <Text variant="label" color={on ? colors.primary : colors.textMuted}>
+          {i.label}
+        </Text>
+      </PressableScale>
+    );
+  });
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel={label}>
+      {label ? (
+        <Text variant="label" style={{marginBottom: spacing.sm}}>
+          {label}
+        </Text>
+      ) : null}
+      {scroll ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{flexGrow: 0}}
+          contentContainerStyle={{gap: spacing.sm}}>
+          {chips}
+        </ScrollView>
+      ) : (
+        <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm}}>{chips}</View>
+      )}
+    </View>
+  );
+}
+
+/** A titled card section for long forms. */
+export function FormSection({title, children}: {title: string; children: React.ReactNode}) {
+  const {spacing} = useTheme();
+  return (
+    <Card style={{gap: spacing.md}}>
+      <Text variant="overline" tone="muted">
+        {title}
+      </Text>
+      {children}
+    </Card>
   );
 }

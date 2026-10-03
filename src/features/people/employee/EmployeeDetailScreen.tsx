@@ -63,6 +63,14 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
       setTab(linkedTab);
     }
   }, [linkedTab]);
+  // Opened from "Add reference selfie" after adding someone: go straight to the selfie sheet.
+  const openSelfie = route.params.open === 'selfie';
+  useEffect(() => {
+    if (openSelfie) {
+      const t = setTimeout(() => setSheet('selfie'), 450);
+      return () => clearTimeout(t);
+    }
+  }, [openSelfie]);
   const [month, setMonth] = useState(currentMonth());
   const [sheet, setSheet] = useState<Sheet>(null);
   const [confirm, setConfirm] = useState<Confirm>(null);
@@ -211,6 +219,10 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
         } else {
           setConfirm('location');
         }
+        break;
+      case 'edit':
+        setSheet(null);
+        navigation.navigate('EditEmployee', {id, name});
         break;
       case 'selfie':
         setSheet('selfie');

@@ -17,6 +17,9 @@ import {OnboardingScreen} from '../features/auth/screens/OnboardingScreen';
 import {ApprovalsScreen} from '../features/approvals/ApprovalsScreen';
 import {OtpScreen} from '../features/auth/screens/OtpScreen';
 import {EmployeeRouteScreen} from '../features/location/EmployeeRouteScreen';
+import {AddEmployeeScreen} from '../features/employees/AddEmployeeScreen';
+import {EditEmployeeScreen} from '../features/employees/EditEmployeeScreen';
+import {EmployeeAddedScreen} from '../features/employees/EmployeeAddedScreen';
 import {LiveLocationScreen} from '../features/location/LiveLocationScreen';
 import {PayrollRunScreen} from '../features/payroll/PayrollRunScreen';
 import {PayrollScreen} from '../features/payroll/PayrollScreen';
@@ -72,6 +75,8 @@ const linking: LinkingOptions<AppStackParamList> = {
       Payroll: 'payroll',
       SalaryComponents: 'payroll/components',
       Reports: 'reports',
+      AddEmployee: 'employees/new',
+      EditEmployee: {path: 'employee/:id/edit', parse: {id: Number}},
     },
   },
   // A deep link opened from cold start would otherwise be the only screen, so Back
@@ -223,6 +228,21 @@ export function RootNavigator() {
           <AppStack.Screen
             name="Reports"
             component={ReportsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="AddEmployee"
+            component={AddEmployeeScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
+          <AppStack.Screen
+            name="EmployeeAdded"
+            component={EmployeeAddedScreen}
+            options={{animation: 'fade'}}
+          />
+          <AppStack.Screen
+            name="EditEmployee"
+            component={EditEmployeeScreen}
             options={{animation: 'slide_from_right'}}
           />
           {/* A card, not a native modal: iOS can't show the next sheet while a modal is dismissing. */}

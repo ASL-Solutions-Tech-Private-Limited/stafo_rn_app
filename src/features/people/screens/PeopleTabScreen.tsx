@@ -1,7 +1,15 @@
 import React, {useMemo, useState} from 'react';
 import {FlatList, Pressable, RefreshControl, ScrollView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {CalendarDays, ChevronLeft, ChevronRight, CircleAlert, Search, UsersRound} from 'lucide-react-native';
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  Search,
+  UserPlus,
+  UsersRound,
+} from 'lucide-react-native';
 import {employeePhotoUrl} from '../../../api/endpoints/people';
 import {
   Avatar,
@@ -75,6 +83,7 @@ function dateTitle(dateKey: string) {
 
 export function PeopleTabScreen() {
   const {colors, spacing, radius} = useTheme();
+  const rootNavigation = useNavigation();
   const today = toDateKey();
   const [date, setDate] = useState(today);
   const [filter, setFilter] = useState<'all' | StatusGroup>('all');
@@ -111,6 +120,13 @@ export function PeopleTabScreen() {
             {counts.all ?? 0} employees
           </Text>
         </View>
+        <Button
+          title="Add"
+          icon={UserPlus}
+          size="sm"
+          fullWidth={false}
+          onPress={() => rootNavigation.navigate('AddEmployee')}
+        />
       </View>
 
       {/* Date bar */}

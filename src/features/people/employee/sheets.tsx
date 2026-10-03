@@ -12,6 +12,7 @@ import {
   QrCode,
   ScanFace,
   UserCheck,
+  UserPen,
   UserX,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -289,7 +290,7 @@ export function ShiftSheet({
   );
 }
 
-export type MoreAction = 'mode' | 'shift' | 'selfie' | 'location' | 'active';
+export type MoreAction = 'edit' | 'mode' | 'shift' | 'selfie' | 'location' | 'active';
 
 export function MoreSheet({
   visible,
@@ -324,6 +325,14 @@ export function MoreSheet({
     subtitle: string;
     danger?: boolean;
   }[] = [
+    {
+      key: 'edit',
+      icon: UserPen,
+      fg: colors.primary,
+      bg: colors.primarySoft,
+      title: 'Edit details',
+      subtitle: 'Name, phone, job, pay and statutory',
+    },
     {
       key: 'mode',
       icon: Fingerprint,

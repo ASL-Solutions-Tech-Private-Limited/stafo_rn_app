@@ -30,7 +30,7 @@ export type AppStackParamList = {
   EmployeeTabs: NavigatorScreenParams<EmployeeTabParamList>;
   CompanyTabs: NavigatorScreenParams<CompanyTabParamList>;
   Module: {id: ModuleId};
-  EmployeeDetail: {id: number; name?: string; tab?: string};
+  EmployeeDetail: {id: number; name?: string; tab?: string; open?: 'selfie'};
   FaceCapture: FaceCaptureParams;
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;
@@ -48,6 +48,19 @@ export type AppStackParamList = {
   PayrollRun: {employeeId: number; name: string; month: number};
   SalaryComponents: undefined;
   Reports: undefined;
+  AddEmployee: undefined;
+  EmployeeAdded: {
+    id: number;
+    empId: string | null;
+    name: string;
+    phone: string;
+    mode: 'geo' | 'selfie' | 'qr code';
+    branch: string | null;
+    department: string | null;
+    shift: string | null;
+    steps: Record<'position' | 'branch' | 'department' | 'mode', 'done' | 'failed' | 'skipped'>;
+  };
+  EditEmployee: {id: number; name?: string};
 };
 
 export type AuthScreenProps<T extends keyof AuthStackParamList> = NativeStackScreenProps<

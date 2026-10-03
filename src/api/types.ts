@@ -338,6 +338,17 @@ export type EmployeeProfile = {
   voter_verify?: number | string | null;
   dl_verify?: number | string | null;
   uan_verify?: number | string | null;
+  // Fields the update API takes back (it replaces the whole profile).
+  guardian_name?: string | null;
+  country?: number | string | null;
+  state?: number | string | null;
+  city?: number | string | null;
+  job_title_id?: number | null;
+  employee_type_id?: number | null;
+  official_email_id?: string | null;
+  pf_number?: string | null;
+  esi_number?: string | null;
+  date_of_leaving?: string | null;
 };
 
 export type EmployeeProfileResponse = {
