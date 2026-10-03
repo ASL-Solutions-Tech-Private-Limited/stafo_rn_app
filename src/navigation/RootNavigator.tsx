@@ -40,6 +40,9 @@ import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
 import {TasksScreen} from '../features/tasks/TasksScreen';
+import {CrmScreen} from '../features/crm/CrmScreen';
+import {LeadScreen} from '../features/crm/LeadScreen';
+import {LeadFormScreen} from '../features/crm/LeadFormScreen';
 import {TaskDetailScreen} from '../features/tasks/TaskDetailScreen';
 import {TaskFormScreen} from '../features/tasks/TaskFormScreen';
 import {QrPunchScreen} from '../features/punch/QrPunchScreen';
@@ -105,6 +108,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       MyPolicies: 'policies',
       AttendanceQr: 'setup/qr',
       Tasks: 'tasks',
+      Crm: 'crm',
+      Lead: {path: 'lead/:id', parse: {id: Number}},
+      LeadForm: 'crm/new',
       TaskDetail: {path: 'task/:id', parse: {id: Number}},
       TaskForm: 'tasks/new',
       LiveLocation: 'live',
@@ -302,6 +308,9 @@ export function RootNavigator() {
             component={FaceCaptureScreen}
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
+          <AppStack.Screen name="Crm" component={CrmScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Lead" component={LeadScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="LeadForm" component={LeadFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="TaskDetail" component={TaskDetailScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="TaskForm" component={TaskFormScreen} options={{animation: 'slide_from_bottom'}} />

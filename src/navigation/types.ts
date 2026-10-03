@@ -41,6 +41,9 @@ export type AppStackParamList = {
   Tasks: undefined;
   TaskDetail: {id: number};
   TaskForm: {id?: number} | undefined;
+  Crm: undefined;
+  Lead: {id: number};
+  LeadForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;
