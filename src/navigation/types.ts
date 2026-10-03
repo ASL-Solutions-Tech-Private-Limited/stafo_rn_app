@@ -33,6 +33,7 @@ export type AppStackParamList = {
   EmployeeDetail: {id: number; name?: string; tab?: string; open?: 'selfie'};
   FaceCapture: FaceCaptureParams;
   GeoPunch: {direction: 'in' | 'out'};
+  MyLeave: {apply?: boolean} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;

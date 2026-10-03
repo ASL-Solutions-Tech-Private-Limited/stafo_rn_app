@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Animated, Dimensions, Modal, Platform, Pressable, View} from 'react-native';
+import {Animated, Dimensions, Keyboard, Modal, Platform, Pressable, ScrollView, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '../../theme/ThemeProvider';
 import {Text} from './Text';
@@ -26,6 +26,23 @@ export function BottomSheet({visible, onClose, title, subtitle, children, onClos
   const translate = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
   const [mounted, setMounted] = useState(visible);
+  // Lift the sheet above the keyboard: a translucent modal window doesn't resize for it.
+  const [keyboard, setKeyboard] = useState(0);
+  useEffect(() => {
+    if (!mounted) {
+      return;
+    }
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', e =>
+      setKeyboard(e.endCoordinates.height),
+    );
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () =>
+      setKeyboard(0),
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [mounted]);
   const onClosedRef = useRef(onClosed);
   onClosedRef.current = onClosed;
   // Fire onClosed exactly once per close, whichever platform path reports it.
@@ -75,14 +92,15 @@ export function BottomSheet({visible, onClose, title, subtitle, children, onClos
           position: 'absolute',
           left: 0,
           right: 0,
-          bottom: 0,
+          bottom: keyboard,
+          maxHeight: SCREEN_HEIGHT * 0.92 - keyboard,
           transform: [{translateY: translate}],
           backgroundColor: colors.surface,
           borderTopLeftRadius: radius.xxl,
           borderTopRightRadius: radius.xxl,
           paddingHorizontal: spacing.xl,
           paddingTop: spacing.md,
-          paddingBottom: insets.bottom + spacing.xl,
+          paddingBottom: (keyboard ? 0 : insets.bottom) + spacing.xl,
         }}>
         <View
           style={{
@@ -100,7 +118,13 @@ export function BottomSheet({visible, onClose, title, subtitle, children, onClos
             {subtitle}
           </Text>
         ) : null}
-        <View style={{marginTop: title ? spacing.xl : 0}}>{children}</View>
+        <ScrollView
+          style={{marginTop: title ? spacing.xl : 0, flexGrow: 0}}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}>
+          {children}
+        </ScrollView>
       </Animated.View>
     </Modal>
   );

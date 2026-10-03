@@ -30,6 +30,10 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('EmployeeTabs', {screen: 'Attendance'});
     return;
   }
+  if (role !== 'company' && id === 'leave') {
+    navigation.navigate('MyLeave');
+    return;
+  }
   if (role === 'company' && id === 'attendance-requests') {
     navigation.navigate('Approvals', {filter: 'punch'});
     return;
