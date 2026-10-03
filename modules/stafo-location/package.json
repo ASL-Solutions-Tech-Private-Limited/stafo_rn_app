@@ -1,0 +1,27 @@
+{
+  "name": "stafo-location",
+  "version": "1.0.0",
+  "private": true,
+  "description": "STAFO's own location module: one-off fixes for punching, and consented, shift-bound background tracking.",
+  "main": "src/index.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "license": "UNLICENSED",
+  "files": ["src", "ios", "android", "*.podspec"],
+  "peerDependencies": {
+    "react-native": "*"
+  },
+  "codegenConfig": {
+    "name": "StafoLocationSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.stafo.location"
+    },
+    "ios": {
+      "modulesProvider": {
+        "StafoLocation": "StafoLocation"
+      }
+    }
+  }
+}

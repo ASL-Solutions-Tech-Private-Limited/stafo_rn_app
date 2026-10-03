@@ -33,6 +33,8 @@ import {LeaveTypesScreen} from '../features/setup/LeaveTypesScreen';
 import {SetupHubScreen} from '../features/setup/SetupHubScreen';
 import {ShiftsScreen} from '../features/setup/ShiftsScreen';
 import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
+import {GeoPunchScreen} from '../features/punch/GeoPunchScreen';
+import {QrPunchScreen} from '../features/punch/QrPunchScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
 import {AppsScreen} from '../features/modules/screens/AppsScreen';
@@ -249,6 +251,12 @@ export function RootNavigator() {
           <AppStack.Screen
             name="FaceCapture"
             component={FaceCaptureScreen}
+            options={{animation: 'slide_from_bottom', gestureEnabled: false}}
+          />
+          <AppStack.Screen name="GeoPunch" component={GeoPunchScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen
+            name="QrPunch"
+            component={QrPunchScreen}
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
         </AppStack.Navigator>

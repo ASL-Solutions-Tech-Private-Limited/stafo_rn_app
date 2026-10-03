@@ -32,6 +32,8 @@ export type AppStackParamList = {
   Module: {id: ModuleId};
   EmployeeDetail: {id: number; name?: string; tab?: string; open?: 'selfie'};
   FaceCapture: FaceCaptureParams;
+  GeoPunch: {direction: 'in' | 'out'};
+  QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;
   EmployeeRoute: {id: number; name?: string; date?: string};

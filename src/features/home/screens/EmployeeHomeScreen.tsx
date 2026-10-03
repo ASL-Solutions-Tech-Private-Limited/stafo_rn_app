@@ -11,6 +11,10 @@ import {HomeLayout} from '../components/HomeLayout';
 import {buildCelebrations, CelebrationsStrip, OnLeaveStrip} from '../components/PeopleStrips';
 import {PunchCard} from '../components/PunchCard';
 import {ShortcutGrid} from '../components/ShortcutGrid';
+import {PunchResultSheet} from '../../punch/PunchResultSheet';
+import {usePunchFlow} from '../../punch/usePunchFlow';
+import {LocationSharingCard} from '../../tracking/LocationSharingCard';
+import {useTrackingSync} from '../../tracking/useTrackingSync';
 import {queryKeys, useBanners, useEmployeeDashboard, useEmployeeDetails} from '../queries';
 
 export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
@@ -26,6 +30,9 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
   const name = info?.name ?? sessionEmployee?.name ?? 'there';
   const avatar = details.data?.image_url ?? info?.image ?? null;
   const subtitle = details.data?.data?.branch_name ?? info?.branch?.branch_name ?? null;
+  const companyName = details.data?.company_name;
+  const punch = usePunchFlow(info);
+  useTrackingSync(info, companyName);
 
   const refreshing = dashboard.isRefetching || details.isRefetching;
   const onRefresh = useCallback(() => {
@@ -62,11 +69,18 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
             <PunchCard
               info={info}
               loading={dashboard.isPending}
-              onPunch={() => navigation.navigate('Attendance')}
+              onPunch={punch.start}
+              punching={punch.checking}
             />
           )}
         </Reveal>
       }>
+      {info && (info.geo_status === '1' || info.geo_status === '2') ? (
+        <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
+          <LocationSharingCard info={info} companyName={companyName} />
+        </Reveal>
+      ) : null}
+
       <Reveal index={1} style={section}>
         <SectionHeader
           title="Quick actions"
@@ -91,6 +105,7 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
         <SectionHeader title="Celebrations" subtitle="Birthdays and work anniversaries" />
         <CelebrationsStrip items={buildCelebrations(dashboard.data?.birthday, dashboard.data?.annyversary)} />
       </Reveal>
+      <PunchResultSheet onRetry={punch.start} />
     </HomeLayout>
   );
 }

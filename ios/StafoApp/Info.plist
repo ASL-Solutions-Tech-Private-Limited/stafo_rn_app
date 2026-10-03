@@ -54,8 +54,10 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>STAFO uses the camera to take reference and attendance selfies.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>STAFO keeps sharing your location while you’re punched in, even with the app closed, if you’ve agreed to share it. It stops by itself at the end of your shift.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>STAFO checks you’re at your branch when you punch in, and shares your location with your company during your shift if you agree.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>STAFO lets you choose a photo for an employee's reference selfie.</string>
 	<key>RCTNewArchEnabled</key>
@@ -67,6 +69,10 @@
 		<string>PlusJakartaSans-Regular.ttf</string>
 		<string>PlusJakartaSans-Bold.ttf</string>
 		<string>PlusJakartaSans-ExtraBold.ttf</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>

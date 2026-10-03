@@ -1,0 +1,33 @@
+// STAFO's own location module. Uses the host app's Gradle plugins and SDK versions.
+def ext(name, fallback) { rootProject.ext.has(name) ? rootProject.ext.get(name) : fallback }
+
+apply plugin: 'com.android.library'
+
+// AGP 9 compiles Kotlin itself; older AGP (or builtInKotlin=false) needs the plugin.
+def agpMajor = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')[0].toInteger()
+def builtInKotlin = (providers.gradleProperty('android.builtInKotlin').orNull ?: 'true').toBoolean()
+if (agpMajor <= 8 || !builtInKotlin) {
+  apply plugin: 'kotlin-android'
+}
+apply plugin: 'com.facebook.react'
+
+android {
+  namespace 'com.stafo.location'
+  compileSdk ext('compileSdkVersion', 36)
+  defaultConfig {
+    minSdk ext('minSdkVersion', 24)
+  }
+  lint {
+    abortOnError false
+  }
+}
+
+repositories {
+  mavenCentral()
+  google()
+}
+
+dependencies {
+  implementation 'com.facebook.react:react-android'
+  implementation 'com.google.android.gms:play-services-location:21.3.0'
+}

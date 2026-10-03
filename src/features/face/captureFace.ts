@@ -5,6 +5,10 @@ export type FaceCaptureParams = {
   title: string;
   /** Whose face is being captured, e.g. the employee's full name. */
   personName: string;
+  /** Under the title; defaults to the person's name. */
+  subtitle?: string;
+  /** Offer "choose from gallery" (reference selfies). Never for a punch. */
+  allowGallery?: boolean;
 };
 
 export type FaceCaptureOutcome = {type: 'photo'; image: LocalImage} | {type: 'gallery'} | {type: 'cancel'};

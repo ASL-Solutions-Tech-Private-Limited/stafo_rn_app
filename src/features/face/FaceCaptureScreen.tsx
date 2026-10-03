@@ -54,7 +54,7 @@ type Phase = 'search' | 'adjust' | 'hold' | 'none' | 'many';
 type Reading = {phase: Phase; one: boolean; centred: boolean; close: boolean; hint: string};
 
 export function FaceCaptureScreen({navigation, route}: AppScreenProps<'FaceCapture'>) {
-  const {title, personName} = route.params;
+  const {title, personName, subtitle, allowGallery = true} = route.params;
   const firstName = personName.split(' ')[0];
   const insets = useSafeAreaInsets();
   const {width, height} = useWindowDimensions();
@@ -293,7 +293,9 @@ export function FaceCaptureScreen({navigation, route}: AppScreenProps<'FaceCaptu
     reading.phase === 'hold'
       ? 'Takes the photo by itself in a second, or tap the shutter'
       : reading.phase === 'none'
-      ? 'Only a real face can be saved as the reference'
+      ? allowGallery
+        ? 'Only a real face can be saved as the reference'
+        : 'Only a real face can be used to punch'
       : reading.phase === 'many'
       ? 'Ask others to step out of the frame'
       : 'The shutter turns on once a face is found';
@@ -382,7 +384,7 @@ export function FaceCaptureScreen({navigation, route}: AppScreenProps<'FaceCaptu
             {title}
           </Text>
           <Text variant="caption" color="rgba(255,255,255,0.72)" numberOfLines={1}>
-            {personName}
+            {subtitle ?? personName}
           </Text>
         </View>
         <RoundButton
@@ -412,8 +414,12 @@ export function FaceCaptureScreen({navigation, route}: AppScreenProps<'FaceCaptu
           </Text>
           <Text variant="caption" color="rgba(255,255,255,0.72)" align="center">
             {!permission.hasPermission
-              ? 'Turn on camera access for STAFO to take a reference selfie.'
-              : 'Choose a photo from the gallery instead.'}
+              ? `Turn on camera access for STAFO to take ${
+                  allowGallery ? 'a reference selfie' : 'your punch selfie'
+                }.`
+              : allowGallery
+              ? 'Choose a photo from the gallery instead.'
+              : 'Selfie punches need the face check. Use a phone build of the app.'}
           </Text>
           {!permission.hasPermission ? (
             <Button
@@ -493,21 +499,25 @@ export function FaceCaptureScreen({navigation, route}: AppScreenProps<'FaceCaptu
             justifyContent: 'space-between',
             paddingHorizontal: 40,
           }}>
-          <Pressable
-            onPress={() => finish({type: 'gallery'})}
-            accessibilityRole="button"
-            accessibilityLabel="Choose from gallery"
-            hitSlop={8}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              backgroundColor: 'rgba(255,255,255,0.16)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-            <ImageIcon size={22} color="#FFFFFF" />
-          </Pressable>
+          {allowGallery ? (
+            <Pressable
+              onPress={() => finish({type: 'gallery'})}
+              accessibilityRole="button"
+              accessibilityLabel="Choose from gallery"
+              hitSlop={8}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                backgroundColor: 'rgba(255,255,255,0.16)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <ImageIcon size={22} color="#FFFFFF" />
+            </Pressable>
+          ) : (
+            <View style={{width: 48}} />
+          )}
           <Pressable
             onPress={capture}
             disabled={!ready}

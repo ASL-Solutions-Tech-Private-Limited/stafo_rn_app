@@ -36,8 +36,10 @@
     "react-native-screens": "^4.28.0",
     "react-native-svg": "^15.15.5",
     "react-native-vision-camera": "^5.2.3",
+    "react-native-vision-camera-barcode-scanner": "^5.2.3",
     "react-native-vision-camera-face-detector": "^2.1.0",
     "react-native-worklets": "^0.13.0",
+    "stafo-location": "file:modules/stafo-location",
     "zustand": "^5.0.15"
   },
   "devDependencies": {

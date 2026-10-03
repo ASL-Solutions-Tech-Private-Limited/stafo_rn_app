@@ -15,9 +15,11 @@ type Props = {
   info?: EmployeeInfo;
   loading?: boolean;
   onPunch: () => void;
+  /** A punch is under way (finding their location). */
+  punching?: boolean;
 };
 
-export function PunchCard({info, loading, onPunch}: Props) {
+export function PunchCard({info, loading, onPunch, punching}: Props) {
   const {colors, spacing, radius, shadows, dark} = useTheme();
   const today = getTodayAttendance(info?.punches);
   const isIn = today.state === 'punched-in';
@@ -103,6 +105,7 @@ export function PunchCard({info, loading, onPunch}: Props) {
         title={isIn ? 'Punch out' : 'Punch in'}
         icon={isIn ? LogOut : LogIn}
         variant={isIn ? 'danger' : 'primary'}
+        loading={punching}
         onPress={() => {
           haptics.tap();
           onPunch();
