@@ -1,25 +1,12 @@
 import React from 'react';
-import {Linking, View} from 'react-native';
-import {Download, FileCheck2, Wallet} from 'lucide-react-native';
+import {View} from 'react-native';
+import {Wallet} from 'lucide-react-native';
 import type {EmployeeProfile} from '../../../../api/types';
-import {Card, EmptyState, PressableScale, Skeleton, Text} from '../../../../components/ui';
+import {Card, EmptyState, Skeleton, Text} from '../../../../components/ui';
 import {useTheme} from '../../../../theme/ThemeProvider';
 import {SectionLabel} from '../parts';
-
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
+import {PayslipList} from '../PayslipList';
+import type {Payslip} from '../queries';
 
 /** "32500.00" → "₹32,500". */
 export function formatRupees(value?: string | number | null) {
@@ -32,12 +19,12 @@ export function formatRupees(value?: string | number | null) {
 
 type Props = {
   profile?: EmployeeProfile | null;
-  payslips: {month: Date; url: string}[];
+  payslips: Payslip[];
   payslipsLoading: boolean;
 };
 
 export function SalaryTab({profile, payslips, payslipsLoading}: Props) {
-  const {colors, spacing, radius} = useTheme();
+  const {spacing} = useTheme();
   const monthly = formatRupees(profile?.salary);
   const ctc = formatRupees(profile?.ctc);
 
@@ -83,44 +70,7 @@ export function SalaryTab({profile, payslips, payslipsLoading}: Props) {
         {payslipsLoading ? (
           <Skeleton height={140} radius={20} />
         ) : payslips.length ? (
-          <Card padded={false}>
-            {payslips.map((p, i) => {
-              const label = `${MONTHS[p.month.getMonth()]} ${p.month.getFullYear()}`;
-              return (
-                <PressableScale
-                  key={label}
-                  scaleTo={0.99}
-                  onPress={() => Linking.openURL(p.url)}
-                  accessibilityRole="link"
-                  accessibilityLabel={`Open payslip for ${label}`}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: spacing.md,
-                    paddingHorizontal: spacing.lg,
-                    paddingVertical: 13,
-                    borderTopWidth: i ? 1 : 0,
-                    borderTopColor: colors.border,
-                  }}>
-                  <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: radius.md,
-                      backgroundColor: colors.successSoft,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    <FileCheck2 size={16} color={colors.success} />
-                  </View>
-                  <Text variant="title" style={{flex: 1}}>
-                    {label}
-                  </Text>
-                  <Download size={18} color={colors.primary} />
-                </PressableScale>
-              );
-            })}
-          </Card>
+          <PayslipList payslips={payslips} />
         ) : (
           <Card>
             <EmptyState

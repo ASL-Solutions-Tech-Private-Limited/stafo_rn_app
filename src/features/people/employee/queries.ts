@@ -81,6 +81,9 @@ export function useShifts() {
   });
 }
 
+/** A paid month; url is null when the server can't build its PDF. */
+export type Payslip = {month: Date; url: string | null};
+
 /** Payslips for the last `months` months (only months where payroll was run). */
 export function usePayslips(id: number, enabled = true, months = 6) {
   const companyId = useSession(s => s.companyId);
@@ -98,13 +101,13 @@ export function usePayslips(id: number, enabled = true, months = 6) {
         periods.map(async d => {
           try {
             const slip = await getSalarySlip(companyId!, id, d.getMonth() + 1, d.getFullYear());
-            return slip ? {month: d, url: slip.download_url} : null;
+            return slip.state === 'none' ? null : {month: d, url: slip.state === 'ready' ? slip.url : null};
           } catch {
             return null;
           }
         }),
       );
-      return results.filter((r): r is {month: Date; url: string} => r !== null);
+      return results.filter((r): r is Payslip => r !== null);
     },
   });
 }

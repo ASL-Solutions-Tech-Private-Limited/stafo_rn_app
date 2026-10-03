@@ -34,6 +34,7 @@ export type AppStackParamList = {
   FaceCapture: FaceCaptureParams;
   GeoPunch: {direction: 'in' | 'out'};
   MyLeave: {apply?: boolean} | undefined;
+  MyPayslips: undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;

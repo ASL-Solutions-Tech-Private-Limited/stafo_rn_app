@@ -68,7 +68,7 @@ export function usePayrollMonth(month: Date) {
     employee: e,
     slip: slips[i]?.data ?? null,
     loading: !!slips[i]?.isPending,
-    status: payStatus(e.salary, !!slips[i]?.data),
+    status: payStatus(e.salary, !!slips[i]?.data && slips[i].data!.state !== 'none'),
   }));
   return {
     rows,

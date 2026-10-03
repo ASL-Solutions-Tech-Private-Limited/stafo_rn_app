@@ -39,6 +39,7 @@ export type ModuleId =
   | 'expenses'
   | 'reports'
   | 'payroll'
+  | 'payslips'
   | 'salary-disbursement'
   | 'performance'
   | 'rankings'
@@ -223,6 +224,15 @@ export const MODULES: AppModule[] = [
     group: 'Finance',
     roles: ['company'],
     phase: 5,
+  },
+  {
+    id: 'payslips',
+    title: 'Payslips',
+    description: 'Your monthly salary slips',
+    icon: FileText,
+    group: 'Finance',
+    roles: ['employee'],
+    phase: 3,
   },
   {
     id: 'salary-disbursement',

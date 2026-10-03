@@ -35,6 +35,7 @@ import {ShiftsScreen} from '../features/setup/ShiftsScreen';
 import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {GeoPunchScreen} from '../features/punch/GeoPunchScreen';
 import {MyLeaveScreen} from '../features/leave/MyLeaveScreen';
+import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {QrPunchScreen} from '../features/punch/QrPunchScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
@@ -65,6 +66,8 @@ const linking: LinkingOptions<AppStackParamList> = {
       EmployeeDetail: {path: 'employee/:id', parse: {id: Number}},
       Module: 'module/:id',
       Approvals: 'approvals/:filter?',
+      MyLeave: 'leave',
+      MyPayslips: 'payslips',
       LiveLocation: 'live',
       EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
       Setup: 'setup',
@@ -254,6 +257,7 @@ export function RootNavigator() {
             component={FaceCaptureScreen}
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
+          <AppStack.Screen name="MyPayslips" component={MyPayslipsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyLeave" component={MyLeaveScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="GeoPunch" component={GeoPunchScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen

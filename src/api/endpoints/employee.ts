@@ -1,4 +1,4 @@
-import {api, ensureOk} from '../client';
+import {api, ApiError, ensureOk} from '../client';
 import type {
   BasicResponse,
   EmployeeDocumentsResponse,
@@ -58,15 +58,40 @@ export async function getShifts(companyId: string) {
   return ensureOk(data).data ?? [];
 }
 
-/** Payslip PDF for a month, or null when payroll wasn't run that month. */
-export async function getSalarySlip(companyId: string, employeeId: number, month: number, year: number) {
-  const {data} = await api.post<SalarySlipResponse>('api/employee/salary-slip/download', {
-    company_id: companyId,
-    employee_id: String(employeeId),
-    month: String(month).padStart(2, '0'),
-    year: String(year),
-  });
-  return data.success && data.data?.download_url ? data.data : null;
+export type SalarySlip =
+  | {state: 'ready'; url: string; filename: string}
+  /** Payroll wasn't run that month. */
+  | {state: 'none'}
+  /** Paid (a salary record exists), but the server fails to build the PDF. */
+  | {state: 'unavailable'};
+
+/**
+ * The payslip for a month. The server only reaches its PDF step when a salary
+ * record exists, so a server error there still means the month was paid
+ * (seen on production: salary_pdf.blade.php crashes on an undefined $monthName).
+ */
+export async function getSalarySlip(
+  companyId: string,
+  employeeId: number,
+  month: number,
+  year: number,
+): Promise<SalarySlip> {
+  try {
+    const {data} = await api.post<SalarySlipResponse>('api/employee/salary-slip/download', {
+      company_id: companyId,
+      employee_id: String(employeeId),
+      month: String(month).padStart(2, '0'),
+      year: String(year),
+    });
+    return data.success && data.data?.download_url
+      ? {state: 'ready', url: data.data.download_url, filename: data.data.filename}
+      : {state: 'none'};
+  } catch (e) {
+    if (e instanceof ApiError && (e.status ?? 0) >= 500) {
+      return {state: 'unavailable'};
+    }
+    throw e;
+  }
 }
 
 // ---------- Admin actions ----------
