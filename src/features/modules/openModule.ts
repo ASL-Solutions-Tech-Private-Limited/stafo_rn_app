@@ -25,6 +25,15 @@ type Navigator = Pick<NavigationProp<ReactNavigation.RootParamList>, 'navigate'>
 
 /** Opens a module's own screen when it has one, otherwise the generic module page. */
 export function openModule(navigation: Navigator, id: ModuleId, role: string | null | undefined) {
+  if (role !== 'company' && (id === 'attendance' || id === 'attendance-requests')) {
+    // My attendance (calendar + punch-out requests) lives in the Attendance tab.
+    navigation.navigate('EmployeeTabs', {screen: 'Attendance'});
+    return;
+  }
+  if (role === 'company' && id === 'attendance-requests') {
+    navigation.navigate('Approvals', {filter: 'punch'});
+    return;
+  }
   if (id === 'employees' && role === 'company') {
     // The directory is the People tab; adding someone starts from its Add button.
     navigation.navigate('CompanyTabs', {screen: 'People'});
