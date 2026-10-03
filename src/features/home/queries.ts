@@ -65,16 +65,25 @@ export function useEmployeeDetails() {
   return query;
 }
 
+/**
+ * Company accounts only. Asked by an employee token, company-dashboard answers
+ * with the employee's own id as company_id, which must never reach the session.
+ */
 export function useCompanyDashboard() {
   const setOrgIds = useSession(s => s.setOrgIds);
-  const query = useQuery({queryKey: queryKeys.companyDashboard, queryFn: getCompanyDashboard});
+  const isCompany = useSession(s => s.role === 'company');
+  const query = useQuery({
+    queryKey: queryKeys.companyDashboard,
+    queryFn: getCompanyDashboard,
+    enabled: isCompany,
+  });
 
   const companyId = query.data?.company_id;
   useEffect(() => {
-    if (companyId != null) {
+    if (isCompany && companyId != null) {
       setOrgIds({companyId: String(companyId)});
     }
-  }, [companyId, setOrgIds]);
+  }, [isCompany, companyId, setOrgIds]);
 
   return query;
 }

@@ -9,6 +9,7 @@ import {
   FileText,
   Network,
   TriangleAlert,
+  QrCode,
 } from 'lucide-react-native';
 import {Card, Text} from '../../components/ui';
 import {formatDay, parseServerDate, weekdayShort} from '../../lib/date';
@@ -103,6 +104,14 @@ export function SetupHubScreen({navigation}: AppScreenProps<'Setup'>) {
           value={count(departments.data?.length)}
           subtitle={departments.data ? firstFew(departments.data.map(d => d.name)) : null}
           onPress={() => navigation.navigate('SetupDepartments')}
+        />
+        <SetupRow
+          icon={QrCode}
+          fg={colors.primary}
+          bg={colors.primarySoft}
+          title="Attendance QR codes"
+          subtitle="Print one per branch and department"
+          onPress={() => navigation.navigate('AttendanceQr')}
         />
       </Card>
 

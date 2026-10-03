@@ -58,6 +58,8 @@
 	<string>STAFO keeps sharing your location while you’re punched in, even with the app closed, if you’ve agreed to share it. It stops by itself at the end of your shift.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>STAFO checks you’re at your branch when you punch in, and shares your location with your company during your shift if you agree.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>STAFO saves attendance QR codes to your photos so you can print them.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>STAFO lets you choose a photo for an employee's reference selfie.</string>
 	<key>RCTNewArchEnabled</key>

@@ -162,3 +162,22 @@ export async function createPolicy(p: {
   });
   return ensureOk(data);
 }
+
+// ---------- Attendance QR codes ----------
+
+/**
+ * The QR code people on QR attendance scan, as SVG. It's fixed per branch +
+ * department: asking again returns the same code, so this never invalidates a
+ * printed one.
+ */
+export async function getAttendanceQr(companyId: string, branchId: number, departmentId: number) {
+  const {data} = await api.post<string>(
+    'api/generate-qrcode',
+    {company_id: Number(companyId), branch_id: branchId, department_id: departmentId},
+    {responseType: 'text', headers: {Accept: 'image/svg+xml'}},
+  );
+  if (typeof data !== 'string' || !data.includes('<svg')) {
+    throw new Error('Couldn’t get the QR code. Please try again.');
+  }
+  return data;
+}

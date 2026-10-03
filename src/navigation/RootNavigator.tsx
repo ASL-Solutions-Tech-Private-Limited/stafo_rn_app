@@ -36,6 +36,7 @@ import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {GeoPunchScreen} from '../features/punch/GeoPunchScreen';
 import {MyLeaveScreen} from '../features/leave/MyLeaveScreen';
 import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
+import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
 import {QrPunchScreen} from '../features/punch/QrPunchScreen';
 import {CompanyHomeScreen} from '../features/home/screens/CompanyHomeScreen';
 import {EmployeeHomeScreen} from '../features/home/screens/EmployeeHomeScreen';
@@ -59,6 +60,30 @@ const CompanyTabs = createBottomTabNavigator<CompanyTabParamList>();
  * stafo:// deep links. Used for push notifications (open the right screen)
  * and for testing: `xcrun simctl openurl booted stafo://employee/24`.
  */
+/** Screens only one kind of account may open from a link. */
+const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>> = {
+  EmployeeDetail: 'company',
+  Approvals: 'company',
+  AttendanceQr: 'company',
+  LiveLocation: 'company',
+  EmployeeRoute: 'company',
+  Setup: 'company',
+  SetupBranches: 'company',
+  SetupBranchEdit: 'company',
+  SetupShifts: 'company',
+  SetupHolidays: 'company',
+  SetupLeaveTypes: 'company',
+  SetupDepartments: 'company',
+  SetupPolicies: 'company',
+  Payroll: 'company',
+  SalaryComponents: 'company',
+  Reports: 'company',
+  AddEmployee: 'company',
+  EditEmployee: 'company',
+  MyLeave: 'employee',
+  MyPayslips: 'employee',
+};
+
 const linking: LinkingOptions<AppStackParamList> = {
   prefixes: ['stafo://'],
   config: {
@@ -68,6 +93,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       Approvals: 'approvals/:filter?',
       MyLeave: 'leave',
       MyPayslips: 'payslips',
+      AttendanceQr: 'setup/qr',
       LiveLocation: 'live',
       EmployeeRoute: {path: 'route/:id/:date?', parse: {id: Number}},
       Setup: 'setup',
@@ -89,8 +115,14 @@ const linking: LinkingOptions<AppStackParamList> = {
   // would do nothing. Put the role's home tabs underneath it.
   getStateFromPath(path, options) {
     const state = getStateFromPath(path, options);
-    const home = useSession.getState().role === 'company' ? 'CompanyTabs' : 'EmployeeTabs';
+    const role = useSession.getState().role;
+    const home = role === 'company' ? 'CompanyTabs' : 'EmployeeTabs';
     const first = state?.routes[0];
+    // A link meant for the other kind of account opens home instead.
+    const only = first ? ROLE_ONLY[first.name as keyof AppStackParamList] : undefined;
+    if (only && only !== role) {
+      return {index: 0, routes: [{name: home}]} as NonNullable<typeof state>;
+    }
     if (state && state.routes.length === 1 && first && first.name !== home) {
       return {...state, index: 1, routes: [{name: home}, ...state.routes]} as typeof state;
     }
@@ -257,6 +289,7 @@ export function RootNavigator() {
             component={FaceCaptureScreen}
             options={{animation: 'slide_from_bottom', gestureEnabled: false}}
           />
+          <AppStack.Screen name="AttendanceQr" component={AttendanceQrScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyPayslips" component={MyPayslipsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="MyLeave" component={MyLeaveScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="GeoPunch" component={GeoPunchScreen} options={{animation: 'slide_from_bottom'}} />
