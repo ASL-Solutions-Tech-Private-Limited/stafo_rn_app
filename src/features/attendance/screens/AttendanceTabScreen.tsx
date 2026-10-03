@@ -1,30 +1,144 @@
-import React from 'react';
-import {Fingerprint} from 'lucide-react-native';
-import {Screen, Text} from '../../../components/ui';
+import React, {useCallback, useMemo, useState} from 'react';
+import {RefreshControl, View} from 'react-native';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {Clock3, Info, Send} from 'lucide-react-native';
+import {askForPunchOut, getMyPunchFixes} from '../../../api/endpoints/punch';
+import {getHolidays} from '../../../api/endpoints/setup';
+import type {ShiftWithDays} from '../../../api/types';
+import {Button, Screen, Text, toast} from '../../../components/ui';
+import {haptics} from '../../../lib/haptics';
+import {toDateKey} from '../../../lib/date';
+import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
-import {PhasePlaceholder} from '../../modules/components/PhasePlaceholder';
+import {useEmployeeDashboard} from '../../home/queries';
+import {buildMonth, type CalendarDay} from '../../people/employeeInsights';
+import {employeeKeys, useEmployeeLeaves, useMonthAttendance} from '../../people/employee/queries';
+import {AttendanceTab} from '../../people/employee/tabs/AttendanceTab';
+import {AskPunchOutSheet} from '../AskPunchOutSheet';
+import {fixableDates, punchFixEligibility} from '../punchFix';
 
+const currentMonth = () => toDateKey().slice(0, 7);
+
+/** The employee's own month: calendar, day details, and asking for a missed punch-out. */
 export function AttendanceTabScreen() {
-  const {spacing} = useTheme();
+  const {colors, spacing} = useTheme();
+  const queryClient = useQueryClient();
+  const me = useSession(s => s.employee);
+  const companyId = useSession(s => s.companyId);
+  const myId = me?.id ?? 0;
+  const [month, setMonth] = useState(currentMonth());
+  const [asking, setAsking] = useState<CalendarDay | null>(null);
+
+  const info = useEmployeeDashboard().data?.employee_info;
+  const shift = info?.shifts?.[0] as ShiftWithDays | undefined;
+  const monthQuery = useMonthAttendance(myId, month);
+  const leavesQuery = useEmployeeLeaves(myId);
+  const fixes = useQuery({
+    queryKey: ['my-punch-fixes', myId],
+    queryFn: () => getMyPunchFixes(myId),
+    enabled: !!myId,
+    select: list => [...list].sort((a, b) => b.id - a.id),
+  });
+  // Holidays don't count towards the 3 working days. If the list isn't readable, fall back to the shift's week.
+  const holidays = useQuery({
+    queryKey: ['my-holidays', companyId],
+    queryFn: () => getHolidays(companyId!),
+    enabled: !!companyId,
+    staleTime: 60 * 60_000,
+    retry: false,
+  });
+
+  const days = useMemo(
+    () => buildMonth(month, monthQuery.data ?? [], leavesQuery.data ?? [], shift),
+    [month, monthQuery.data, leavesQuery.data, shift],
+  );
+  const allowed = useMemo(() => fixableDates(shift, holidays.data ?? []), [shift, holidays.data]);
+
+  const ask = useMutation({
+    mutationFn: (p: {date: string; time: string; reason: string}) =>
+      askForPunchOut({employee_id: myId, date: p.date, punch_out_time: p.time, reason: p.reason}),
+    onSuccess: () => {
+      haptics.success();
+      toast.success('Sent to your manager');
+      setAsking(null);
+      queryClient.invalidateQueries({queryKey: ['my-punch-fixes', myId]});
+    },
+    onError: (e: Error) => {
+      haptics.error();
+      toast.error(e.message);
+    },
+  });
+
+  const refreshing = monthQuery.isRefetching || fixes.isRefetching;
+  const onRefresh = useCallback(() => {
+    queryClient.invalidateQueries({queryKey: employeeKeys.month(myId, month)});
+    queryClient.invalidateQueries({queryKey: ['my-punch-fixes', myId]});
+  }, [queryClient, myId, month]);
+
+  const renderDayAction = (day: CalendarDay) => {
+    if (!day.record?.in_time || day.record.out_time) {
+      return null;
+    }
+    const can = punchFixEligibility(day.dateKey, day.record, allowed, fixes.data ?? []);
+    if (can.ok) {
+      return (
+        <Button
+          title="Ask for punch-out"
+          icon={Send}
+          variant="secondary"
+          size="sm"
+          onPress={() => {
+            haptics.tap();
+            setAsking(day);
+          }}
+        />
+      );
+    }
+    return can.message ? (
+      <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm}}>
+        {can.reason === 'requested' ? (
+          <Clock3 size={14} color={colors.warning} />
+        ) : (
+          <Info size={14} color={colors.textSubtle} />
+        )}
+        <Text variant="caption" tone="subtle" style={{flex: 1}}>
+          {can.message}
+        </Text>
+      </View>
+    ) : null;
+  };
+
   return (
     <Screen
       scroll
       safeBottom={false}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       contentStyle={{paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl}}>
-      <Text variant="h1" style={{marginTop: spacing.lg}}>
-        Attendance
+      <Text variant="h1" style={{marginTop: spacing.lg, marginBottom: spacing.lg}}>
+        My attendance
       </Text>
-      <PhasePlaceholder
-        icon={Fingerprint}
-        title="Punch in, your way"
-        description="Geo, selfie and QR attendance with geofence checks, plus your monthly calendar."
-        phase={2}
-        highlights={[
-          'One-tap punch with face auto-capture and fake-GPS detection',
-          'Monthly calendar with late marks, hours and holidays',
-          'Reliable background location on Android and iOS, only with your consent',
-          'Missed punch-out requests',
-        ]}
+      <AttendanceTab
+        self
+        month={month}
+        onMonth={setMonth}
+        canGoNext={month < currentMonth()}
+        days={days}
+        loading={monthQuery.isPending}
+        requests={fixes.data ?? []}
+        requestsLoading={fixes.isPending}
+        employeeId={myId}
+        name={me?.name ?? 'You'}
+        shift={shift}
+        renderDayAction={renderDayAction}
+      />
+      <AskPunchOutSheet
+        visible={!!asking}
+        onClose={() => setAsking(null)}
+        dateKey={asking?.dateKey ?? ''}
+        inTime={asking?.record?.in_time}
+        shift={shift}
+        sending={ask.isPending}
+        onSend={(time, reason) => asking && ask.mutate({date: asking.dateKey, time, reason})}
       />
     </Screen>
   );

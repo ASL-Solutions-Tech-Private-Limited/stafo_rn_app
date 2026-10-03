@@ -71,6 +71,10 @@ type Props = {
   employeeId: number;
   name: string;
   shift?: ShiftWithDays | null;
+  /** The employee looking at their own attendance (no approve / reject). */
+  self?: boolean;
+  /** Extra action under the selected day, e.g. "Ask for punch-out". */
+  renderDayAction?: (day: CalendarDay) => React.ReactNode;
 };
 
 export function AttendanceTab({
@@ -84,6 +88,8 @@ export function AttendanceTab({
   employeeId,
   name,
   shift,
+  self = false,
+  renderDayAction,
 }: Props) {
   const {colors, spacing, radius} = useTheme();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -279,7 +285,7 @@ export function AttendanceTab({
               {selected.kind === 'present' || selected.kind === 'late' || selected.kind === 'half-day'
                 ? 'Marked present, but no punch times were recorded (usually a manual entry).'
                 : selected.kind === 'off'
-                ? 'Not a working day in their shift.'
+                ? `Not a working day in ${self ? 'your' : 'their'} shift.`
                 : selected.kind === 'future'
                 ? 'This day is still ahead.'
                 : selected.kind === 'none'
@@ -310,6 +316,7 @@ export function AttendanceTab({
               </Text>
             </View>
           ) : null}
+          {renderDayAction?.(selected)}
         </Card>
       ) : null}
 
@@ -333,13 +340,13 @@ export function AttendanceTab({
       ) : null}
 
       <View>
-        <SectionLabel>Correction requests</SectionLabel>
+        <SectionLabel>{self ? 'Your punch fixes' : 'Correction requests'}</SectionLabel>
         {requestsLoading ? (
           <Skeleton height={96} radius={20} />
         ) : requests.length ? (
           <View style={{gap: spacing.md}}>
             {requests.slice(0, 5).map(r => (
-              <CorrectionCard key={r.id} request={r} />
+              <CorrectionCard key={r.id} request={r} readOnly={self} />
             ))}
           </View>
         ) : (
@@ -347,8 +354,12 @@ export function AttendanceTab({
             <EmptyState
               compact
               icon={Clock3}
-              title="No correction requests"
-              message="Missed punch-out requests appear here."
+              title={self ? 'No punch fixes asked for' : 'No correction requests'}
+              message={
+                self
+                  ? 'Forgot to punch out? Pick that day above to ask for it.'
+                  : 'Missed punch-out requests appear here.'
+              }
             />
           </Card>
         )}
@@ -433,7 +444,7 @@ function PunchCell({
   );
 }
 
-function CorrectionCard({request}: {request: MissedPunchRequest}) {
+function CorrectionCard({request, readOnly}: {request: MissedPunchRequest; readOnly?: boolean}) {
   const {colors, spacing, radius} = useTheme();
   const action = useSetMissedPunchStatus();
   const [rejecting, setRejecting] = useState(false);
@@ -464,7 +475,7 @@ function CorrectionCard({request}: {request: MissedPunchRequest}) {
           <Text variant="title">Missed punch-out · {date ? formatDay(date) : request.date}</Text>
           <Text variant="caption" tone="muted" numberOfLines={2}>
             {request.in_time ? `In ${formatClock(request.in_time)} · ` : ''}
-            {request.out_time ? `asked out ${formatClock(request.out_time)}` : ''}
+            {request.out_time ? `${readOnly ? 'asked for' : 'asked out'} ${formatClock(request.out_time)}` : ''}
             {request.reason ? ` · "${request.reason}"` : ''}
           </Text>
         </View>
@@ -475,7 +486,7 @@ function CorrectionCard({request}: {request: MissedPunchRequest}) {
           Rejected: {request.reject_reason}
         </Text>
       ) : null}
-      {pending ? (
+      {pending && !readOnly ? (
         <View style={{flexDirection: 'row', gap: spacing.sm}}>
           <Button
             title="Reject"
@@ -496,7 +507,7 @@ function CorrectionCard({request}: {request: MissedPunchRequest}) {
       ) : null}
 
       <RejectPunchSheet
-        visible={rejecting}
+        visible={rejecting && !readOnly}
         onClose={() => setRejecting(false)}
         firstName={firstName}
         dayLabel={date ? formatDay(date) : request.date}
