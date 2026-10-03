@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import {base64ToArrayBuffer} from '../src/lib/base64';
 
 const bytes = (b64: string) => Array.from(new Uint8Array(base64ToArrayBuffer(b64)));

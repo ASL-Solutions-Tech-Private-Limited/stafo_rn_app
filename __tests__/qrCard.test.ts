@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import fs from 'fs';
 import path from 'path';
 import {innerSvg, peopleOnCode, printableSvg} from '../src/features/qr/qrCard';

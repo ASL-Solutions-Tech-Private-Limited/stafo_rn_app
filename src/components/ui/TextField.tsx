@@ -40,8 +40,9 @@ export const TextField = forwardRef<TextInputInstance, Props>(function TextField
       <View
         style={{
           flexDirection: 'row',
-          alignItems: 'center',
-          height: 56,
+          alignItems: rest.multiline ? 'flex-start' : 'center',
+          // Multi-line fields grow with their text instead of overflowing a fixed row.
+          ...(rest.multiline ? {minHeight: 96, paddingVertical: 14} : {height: 56}),
           borderRadius: radius.lg,
           borderWidth: focused || error ? 1.5 : 1,
           borderColor,
@@ -77,6 +78,7 @@ export const TextField = forwardRef<TextInputInstance, Props>(function TextField
           }}
           style={[
             {flex: 1, fontFamily: fonts.semibold, fontSize: 16, color: colors.text, paddingVertical: 0},
+            rest.multiline && {minHeight: 68, textAlignVertical: 'top'},
             style,
           ]}
           {...rest}

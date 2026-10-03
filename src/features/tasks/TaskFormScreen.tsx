@@ -114,7 +114,6 @@ export function TaskFormScreen({navigation, route}: AppScreenProps<'TaskForm'>) 
           onChangeText={setDetails}
           multiline
           maxLength={2000}
-          style={{minHeight: 84, textAlignVertical: 'top'}}
         />
         <View style={{flexDirection: 'row', gap: spacing.sm}}>
           <DateButton
