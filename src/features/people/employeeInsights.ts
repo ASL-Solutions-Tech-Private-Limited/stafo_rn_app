@@ -22,6 +22,8 @@ export type CalendarDay = {
   isToday: boolean;
   record?: MonthAttendanceRecord;
   leave?: LeaveRequestRecord;
+  /** Time worked when known better than the record's in/out (today, from live punches). */
+  workedMs?: number;
 };
 
 function workedMs(r: MonthAttendanceRecord) {
@@ -128,7 +130,7 @@ export function summarizeMonth(days: CalendarDay[]): MonthSummary {
 }
 
 export function dayWorkedMs(d: CalendarDay) {
-  return d.record ? workedMs(d.record) : 0;
+  return d.workedMs ?? (d.record ? workedMs(d.record) : 0);
 }
 
 export type LeaveBalance = {

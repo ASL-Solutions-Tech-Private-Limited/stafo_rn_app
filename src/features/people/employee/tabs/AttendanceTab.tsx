@@ -34,6 +34,9 @@ import {EditDaySheet} from '../EditDaySheet';
 import {useSetMissedPunchStatus, useUpdateAttendance} from '../queries';
 import {SectionLabel} from '../parts';
 
+/** A seventh of the row, rounded down: `${100 / 7}%` rounds up on some widths and wraps the 7th day. */
+const DAY_CELL = '14.28%';
+
 const MONTHS = [
   'January',
   'February',
@@ -158,7 +161,7 @@ export function AttendanceTab({
         ) : (
           <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.xs}}>
             {Array.from({length: leading}).map((_, i) => (
-              <View key={`pad-${i}`} style={{width: `${100 / 7}%`, aspectRatio: 1}} />
+              <View key={`pad-${i}`} style={{width: DAY_CELL, aspectRatio: 1}} />
             ))}
             {days.map(d => {
               const l = look[d.kind];
@@ -173,7 +176,7 @@ export function AttendanceTab({
                   accessibilityRole="button"
                   accessibilityState={{selected: isSelected}}
                   accessibilityLabel={`${d.day} ${MONTHS[m - 1]}, ${KIND_LABEL[d.kind].label}`}
-                  style={{width: `${100 / 7}%`, aspectRatio: 1, padding: 3}}>
+                  style={{width: DAY_CELL, aspectRatio: 1, padding: 3}}>
                   <View
                     style={{
                       flex: 1,

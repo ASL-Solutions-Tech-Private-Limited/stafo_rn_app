@@ -4,12 +4,14 @@ import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
 import {Clock3, Info, Send} from 'lucide-react-native';
 import {askForPunchOut, getMyPunchFixes} from '../../../api/endpoints/punch';
 import {getHolidays} from '../../../api/endpoints/setup';
-import type {ShiftWithDays} from '../../../api/types';
+import type {EmployeeInfo, MonthAttendanceRecord, ShiftWithDays} from '../../../api/types';
 import {Button, Screen, Text, toast} from '../../../components/ui';
 import {haptics} from '../../../lib/haptics';
-import {toDateKey} from '../../../lib/date';
+import {parseServerDate, toDateKey} from '../../../lib/date';
+import {useNow} from '../../../lib/useNow';
 import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
+import {getTodayAttendance} from '../attendanceState';
 import {useEmployeeDashboard} from '../../home/queries';
 import {buildMonth, type CalendarDay} from '../../people/employeeInsights';
 import {employeeKeys, useEmployeeLeaves, useMonthAttendance} from '../../people/employee/queries';
@@ -18,6 +20,36 @@ import {AskPunchOutSheet} from '../AskPunchOutSheet';
 import {fixableDates, punchFixEligibility} from '../punchFix';
 
 const currentMonth = () => toDateKey().slice(0, 7);
+
+const clock = (d: Date) => d.toTimeString().slice(0, 8);
+
+/** Today's day as the punches have it: first punch-in, last punch-out (none while still in). */
+function todayFromPunches(punches: EmployeeInfo['punches']) {
+  const today = getTodayAttendance(punches);
+  if (today.state === 'not-started') {
+    return null;
+  }
+  const dateKey = toDateKey();
+  const firstIn = (punches ?? [])
+    .map(p => parseServerDate(p.punch_in))
+    .filter((d): d is Date => !!d && toDateKey(d) === dateKey)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+  const record: MonthAttendanceRecord = {
+    id: 0,
+    employee_id: punches?.[0]?.employee_id ?? 0,
+    attendance: 'Present',
+    halfday: 0,
+    date: dateKey,
+    in_time: firstIn ? clock(firstIn) : null,
+    out_time: today.state === 'punched-out' ? clock(today.at) : null,
+  };
+  return {
+    record,
+    workedMs: today.workedMs,
+    open: today.state === 'punched-in',
+    since: today.state === 'punched-in' ? today.since : new Date(),
+  };
+}
 
 /** The employee's own month: calendar, day details, and asking for a missed punch-out. */
 export function AttendanceTabScreen() {
@@ -48,10 +80,20 @@ export function AttendanceTabScreen() {
     retry: false,
   });
 
-  const days = useMemo(
-    () => buildMonth(month, monthQuery.data ?? [], leavesQuery.data ?? [], shift),
-    [month, monthQuery.data, leavesQuery.data, shift],
-  );
+  // The daily record only holds the first punch session; today, use the live punches instead.
+  const live = useMemo(() => todayFromPunches(info?.punches), [info?.punches]);
+  const now = useNow(live?.open ?? false, 60_000);
+  const days = useMemo(() => {
+    const records = (monthQuery.data ?? []).filter(r => !live || r.date !== live.record.date);
+    const built = buildMonth(month, live ? [...records, live.record] : records, leavesQuery.data ?? [], shift);
+    return live
+      ? built.map(d =>
+          d.dateKey === live.record.date
+            ? {...d, workedMs: live.workedMs + (live.open ? now.getTime() - live.since.getTime() : 0)}
+            : d,
+        )
+      : built;
+  }, [month, monthQuery.data, leavesQuery.data, shift, live, now]);
   const allowed = useMemo(() => fixableDates(shift, holidays.data ?? []), [shift, holidays.data]);
 
   const ask = useMutation({
@@ -76,7 +118,7 @@ export function AttendanceTabScreen() {
   }, [queryClient, myId, month]);
 
   const renderDayAction = (day: CalendarDay) => {
-    if (!day.record?.in_time || day.record.out_time) {
+    if (day.isToday || !day.record?.in_time || day.record.out_time) {
       return null;
     }
     const can = punchFixEligibility(day.dateKey, day.record, allowed, fixes.data ?? []);

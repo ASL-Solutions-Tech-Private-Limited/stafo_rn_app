@@ -9,6 +9,9 @@ import {Button} from './Button';
 import {IconButton} from './IconButton';
 import {Text} from './Text';
 
+/** A seventh of the row, rounded down: `${100 / 7}%` rounds up on some widths and wraps the 7th day. */
+const DAY_CELL = '14.28%';
+
 const MONTHS = [
   'January',
   'February',
@@ -100,7 +103,7 @@ export function CalendarSheet({visible, value, onClose, onChange, title = 'Pick 
       <View style={{flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.sm}}>
         {cells.map((day, i) => {
           if (!day) {
-            return <View key={i} style={{width: `${100 / 7}%`, height: 44}} />;
+            return <View key={i} style={{width: DAY_CELL, height: 44}} />;
           }
           const key = toDateKey(new Date(cursor.year, cursor.month, day));
           const selected = key === value;
@@ -118,7 +121,7 @@ export function CalendarSheet({visible, value, onClose, onChange, title = 'Pick 
                 onChange(key);
                 onClose();
               }}
-              style={{width: `${100 / 7}%`, height: 44, alignItems: 'center', justifyContent: 'center'}}>
+              style={{width: DAY_CELL, height: 44, alignItems: 'center', justifyContent: 'center'}}>
               <View
                 style={{
                   width: 38,
