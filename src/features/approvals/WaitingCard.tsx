@@ -11,6 +11,7 @@ const ROWS: {kind: ApprovalKind; label: string}[] = [
   {kind: 'leave', label: 'Leave requests'},
   {kind: 'punch', label: 'Punch fixes'},
   {kind: 'device', label: 'New phone sign-ins'},
+  {kind: 'expense', label: 'Expense claims'},
 ];
 
 /** Company home: what's waiting for a decision. Renders nothing when the inbox is empty. */

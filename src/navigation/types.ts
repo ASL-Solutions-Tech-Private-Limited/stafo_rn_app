@@ -50,6 +50,11 @@ export type AppStackParamList = {
   /** open: the trip is still on, so bills can be added. */
   TripExpenses: {id: number; title: string; open: boolean};
   Vehicles: undefined;
+  Expenses: undefined;
+  Claim: {id: number};
+  ClaimForm: {id?: number} | undefined;
+  ExpenseCategories: undefined;
+  CategoryForm: {id?: number} | undefined;
   VehicleForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;

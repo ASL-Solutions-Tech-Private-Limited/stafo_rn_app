@@ -1,8 +1,9 @@
+import type {Claim} from '../../api/endpoints/expenses';
 import type {DeviceRequest, LeaveRequestRecord, MissedPunchRequest} from '../../api/types';
 import {parseServerDate, toDateKey} from '../../lib/date';
 import {leaveBalances, leaveDays, othersOffDuring} from '../people/employeeInsights';
 
-export type ApprovalKind = 'leave' | 'punch' | 'device';
+export type ApprovalKind = 'leave' | 'punch' | 'device' | 'expense';
 
 type Base = {
   /** Unique across kinds, e.g. "leave-20". */
@@ -16,7 +17,8 @@ type Base = {
 export type ApprovalItem =
   | (Base & {kind: 'leave'; leave: LeaveRequestRecord})
   | (Base & {kind: 'punch'; punch: MissedPunchRequest})
-  | (Base & {kind: 'device'; device: DeviceRequest});
+  | (Base & {kind: 'device'; device: DeviceRequest})
+  | (Base & {kind: 'expense'; claim: Claim});
 
 export type ApprovalCounts = Record<ApprovalKind | 'all', number>;
 
@@ -27,6 +29,9 @@ export function buildApprovals(
   leaves: LeaveRequestRecord[],
   punches: MissedPunchRequest[],
   devices: DeviceRequest[],
+  claims: Claim[] = [],
+  /** Claims don't carry the employee's name. */
+  nameOf: (employeeId: number) => string | undefined = () => undefined,
 ): ApprovalItem[] {
   const items: ApprovalItem[] = [
     ...leaves
@@ -65,12 +70,24 @@ export function buildApprovals(
           device,
         }),
       ),
+    ...claims
+      .filter(c => isPending(c.status))
+      .map(
+        (claim): ApprovalItem => ({
+          kind: 'expense',
+          key: `expense-${claim.id}`,
+          employeeId: claim.employee_id,
+          name: nameOf(claim.employee_id) ?? `Employee #${claim.employee_id}`,
+          askedAt: parseServerDate(claim.created_at),
+          claim,
+        }),
+      ),
   ];
   return items.sort((a, b) => (b.askedAt?.getTime() ?? 0) - (a.askedAt?.getTime() ?? 0));
 }
 
 export function countApprovals(items: ApprovalItem[]): ApprovalCounts {
-  const counts: ApprovalCounts = {all: items.length, leave: 0, punch: 0, device: 0};
+  const counts: ApprovalCounts = {all: items.length, leave: 0, punch: 0, device: 0, expense: 0};
   for (const i of items) {
     counts[i.kind] += 1;
   }

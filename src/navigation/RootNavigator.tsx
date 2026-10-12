@@ -39,6 +39,10 @@ import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
+import {CategoriesScreen, CategoryFormScreen} from '../features/expenses/CategoriesScreen';
+import {ClaimFormScreen} from '../features/expenses/ClaimFormScreen';
+import {ClaimScreen} from '../features/expenses/ClaimScreen';
+import {ExpensesScreen} from '../features/expenses/ExpensesScreen';
 import {TripExpensesScreen} from '../features/trips/TripExpensesScreen';
 import {TripFormScreen} from '../features/trips/TripFormScreen';
 import {TripScreen} from '../features/trips/TripScreen';
@@ -117,6 +121,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       Trips: 'trips',
       Trip: {path: 'trip/:id', parse: {id: Number}},
       Vehicles: 'vehicles',
+      Expenses: 'expenses',
+      Claim: {path: 'claim/:id', parse: {id: Number}},
+      ClaimForm: 'expenses/new',
       Lead: {path: 'lead/:id', parse: {id: Number}},
       LeadForm: 'crm/new',
       TaskDetail: {path: 'task/:id', parse: {id: Number}},
@@ -320,6 +327,11 @@ export function RootNavigator() {
           <AppStack.Screen name="Lead" component={LeadScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="LeadForm" component={LeadFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Expenses" component={ExpensesScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Claim" component={ClaimScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="ClaimForm" component={ClaimFormScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen name="ExpenseCategories" component={CategoriesScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="CategoryForm" component={CategoryFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="Trips" component={TripsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="Trip" component={TripScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="TripForm" component={TripFormScreen} options={{animation: 'slide_from_bottom'}} />

@@ -42,6 +42,17 @@ const device = (over: Partial<DeviceRequest>): DeviceRequest => ({
 });
 
 describe('buildApprovals', () => {
+  it('adds waiting expense claims, named from the staff list', () => {
+    // Production claims 28 (approved) and 30 (pending) for company 1.
+    const claims = require('./fixtures/expenses-company1.json').claims.filter((c: {id: number}) =>
+      [28, 30].includes(c.id),
+    );
+    const items = buildApprovals([], [], [], claims, id => (id === 24 ? 'Demo Employee' : undefined));
+    expect(items.map(i => [i.key, i.name])).toEqual([['expense-30', 'Demo Employee']]);
+    expect(countApprovals(items).expense).toBe(1);
+    expect(buildApprovals([], [], [], claims)[0].name).toBe('Employee #24');
+  });
+
   it('keeps only pending requests, newest first, across all kinds', () => {
     const items = buildApprovals(
       [leave({}), leave({id: 2, status: 'approved'})],
@@ -49,7 +60,7 @@ describe('buildApprovals', () => {
       [device({}), device({id: 13, device_status: 'approved'})],
     );
     expect(items.map(i => i.key)).toEqual(['leave-1', 'punch-7', 'device-12-abc']);
-    expect(countApprovals(items)).toEqual({all: 3, leave: 1, punch: 1, device: 1});
+    expect(countApprovals(items)).toEqual({all: 3, leave: 1, punch: 1, device: 1, expense: 0});
   });
 
   it('treats pending case-insensitively and names unknown employees', () => {

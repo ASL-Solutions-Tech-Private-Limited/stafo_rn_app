@@ -11,12 +11,15 @@ import {
   Quote,
   Smartphone,
   Users,
+  Wallet,
   X,
   type LucideIcon,
 } from 'lucide-react-native';
 import {Avatar, Button, Card, Text} from '../../components/ui';
 import {formatClock, formatDay, formatRange, parseServerDate} from '../../lib/date';
 import {useTheme} from '../../theme/ThemeProvider';
+import {amountOf} from '../expenses/expenseLogic';
+import {formatRupees} from '../trips/tripLogic';
 import {askedAgo, isPastDue, type ApprovalItem, type ApprovalKind, type LeaveContext} from './approvalItems';
 
 export type Decision = 'approve' | 'reject';
@@ -39,6 +42,7 @@ export function useKindStyle() {
     leave: {label: 'Leave', icon: CalendarOff, fg: colors.warning, bg: colors.warningSoft},
     punch: {label: 'Punch fix', icon: Clock3, fg: colors.info, bg: colors.infoSoft},
     device: {label: 'New phone', icon: Smartphone, fg: colors.accents[1].fg, bg: colors.accents[1].bg},
+    expense: {label: 'Expense', icon: Wallet, fg: colors.success, bg: colors.successSoft},
   };
   return kinds;
 }
@@ -93,6 +97,8 @@ export function ApprovalCard({item, subtitle, photo, leave, busy, onDecide, onOp
           <LeaveBody item={item} context={leave} pastDue={pastDue} />
         ) : item.kind === 'punch' ? (
           <PunchBody item={item} />
+        ) : item.kind === 'expense' ? (
+          <ExpenseBody item={item} />
         ) : (
           <DeviceBody item={item} />
         )}
@@ -260,6 +266,34 @@ function PunchBody({item: p}: {item: Extract<ApprovalItem, {kind: 'punch'}>}) {
         <TimeRow label="Out" from="—" to={p.punch.out_time ? formatClock(p.punch.out_time) : '—'} />
       </View>
       <Reason text={p.punch.reason} />
+    </>
+  );
+}
+
+function ExpenseBody({item: e}: {item: Extract<ApprovalItem, {kind: 'expense'}>}) {
+  const {spacing} = useTheme();
+  const files = e.claim.attachments?.length ?? 0;
+  const values = (e.claim.expense_details ?? [])
+    .map(d => d.expense_value?.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' · ');
+  return (
+    <>
+      <Text variant="h3">
+        {formatRupees(amountOf(e.claim))} · {e.claim.expense_type?.name ?? 'Expense'}
+      </Text>
+      {values ? (
+        <Text variant="body" tone="muted" numberOfLines={2}>
+          {values}
+        </Text>
+      ) : null}
+      <View style={{marginTop: spacing.sm}}>
+        <Fact
+          icon={Info}
+          text={files ? `${files} ${files === 1 ? 'bill' : 'bills'} attached` : 'No bill attached'}
+        />
+      </View>
     </>
   );
 }

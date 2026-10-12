@@ -2,13 +2,15 @@ import {useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {decideDeviceRequest, getDeviceRequests} from '../../api/endpoints/approvals';
 import {getMissedPunchRequests, setLeaveStatus} from '../../api/endpoints/employee';
+import {getClaims} from '../../api/endpoints/expenses';
 import {useSession} from '../../store/session';
+import {expenseKeys, useStaffById} from '../expenses/queries';
 import {employeeKeys, useAdminAction, useCompanyLeaves} from '../people/employee/queries';
 import {buildApprovals, countApprovals} from './approvalItems';
 
 export const deviceRequestsKey = ['device-requests'] as const;
 
-/** Everything waiting for the company's decision: leave, punch fixes, new phones. */
+/** Everything waiting for the company's decision: leave, punch fixes, new phones, expense claims. */
 export function useApprovals() {
   const companyId = useSession(s => s.companyId);
   const leaves = useCompanyLeaves();
@@ -18,12 +20,25 @@ export function useApprovals() {
     queryFn: () => getDeviceRequests(companyId!),
     enabled: !!companyId,
   });
+  const claims = useQuery({
+    queryKey: expenseKeys.claims(companyId),
+    queryFn: () => getClaims({companyId: companyId!}),
+    enabled: !!companyId,
+  });
+  const staff = useStaffById();
 
   const items = useMemo(
-    () => buildApprovals(leaves.data ?? [], punches.data ?? [], devices.data ?? []),
-    [leaves.data, punches.data, devices.data],
+    () =>
+      buildApprovals(
+        leaves.data ?? [],
+        punches.data ?? [],
+        devices.data ?? [],
+        claims.data ?? [],
+        id => staff.get(id)?.name,
+      ),
+    [leaves.data, punches.data, devices.data, claims.data, staff],
   );
-  const queries = [leaves, punches, devices];
+  const queries = [leaves, punches, devices, claims];
   return {
     items,
     counts: countApprovals(items),

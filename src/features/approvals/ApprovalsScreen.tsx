@@ -23,6 +23,9 @@ import {usePeopleOnDate} from '../people/queries';
 import {ApprovalCard, type Decision} from './ApprovalCard';
 import {RejectPunchSheet} from './RejectPunchSheet';
 import {askedToday, leaveContext, type ApprovalItem, type ApprovalKind} from './approvalItems';
+import {useDecideClaim} from '../expenses/queries';
+import {amountOf} from '../expenses/expenseLogic';
+import {formatRupees} from '../trips/tripLogic';
 import {useApprovals, useDecideDevice, useDecideLeave} from './queries';
 
 export type ApprovalFilter = 'all' | ApprovalKind;
@@ -32,6 +35,7 @@ const FILTERS: {key: ApprovalFilter; label: string}[] = [
   {key: 'leave', label: 'Leave'},
   {key: 'punch', label: 'Punch fixes'},
   {key: 'device', label: 'New phones'},
+  {key: 'expense', label: 'Expenses'},
 ];
 
 const EMPTY_TITLE: Record<ApprovalFilter, string> = {
@@ -39,6 +43,7 @@ const EMPTY_TITLE: Record<ApprovalFilter, string> = {
   leave: 'No leave requests waiting',
   punch: 'No punch fixes waiting',
   device: 'No new phones waiting',
+  expense: 'No expense claims waiting',
 };
 
 export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>) {
@@ -51,6 +56,7 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
   const decideLeave = useDecideLeave();
   const decidePunch = useSetMissedPunchStatus();
   const decideDevice = useDecideDevice();
+  const decideClaim = useDecideClaim();
   const [busy, setBusy] = useState<{key: string; decision: Decision} | null>(null);
   const [confirm, setConfirm] = useState<{item: ApprovalItem; decision: Decision} | null>(null);
   const [rejecting, setRejecting] = useState<Extract<ApprovalItem, {kind: 'punch'}> | null>(null);
@@ -85,6 +91,8 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
         },
         done,
       );
+    } else if (item.kind === 'expense') {
+      decideClaim.mutate({id: item.claim.id, status: decision === 'approve' ? 'Approved' : 'Rejected'}, done);
     } else {
       decideDevice.mutate({employeeId: item.employeeId, deviceId: item.device.device_id, decision}, done);
     }
@@ -148,6 +156,12 @@ export function ApprovalsScreen({navigation, route}: AppScreenProps<'Approvals'>
           message: `${first} stays signed in on their current phone only.`,
           label: 'Refuse',
         }
+    : confirm.item.kind === 'expense'
+    ? {
+        title: `Reject ${first}'s ${formatRupees(amountOf(confirm.item.claim))} claim?`,
+        message: `${first} sees it as rejected in the app. This can't be undone.`,
+        label: 'Reject',
+      }
     : {
         title: `Reject ${first}'s leave?`,
         message: `${first} sees it as rejected in the app. This can't be undone.`,
