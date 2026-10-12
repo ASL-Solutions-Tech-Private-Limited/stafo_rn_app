@@ -14,6 +14,11 @@ import {useAvailability, useDrivers, useSaveTrip, useTrip, useVehicles} from './
 import {DateTimeField, PlacePicker, PlaceRow} from './tripParts';
 import {pointOf, toServerDateTime} from './tripLogic';
 
+/**
+ * The saved place for editing, or null when it has to be picked again: the server
+ * cuts the destination to whole degrees, and saving those back would make it
+ * work the distance out from a point up to ~100 km away.
+ */
 const placeOf = (address?: string | null, lat?: string | null, lng?: string | null): Place | null => {
   const p = pointOf(lat, lng);
   return p ? {address: address?.trim() ?? '', ...p} : null;
@@ -183,6 +188,7 @@ export function TripFormScreen({navigation, route}: AppScreenProps<'TripForm'>) 
             label="To"
             color={colors.danger}
             place={to}
+            was={trip && !to ? trip.to_address : null}
             error={err('to')}
             onPress={() => setPicking('to')}
           />

@@ -250,6 +250,12 @@ export function CategoryFormScreen({navigation, route}: AppScreenProps<'Category
           />
         </View>
 
+        {editId ? (
+          <Text variant="caption" tone="muted">
+            Saving replaces the fields. Claims already sent keep their values, but those values lose their
+            field names.
+          </Text>
+        ) : null}
         <Button
           title={editId ? 'Save category' : 'Add category'}
           icon={Check}

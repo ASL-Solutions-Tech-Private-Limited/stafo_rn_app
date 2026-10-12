@@ -243,8 +243,9 @@ export function odometerError(value: string, last: number | null): string | null
 }
 
 /**
- * A point from the server, or null. Trips planned without a pin were saved as
- * whole degrees ("23", "88"), which isn't a real place.
+ * A point from the server, or null. The server keeps the destination in
+ * whole-number columns ("22", "88"), so it is off by up to ~100 km and isn't
+ * drawn; the distance is worked out before the cut and stays right.
  */
 export function pointOf(lat?: string | null, lng?: string | null) {
   const latitude = toNumber(lat);

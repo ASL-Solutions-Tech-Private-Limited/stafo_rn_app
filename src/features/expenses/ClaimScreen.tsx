@@ -40,7 +40,8 @@ export function ClaimScreen({navigation, route}: AppScreenProps<'Claim'>) {
   const names = new Map(activeFields(category).map(f => [f.id, f.field_name]));
   const details = (c?.expense_details ?? []).map(d => ({
     id: d.id,
-    name: d.expense_form_details?.field_name ?? names.get(d.expenseform_id) ?? 'Detail',
+    // Editing a category replaces its fields, so older values can lose their name.
+    name: d.expense_form_details?.field_name ?? names.get(d.expenseform_id) ?? 'Removed field',
     value: d.expense_value?.trim() || '—',
   }));
   const submitted = parseServerDate(c?.created_at);

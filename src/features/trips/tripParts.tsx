@@ -113,12 +113,15 @@ export function PlaceRow({
   label,
   color,
   place,
+  was,
   error,
   onPress,
 }: {
   label: string;
   color: string;
   place: Place | null;
+  /** The saved address when it has to be picked again. */
+  was?: string | null;
   error?: string | null;
   onPress: () => void;
 }) {
@@ -150,7 +153,7 @@ export function PlaceRow({
             {label.toUpperCase()}
           </Text>
           <Text variant="body" numberOfLines={2} color={place ? colors.text : colors.textSubtle}>
-            {place?.address || 'Pick on the map'}
+            {place?.address || (was ? `Pick again on the map: ${was}` : 'Pick on the map')}
           </Text>
         </View>
         <ChevronRight size={18} color={colors.textSubtle} />
