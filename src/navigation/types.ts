@@ -44,6 +44,13 @@ export type AppStackParamList = {
   Crm: undefined;
   Lead: {id: number};
   LeadForm: {id?: number} | undefined;
+  Trips: undefined;
+  Trip: {id: number};
+  TripForm: {id?: number} | undefined;
+  /** open: the trip is still on, so bills can be added. */
+  TripExpenses: {id: number; title: string; open: boolean};
+  Vehicles: undefined;
+  VehicleForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;
   LiveLocation: undefined;

@@ -246,7 +246,7 @@ RCT_EXPORT_MODULE()
     return;
   }
   NSMutableDictionary *saved = [NSMutableDictionary new];
-  for (NSString *key in @[ @"baseUrl", @"token", @"employeeId", @"stopAt", @"minDistanceM" ]) {
+  for (NSString *key in @[ @"baseUrl", @"token", @"employeeId", @"stopAt", @"minDistanceM", @"tripId" ]) {
     if (config[key]) {
       saved[key] = config[key];
     }
@@ -328,6 +328,7 @@ RCT_EXPORT_MODULE()
     @"queued" : @([d arrayForKey:kQueueKey].count),
     @"lastSentAt" : @([d doubleForKey:kLastSentKey]),
     @"lastError" : [d stringForKey:kLastErrorKey] ?: [NSNull null],
+    @"tripId" : config[@"tripId"] ?: @0,
   });
 }
 
@@ -464,6 +465,7 @@ RCT_EXPORT_MODULE()
                      if (sent) {
                        [d setDouble:[NSDate date].timeIntervalSince1970 * 1000 forKey:kLastSentKey];
                        [d removeObjectForKey:kLastErrorKey];
+                       [self sendTripPoint:point config:config];
                      }
                      [self flushWith:config];
                    } else if (code == 401 || code == 403) {
@@ -480,6 +482,32 @@ RCT_EXPORT_MODULE()
                    }
                  });
                }] resume];
+}
+
+/** While a trip is on, adds the point to its route. Best effort: a miss only leaves a gap in the line. */
+- (void)sendTripPoint:(NSDictionary *)point config:(NSDictionary *)config
+{
+  long long tripId = [config[@"tripId"] longLongValue];
+  if (tripId <= 0) {
+    return;
+  }
+  NSDictionary *body = @{
+    @"trip_id" : [NSString stringWithFormat:@"%lld", tripId],
+    @"latitude" : [point[@"lat"] stringValue],
+    @"longitude" : [point[@"lng"] stringValue],
+  };
+  NSString *base = config[@"baseUrl"];
+  while ([base hasSuffix:@"/"]) {
+    base = [base substringToIndex:base.length - 1];
+  }
+  NSMutableURLRequest *req =
+      [NSMutableURLRequest requestWithURL:[NSURL URLWithString:[base stringByAppendingString:@"/api/trips-geolocation/create"]]];
+  req.HTTPMethod = @"POST";
+  [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+  [req setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+  [req setValue:[@"Bearer " stringByAppendingString:config[@"token"]] forHTTPHeaderField:@"Authorization"];
+  req.HTTPBody = [NSJSONSerialization dataWithJSONObject:body options:0 error:nil];
+  [[_session dataTaskWithRequest:req completionHandler:^(NSData *data, NSURLResponse *response, NSError *error){}] resume];
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

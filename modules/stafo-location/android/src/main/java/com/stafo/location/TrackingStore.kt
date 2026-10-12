@@ -14,6 +14,8 @@ data class TrackingConfig(
   val heartbeatMs: Long,
   val notificationTitle: String,
   val notificationText: String,
+  /** While a trip is on: each point also goes to that trip's route. 0 when there's no trip. */
+  val tripId: Long = 0,
 ) {
   /** Only ever tracks inside the window saved at punch-in. */
   fun isActive(now: Long = System.currentTimeMillis()) = now < stopAt
@@ -28,6 +30,7 @@ data class TrackingConfig(
       .put("heartbeatMs", heartbeatMs)
       .put("notificationTitle", notificationTitle)
       .put("notificationText", notificationText)
+      .put("tripId", tripId)
 
   companion object {
     fun fromJson(o: JSONObject) =
@@ -40,6 +43,7 @@ data class TrackingConfig(
         heartbeatMs = o.optLong("heartbeatMs", 600_000L),
         notificationTitle = o.optString("notificationTitle", "Sharing your location"),
         notificationText = o.optString("notificationText", ""),
+        tripId = o.optLong("tripId", 0L),
       )
   }
 }

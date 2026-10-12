@@ -39,6 +39,11 @@ import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
+import {TripExpensesScreen} from '../features/trips/TripExpensesScreen';
+import {TripFormScreen} from '../features/trips/TripFormScreen';
+import {TripScreen} from '../features/trips/TripScreen';
+import {TripsScreen} from '../features/trips/TripsScreen';
+import {VehicleFormScreen, VehiclesScreen} from '../features/trips/VehiclesScreen';
 import {TasksScreen} from '../features/tasks/TasksScreen';
 import {CrmScreen} from '../features/crm/CrmScreen';
 import {LeadScreen} from '../features/crm/LeadScreen';
@@ -109,6 +114,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       AttendanceQr: 'setup/qr',
       Tasks: 'tasks',
       Crm: 'crm',
+      Trips: 'trips',
+      Trip: {path: 'trip/:id', parse: {id: Number}},
+      Vehicles: 'vehicles',
       Lead: {path: 'lead/:id', parse: {id: Number}},
       LeadForm: 'crm/new',
       TaskDetail: {path: 'task/:id', parse: {id: Number}},
@@ -312,6 +320,12 @@ export function RootNavigator() {
           <AppStack.Screen name="Lead" component={LeadScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="LeadForm" component={LeadFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Trips" component={TripsScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Trip" component={TripScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="TripForm" component={TripFormScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen name="TripExpenses" component={TripExpensesScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="Vehicles" component={VehiclesScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen name="VehicleForm" component={VehicleFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="TaskDetail" component={TaskDetailScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="TaskForm" component={TaskFormScreen} options={{animation: 'slide_from_bottom'}} />
           <AppStack.Screen name="AttendanceQr" component={AttendanceQrScreen} options={{animation: 'slide_from_right'}} />

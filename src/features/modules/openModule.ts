@@ -42,6 +42,10 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('Crm');
     return;
   }
+  if (id === 'trips') {
+    navigation.navigate('Trips');
+    return;
+  }
   if (id === 'tasks') {
     navigation.navigate('Tasks');
     return;

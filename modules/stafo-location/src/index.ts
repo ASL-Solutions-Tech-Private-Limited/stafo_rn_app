@@ -26,6 +26,8 @@ export type TrackingConfig = {
   heartbeatMs?: number;
   notificationTitle: string;
   notificationText: string;
+  /** While a trip is on: each point is also added to that trip's route. */
+  tripId?: number;
 };
 
 export type TrackingState = {
@@ -34,6 +36,8 @@ export type TrackingState = {
   queued: number;
   lastSentAt: number;
   lastError: string | null;
+  /** 0 when not recording a trip. */
+  tripId: number;
 };
 
 export const getPermissionStatus = () => Native.getPermissionStatus() as Promise<LocationPermission>;

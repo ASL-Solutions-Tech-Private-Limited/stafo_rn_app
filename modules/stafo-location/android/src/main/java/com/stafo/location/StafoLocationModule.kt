@@ -130,6 +130,7 @@ class StafoLocationModule(private val context: ReactApplicationContext) : Native
         putInt("queued", TrackingStore.queue(context).size)
         putDouble("lastSentAt", TrackingStore.lastSentAt(context).toDouble())
         putString("lastError", TrackingStore.lastError(context))
+        putDouble("tripId", (cfg?.tripId ?: 0L).toDouble())
       },
     )
   }

@@ -64,7 +64,7 @@ object Uploader {
       conn.setRequestProperty("Authorization", "Bearer ${config.token}")
       conn.outputStream.use { it.write(body.toString().toByteArray()) }
       when (val code = conn.responseCode) {
-        in 200..299 -> Result.SENT
+        in 200..299 -> Result.SENT.also { if (config.tripId > 0) sendTripPoint(config, point) }
         401, 403 -> Result.UNAUTHORISED
         // A point the server refuses won't get better by retrying: drop it.
         in 400..499 -> Result.SENT.also { lastError = "HTTP $code" }
@@ -73,6 +73,30 @@ object Uploader {
     } catch (e: Exception) {
       lastError = e.message ?: e.javaClass.simpleName
       Result.RETRY_LATER
+    } finally {
+      conn.disconnect()
+    }
+  }
+
+  /** Adds the point to the trip's route. Best effort: a miss only leaves a gap in the line. */
+  private fun sendTripPoint(config: TrackingConfig, point: QueuedPoint) {
+    val body =
+      JSONObject()
+        .put("trip_id", config.tripId.toString())
+        .put("latitude", point.latitude.toString())
+        .put("longitude", point.longitude.toString())
+    val conn = (URL(config.baseUrl.trimEnd('/') + "/api/trips-geolocation/create").openConnection() as HttpURLConnection)
+    try {
+      conn.requestMethod = "POST"
+      conn.connectTimeout = 15_000
+      conn.readTimeout = 20_000
+      conn.doOutput = true
+      conn.setRequestProperty("Content-Type", "application/json")
+      conn.setRequestProperty("Accept", "application/json")
+      conn.setRequestProperty("Authorization", "Bearer ${config.token}")
+      conn.outputStream.use { it.write(body.toString().toByteArray()) }
+      conn.responseCode
+    } catch (_: Exception) {
     } finally {
       conn.disconnect()
     }
