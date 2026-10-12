@@ -237,7 +237,7 @@ export const MODULES: AppModule[] = [
   {
     id: 'salary-disbursement',
     title: 'Disbursement',
-    description: 'Pay out salaries',
+    description: 'Pay out salaries (not connected yet)',
     icon: BadgeIndianRupee,
     group: 'Finance',
     roles: ['company'],

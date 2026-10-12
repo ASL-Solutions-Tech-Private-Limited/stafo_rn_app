@@ -8,12 +8,20 @@ type OwnScreen =
   | 'SetupHolidays'
   | 'SetupPolicies'
   | 'Payroll'
-  | 'Reports';
+  | 'Reports'
+  | 'Performance'
+  | 'Rankings'
+  | 'Subscription'
+  | 'SalaryPayouts';
 
 /** Company modules that have their own screen instead of the generic module page. */
 const COMPANY_SCREENS: Partial<Record<ModuleId, OwnScreen>> = {
   'location-tracking': 'LiveLocation',
   'company-setup': 'Setup',
+  performance: 'Performance',
+  rankings: 'Rankings',
+  subscription: 'Subscription',
+  'salary-disbursement': 'SalaryPayouts',
   branches: 'SetupBranches',
   holidays: 'SetupHolidays',
   policies: 'SetupPolicies',

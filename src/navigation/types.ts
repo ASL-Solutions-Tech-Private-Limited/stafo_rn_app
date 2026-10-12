@@ -55,6 +55,12 @@ export type AppStackParamList = {
   ClaimForm: {id?: number} | undefined;
   ExpenseCategories: undefined;
   CategoryForm: {id?: number} | undefined;
+  Performance: {month?: {month: number; year: number}} | undefined;
+  ScoringTypes: undefined;
+  Rankings: undefined;
+  RankDetail: {employeeId: number; name: string; month: number; year: number; rank?: number; of?: number};
+  Subscription: undefined;
+  SalaryPayouts: undefined;
   VehicleForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;

@@ -39,6 +39,9 @@ import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
+import {PerformanceScreen, ScoringTypesScreen} from '../features/performance/PerformanceScreen';
+import {RankDetailScreen, RankingsScreen} from '../features/performance/RankingsScreen';
+import {SalaryPayoutsScreen, SubscriptionScreen} from '../features/performance/SubscriptionScreen';
 import {CategoriesScreen, CategoryFormScreen} from '../features/expenses/CategoriesScreen';
 import {ClaimFormScreen} from '../features/expenses/ClaimFormScreen';
 import {ClaimScreen} from '../features/expenses/ClaimScreen';
@@ -122,6 +125,9 @@ const linking: LinkingOptions<AppStackParamList> = {
       Trip: {path: 'trip/:id', parse: {id: Number}},
       Vehicles: 'vehicles',
       Expenses: 'expenses',
+      Performance: 'performance',
+      Rankings: 'rankings',
+      Subscription: 'subscription',
       Claim: {path: 'claim/:id', parse: {id: Number}},
       ClaimForm: 'expenses/new',
       Lead: {path: 'lead/:id', parse: {id: Number}},
@@ -325,27 +331,125 @@ export function RootNavigator() {
           />
           <AppStack.Screen name="Crm" component={CrmScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="Lead" component={LeadScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="LeadForm" component={LeadFormScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen
+            name="LeadForm"
+            component={LeadFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
           <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="Expenses" component={ExpensesScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen
+            name="Performance"
+            component={PerformanceScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="ScoringTypes"
+            component={ScoringTypesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Rankings"
+            component={RankingsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="RankDetail"
+            component={RankDetailScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Subscription"
+            component={SubscriptionScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SalaryPayouts"
+            component={SalaryPayoutsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Expenses"
+            component={ExpensesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
           <AppStack.Screen name="Claim" component={ClaimScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="ClaimForm" component={ClaimFormScreen} options={{animation: 'slide_from_bottom'}} />
-          <AppStack.Screen name="ExpenseCategories" component={CategoriesScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="CategoryForm" component={CategoryFormScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen
+            name="ClaimForm"
+            component={ClaimFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
+          <AppStack.Screen
+            name="ExpenseCategories"
+            component={CategoriesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="CategoryForm"
+            component={CategoryFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
           <AppStack.Screen name="Trips" component={TripsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen name="Trip" component={TripScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="TripForm" component={TripFormScreen} options={{animation: 'slide_from_bottom'}} />
-          <AppStack.Screen name="TripExpenses" component={TripExpensesScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="Vehicles" component={VehiclesScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="VehicleForm" component={VehicleFormScreen} options={{animation: 'slide_from_bottom'}} />
-          <AppStack.Screen name="TaskDetail" component={TaskDetailScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="TaskForm" component={TaskFormScreen} options={{animation: 'slide_from_bottom'}} />
-          <AppStack.Screen name="AttendanceQr" component={AttendanceQrScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="MyHolidays" component={MyHolidaysScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="MyPolicies" component={MyPoliciesScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="MyPayslips" component={MyPayslipsScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="MyLeave" component={MyLeaveScreen} options={{animation: 'slide_from_right'}} />
-          <AppStack.Screen name="GeoPunch" component={GeoPunchScreen} options={{animation: 'slide_from_bottom'}} />
+          <AppStack.Screen
+            name="TripForm"
+            component={TripFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
+          <AppStack.Screen
+            name="TripExpenses"
+            component={TripExpensesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Vehicles"
+            component={VehiclesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="VehicleForm"
+            component={VehicleFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
+          <AppStack.Screen
+            name="TaskDetail"
+            component={TaskDetailScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="TaskForm"
+            component={TaskFormScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
+          <AppStack.Screen
+            name="AttendanceQr"
+            component={AttendanceQrScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyHolidays"
+            component={MyHolidaysScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyPolicies"
+            component={MyPoliciesScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyPayslips"
+            component={MyPayslipsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyLeave"
+            component={MyLeaveScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="GeoPunch"
+            component={GeoPunchScreen}
+            options={{animation: 'slide_from_bottom'}}
+          />
           <AppStack.Screen
             name="QrPunch"
             component={QrPunchScreen}
