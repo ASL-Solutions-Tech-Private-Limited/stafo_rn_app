@@ -16,7 +16,7 @@ import {
   Text,
   toast,
 } from '../../components/ui';
-import {formatTime} from '../../lib/date';
+import {formatTime, toDateKey} from '../../lib/date';
 import {useNow} from '../../lib/useNow';
 import type {AppScreenProps} from '../../navigation/types';
 import {useSession} from '../../store/session';
@@ -498,7 +498,13 @@ function Timeline({
     return {
       color: colors.warning,
       title: `Halt ${e.n}${e.until ? ` · ${formatSpan(e.until.getTime() - e.at.getTime())}` : ''}`,
-      detail: e.until ? `${whenLabel(toServerDateTime(e.at))} – ${formatTime(e.until)}` : 'Paused now',
+      detail: e.until
+        ? `${whenLabel(toServerDateTime(e.at))} – ${
+            toDateKey(e.until) === toDateKey(e.at)
+              ? formatTime(e.until)
+              : whenLabel(toServerDateTime(e.until))
+          }`
+        : 'Paused now',
       right: formatTime(e.at),
     };
   });

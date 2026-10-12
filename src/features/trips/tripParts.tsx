@@ -55,23 +55,17 @@ export function DateTimeField({
       value: base,
       mode: 'date',
       minimumDate: min,
-      onChange: (e, day) => {
-        if (e.type !== 'set' || !day) {
-          return;
-        }
+      onValueChange: (_, day) =>
         DateTimePickerAndroid.open({
           value: base,
           mode: 'time',
           is24Hour: false,
-          onChange: (e2, t) => {
-            if (e2.type === 'set' && t) {
-              const d = new Date(day);
-              d.setHours(t.getHours(), t.getMinutes(), 0, 0);
-              onChange(d);
-            }
+          onValueChange: (__, t) => {
+            const d = new Date(day);
+            d.setHours(t.getHours(), t.getMinutes(), 0, 0);
+            onChange(d);
           },
-        });
-      },
+        }),
     });
   };
   return (
@@ -106,7 +100,7 @@ export function DateTimeField({
             mode="datetime"
             display="inline"
             minimumDate={min}
-            onChange={(_, d) => d && onChange(d)}
+            onValueChange={(_, d) => onChange(d)}
           />
         </View>
       ) : null}
@@ -354,7 +348,8 @@ export function PlacePicker({
             style={{
               position: 'absolute',
               right: spacing.lg,
-              bottom: spacing.lg,
+              // Clear of the panel, which overlaps the map by its corner radius.
+              bottom: spacing.lg + radius.xxl,
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,

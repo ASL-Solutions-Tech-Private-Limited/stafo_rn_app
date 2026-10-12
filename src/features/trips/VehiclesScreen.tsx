@@ -143,6 +143,13 @@ function VehicleCard({vehicle: v, onPress}: {vehicle: Vehicle; onPress: () => vo
   );
 }
 
+/** The choices as chips, plus a saved value that isn't one of them (e.g. "Jeep" from the web). */
+function withSaved(choices: readonly string[], saved?: string | null) {
+  const extra =
+    saved?.trim() && !choices.some(c => c.toLowerCase() === saved.trim().toLowerCase()) ? [saved.trim()] : [];
+  return [...choices, ...extra].map(t => ({value: t, label: t}));
+}
+
 /** Add a vehicle, or edit one. An RC photo or file is needed when adding. */
 export function VehicleFormScreen({navigation, route}: AppScreenProps<'VehicleForm'>) {
   const editId = route.params?.id;
@@ -240,7 +247,7 @@ export function VehicleFormScreen({navigation, route}: AppScreenProps<'VehicleFo
         <View style={{gap: 6}}>
           <ChoiceChips
             label="Type"
-            items={VEHICLE_TYPES.map(t => ({value: t as string, label: t}))}
+            items={withSaved(VEHICLE_TYPES, existing?.vehicle_type)}
             value={type}
             onChange={setType}
           />
@@ -253,7 +260,7 @@ export function VehicleFormScreen({navigation, route}: AppScreenProps<'VehicleFo
         <View style={{gap: 6}}>
           <ChoiceChips
             label="Fuel"
-            items={FUEL_TYPES.map(t => ({value: t as string, label: t}))}
+            items={withSaved(FUEL_TYPES, existing?.fuel)}
             value={fuel}
             onChange={setFuel}
           />
