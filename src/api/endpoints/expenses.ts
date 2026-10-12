@@ -90,12 +90,16 @@ export async function deleteCategory(id: number) {
   return ensureOk(data);
 }
 
-/** The company's claims, or one employee's. */
-export async function getClaims(scope: {companyId: string} | {employeeId: number}) {
+/**
+ * The company's claims, or one employee's. The server returns nothing without
+ * company_id and ignores employee_id, so an employee's claims are picked here.
+ */
+export async function getClaims(companyId: string, employeeId?: number) {
   const {data} = await api.get<BasicResponse & {success?: boolean; data?: Claim[]}>('api/expense/list', {
-    params: 'companyId' in scope ? {company_id: scope.companyId} : {employee_id: scope.employeeId},
+    params: {company_id: companyId, ...(employeeId ? {employee_id: employeeId} : {})},
   });
-  return ensureOk(data).data ?? [];
+  const list = ensureOk(data).data ?? [];
+  return employeeId ? list.filter(c => c.employee_id === employeeId) : list;
 }
 
 /** One claim, with field names and attachments. */

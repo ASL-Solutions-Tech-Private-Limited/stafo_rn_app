@@ -58,9 +58,9 @@ export function useClaims() {
   const scope = isCompany ? undefined : employeeId;
   return useQuery({
     queryKey: expenseKeys.claims(companyId, scope),
-    queryFn: () => getClaims(scope ? {employeeId: scope} : {companyId: companyId!}),
+    queryFn: () => getClaims(companyId!, scope),
     enabled: !!companyId && (isCompany || !!employeeId),
-    select: list => sortClaims(scope ? list.filter(c => c.employee_id === scope) : list),
+    select: sortClaims,
   });
 }
 

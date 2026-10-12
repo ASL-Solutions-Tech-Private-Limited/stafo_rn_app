@@ -22,7 +22,7 @@ export function useApprovals() {
   });
   const claims = useQuery({
     queryKey: expenseKeys.claims(companyId),
-    queryFn: () => getClaims({companyId: companyId!}),
+    queryFn: () => getClaims(companyId!),
     enabled: !!companyId,
   });
   const staff = useStaffById();
