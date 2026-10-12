@@ -54,6 +54,11 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('Approvals', {filter: 'punch'});
     return;
   }
+  if (role === 'company' && (id === 'leave' || id === 'device-requests')) {
+    // Leave and new-phone sign-in requests are approved from the Approvals inbox.
+    navigation.navigate('Approvals', {filter: id === 'leave' ? 'leave' : 'device'});
+    return;
+  }
   if (id === 'employees' && role === 'company') {
     // The directory is the People tab; adding someone starts from its Add button.
     navigation.navigate('CompanyTabs', {screen: 'People'});
