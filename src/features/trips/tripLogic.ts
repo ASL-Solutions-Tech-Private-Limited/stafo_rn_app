@@ -104,18 +104,23 @@ export function toNumber(v: string | number | null | undefined): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+type Step = {
+  at: Date;
+  latitude: number | null;
+  longitude: number | null;
+  /** File name of the odometer photo taken at this step. */
+  photo: string | null;
+};
+
 export type TimelineEntry =
-  | {kind: 'start'; at: Date; odometer: number | null; latitude: number | null; longitude: number | null}
-  | {
+  | (Step & {kind: 'start'; odometer: number | null})
+  | (Step & {
       kind: 'halt';
       n: number;
-      at: Date;
       /** null while they're still paused. */
       until: Date | null;
-      latitude: number | null;
-      longitude: number | null;
-    }
-  | {kind: 'end'; at: Date; odometer: number | null; latitude: number | null; longitude: number | null};
+    })
+  | (Step & {kind: 'end'; odometer: number | null});
 
 export type TripSummary = {
   timeline: TimelineEntry[];
@@ -170,7 +175,11 @@ export function summarize(logs: TripLog[] | null | undefined, now = new Date()):
     if (odometer != null) {
       odometerLast = odometer;
     }
-    const place = {latitude: coord(log.latitude), longitude: coord(log.longitude)};
+    const place = {
+      latitude: coord(log.latitude),
+      longitude: coord(log.longitude),
+      photo: log.image_path?.trim() || null,
+    };
     switch (log.action_type) {
       case 'start':
         if (!startedAt) {

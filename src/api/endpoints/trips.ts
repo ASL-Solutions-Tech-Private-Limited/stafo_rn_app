@@ -1,3 +1,4 @@
+import {API_BASE_URL} from '../../config/env';
 import {api, ensureOk} from '../client';
 import type {BasicResponse} from '../types';
 import type {UploadFile} from './tasks';
@@ -89,6 +90,10 @@ export type TripDetail = Trip & {
 };
 
 export type TripPoint = {id: number; latitude: string; longitude: string; created_at?: string | null};
+
+/** Where odometer photos are served from (the API returns bare file names). */
+export const tripPhotoUrl = (filename: string) =>
+  `${API_BASE_URL.replace(/\/$/, '')}/public/uploads/trip_logs/${encodeURIComponent(filename)}`;
 
 /** The company's trips, or the signed-in driver's (the server decides from the token). */
 export async function getTrips() {

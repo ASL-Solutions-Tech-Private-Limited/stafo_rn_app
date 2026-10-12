@@ -1,9 +1,9 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {Linking, RefreshControl, ScrollView, StatusBar, View} from 'react-native';
+import {Image, Linking, RefreshControl, ScrollView, StatusBar, View} from 'react-native';
 import MapView, {Polyline} from 'react-native-maps';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ArrowLeft, CircleAlert, Flag, Pause, Pencil, Phone, Play, Trash2, Truck} from 'lucide-react-native';
-import type {TripAction, TripDetail} from '../../api/endpoints/trips';
+import {tripPhotoUrl, type TripAction, type TripDetail} from '../../api/endpoints/trips';
 import {
   Badge,
   Button,
@@ -466,6 +466,28 @@ function Place({color, label, address}: {color: string; label: string; address?:
   );
 }
 
+/** A small odometer photo; tap to open it full size. */
+function OdometerPhoto({file}: {file: string}) {
+  const {colors, radius} = useTheme();
+  const url = tripPhotoUrl(file);
+  return (
+    <PressableScale
+      onPress={() => Linking.openURL(url).catch(() => toast.error('Couldn’t open the photo.'))}
+      accessibilityRole="imagebutton"
+      accessibilityLabel="Odometer photo, opens full size"
+      style={{
+        marginTop: 6,
+        width: 72,
+        height: 54,
+        borderRadius: radius.md,
+        overflow: 'hidden',
+        backgroundColor: colors.surfaceMuted,
+      }}>
+      <Image source={{uri: url}} style={{width: '100%', height: '100%'}} resizeMode="cover" />
+    </PressableScale>
+  );
+}
+
 function Timeline({
   trip,
   entries,
@@ -478,36 +500,40 @@ function Timeline({
   lastPointAt: number;
 }) {
   const {colors} = useTheme();
-  const rows: {color: string; title: string; detail?: string; right: string}[] = entries.map(e => {
-    if (e.kind === 'start') {
+  const rows: {color: string; title: string; detail?: string; right: string; photo?: string | null}[] =
+    entries.map(e => {
+      if (e.kind === 'start') {
+        return {
+          color: colors.success,
+          title: 'Started',
+          detail: shortAddress(trip.from_address),
+          right: `${formatTime(e.at)}${e.odometer != null ? `\n${formatKm(e.odometer)}` : ''}`,
+          photo: e.photo,
+        };
+      }
+      if (e.kind === 'end') {
+        return {
+          color: colors.danger,
+          title: 'Ended',
+          detail: shortAddress(trip.to_address),
+          right: `${formatTime(e.at)}${e.odometer != null ? `\n${formatKm(e.odometer)}` : ''}`,
+          photo: e.photo,
+        };
+      }
       return {
-        color: colors.success,
-        title: 'Started',
-        detail: shortAddress(trip.from_address),
-        right: `${formatTime(e.at)}${e.odometer != null ? `\n${formatKm(e.odometer)}` : ''}`,
+        color: colors.warning,
+        title: `Halt ${e.n}${e.until ? ` · ${formatSpan(e.until.getTime() - e.at.getTime())}` : ''}`,
+        detail: e.until
+          ? `${whenLabel(toServerDateTime(e.at))} – ${
+              toDateKey(e.until) === toDateKey(e.at)
+                ? formatTime(e.until)
+                : whenLabel(toServerDateTime(e.until))
+            }`
+          : 'Paused now',
+        right: formatTime(e.at),
+        photo: e.photo,
       };
-    }
-    if (e.kind === 'end') {
-      return {
-        color: colors.danger,
-        title: 'Ended',
-        detail: shortAddress(trip.to_address),
-        right: `${formatTime(e.at)}${e.odometer != null ? `\n${formatKm(e.odometer)}` : ''}`,
-      };
-    }
-    return {
-      color: colors.warning,
-      title: `Halt ${e.n}${e.until ? ` · ${formatSpan(e.until.getTime() - e.at.getTime())}` : ''}`,
-      detail: e.until
-        ? `${whenLabel(toServerDateTime(e.at))} – ${
-            toDateKey(e.until) === toDateKey(e.at)
-              ? formatTime(e.until)
-              : whenLabel(toServerDateTime(e.until))
-          }`
-        : 'Paused now',
-      right: formatTime(e.at),
-    };
-  });
+    });
   if (live) {
     rows.push({
       color: colors.primary,
@@ -533,6 +559,7 @@ function Timeline({
                 {r.detail}
               </Text>
             ) : null}
+            {r.photo ? <OdometerPhoto file={r.photo} /> : null}
           </View>
           <Text variant="caption" tone="muted" style={{textAlign: 'right'}}>
             {r.right}
