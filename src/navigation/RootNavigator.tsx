@@ -39,6 +39,7 @@ import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
+import {NotificationsScreen} from '../features/notifications/NotificationsScreen';
 import {PerformanceScreen, ScoringTypesScreen} from '../features/performance/PerformanceScreen';
 import {RankDetailScreen, RankingsScreen} from '../features/performance/RankingsScreen';
 import {SalaryPayoutsScreen, SubscriptionScreen} from '../features/performance/SubscriptionScreen';
@@ -126,6 +127,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       Vehicles: 'vehicles',
       Expenses: 'expenses',
       Performance: 'performance',
+      Notifications: 'notifications',
       Rankings: 'rankings',
       Subscription: 'subscription',
       Claim: {path: 'claim/:id', parse: {id: Number}},
@@ -337,6 +339,11 @@ export function RootNavigator() {
             options={{animation: 'slide_from_bottom'}}
           />
           <AppStack.Screen name="Tasks" component={TasksScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen
+            name="Notifications"
+            component={NotificationsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
           <AppStack.Screen
             name="Performance"
             component={PerformanceScreen}

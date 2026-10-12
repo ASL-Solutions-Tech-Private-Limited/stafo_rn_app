@@ -14,6 +14,10 @@ module.exports = {
   },
   assets: ['./assets/fonts'],
   dependencies: {
+    // Push is Android-only until the iOS Firebase config (GoogleService-Info.plist)
+    // and an APNs key are in place.
+    '@react-native-firebase/app': {platforms: {ios: null}},
+    '@react-native-firebase/messaging': {platforms: {ios: null}},
     'react-native-vision-camera-barcode-scanner': {platforms: {ios: null}},
     ...(iosSimulator ? {'react-native-vision-camera-face-detector': {platforms: {ios: null}}} : {}),
   },

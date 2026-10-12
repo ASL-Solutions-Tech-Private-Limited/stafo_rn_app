@@ -61,6 +61,7 @@ export type AppStackParamList = {
   RankDetail: {employeeId: number; name: string; month: number; year: number; rank?: number; of?: number};
   Subscription: undefined;
   SalaryPayouts: undefined;
+  Notifications: undefined;
   VehicleForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};
   Approvals: {filter?: ApprovalFilter} | undefined;

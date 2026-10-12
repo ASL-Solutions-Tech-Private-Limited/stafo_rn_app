@@ -18,6 +18,7 @@ type Props = {
   avatarUri?: string | null;
   onAvatarPress?: () => void;
   onNotificationsPress?: () => void;
+  notificationsBadge?: boolean;
   /** Scroll offset of the parent list; drives the parallax fade. */
   scrollY?: SharedValue<number>;
   /** Content that overlaps the bottom edge of the hero (e.g. the punch card). */
@@ -32,6 +33,7 @@ export function HomeHero({
   avatarUri,
   onAvatarPress,
   onNotificationsPress,
+  notificationsBadge,
   scrollY,
   children,
 }: Props) {
@@ -78,7 +80,8 @@ export function HomeHero({
             <IconButton
               icon={Bell}
               variant="glass"
-              accessibilityLabel="Notifications"
+              accessibilityLabel={notificationsBadge ? 'Notifications, new' : 'Notifications'}
+              badge={notificationsBadge}
               onPress={onNotificationsPress}
             />
           </View>

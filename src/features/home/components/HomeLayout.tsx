@@ -9,10 +9,12 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
+import {useNavigation} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Bell} from 'lucide-react-native';
 import {Avatar, IconButton, PressableScale, Text} from '../../../components/ui';
 import {useTheme} from '../../../theme/ThemeProvider';
+import {unreadCount, useInbox} from '../../notifications/inbox';
 import {HomeHero} from './HomeHero';
 
 type Props = {
@@ -48,6 +50,10 @@ export function HomeLayout({
   onRefresh,
   children,
 }: Props) {
+  const navigation = useNavigation();
+  const unread = useInbox(st => unreadCount(st.items));
+  // The bell opens Notifications unless the screen says otherwise.
+  const onBell = onNotificationsPress ?? (() => navigation.navigate('Notifications'));
   const {colors, spacing, dark} = useTheme();
   const insets = useSafeAreaInsets();
   const scrollY = useSharedValue(0);
@@ -95,7 +101,8 @@ export function HomeLayout({
           subtitle={subtitle}
           avatarUri={avatarUri}
           onAvatarPress={onAvatarPress}
-          onNotificationsPress={onNotificationsPress}
+          onNotificationsPress={onBell}
+          notificationsBadge={unread > 0}
           scrollY={scrollY}>
           {heroCard}
         </HomeHero>
@@ -137,8 +144,9 @@ export function HomeLayout({
           <IconButton
             icon={Bell}
             size={38}
-            accessibilityLabel="Notifications"
-            onPress={onNotificationsPress}
+            accessibilityLabel={unread ? `Notifications, ${unread} new` : 'Notifications'}
+            badge={unread > 0}
+            onPress={onBell}
           />
         </View>
       </Animated.View>

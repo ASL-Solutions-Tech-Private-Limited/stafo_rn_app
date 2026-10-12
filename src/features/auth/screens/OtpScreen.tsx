@@ -5,6 +5,7 @@ import {ArrowLeft, MessageSquareText} from 'lucide-react-native';
 import {sendOtp, verifyOtp} from '../../../api/endpoints/auth';
 import {Button, IconButton, OtpInput, Screen, Text, toast} from '../../../components/ui';
 import {getDeviceIdentity} from '../../../lib/device';
+import {getPushToken} from '../../../lib/push';
 import type {AuthScreenProps} from '../../../navigation/types';
 import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
@@ -31,12 +32,13 @@ export function OtpScreen({navigation, route}: AuthScreenProps<'Otp'>) {
 
   const verify = useMutation({
     mutationFn: async (otp: string) => {
-      const device = await getDeviceIdentity();
+      const [device, pushToken] = await Promise.all([getDeviceIdentity(), getPushToken()]);
       return verifyOtp({
         mobile_number: mobile,
         otp,
         device_id: device.deviceId,
-        firebase_token: '',
+        // Lets the server send this phone notifications.
+        firebase_token: pushToken,
         device_name: device.deviceName,
         android_version: device.osVersion,
       });
