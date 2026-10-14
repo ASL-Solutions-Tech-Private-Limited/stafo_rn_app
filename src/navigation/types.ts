@@ -37,6 +37,7 @@ export type AppStackParamList = {
   MyPayslips: undefined;
   MyHolidays: undefined;
   MyPolicies: undefined;
+  MyBranch: undefined;
   AttendanceQr: undefined;
   Tasks: undefined;
   TaskDetail: {id: number};

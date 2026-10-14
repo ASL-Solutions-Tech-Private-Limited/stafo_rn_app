@@ -36,6 +36,7 @@ import {FaceCaptureScreen} from '../features/face/FaceCaptureScreen';
 import {GeoPunchScreen} from '../features/punch/GeoPunchScreen';
 import {MyLeaveScreen} from '../features/leave/MyLeaveScreen';
 import {MyPayslipsScreen} from '../features/payslips/MyPayslipsScreen';
+import {MyBranchScreen} from '../features/info/MyBranchScreen';
 import {MyHolidaysScreen} from '../features/info/MyHolidaysScreen';
 import {MyPoliciesScreen} from '../features/info/MyPoliciesScreen';
 import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
@@ -106,6 +107,7 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   MyPayslips: 'employee',
   MyHolidays: 'employee',
   MyPolicies: 'employee',
+  MyBranch: 'employee',
 };
 
 const linking: LinkingOptions<AppStackParamList> = {
@@ -119,6 +121,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       MyPayslips: 'payslips',
       MyHolidays: 'holidays',
       MyPolicies: 'policies',
+      MyBranch: 'branch',
       AttendanceQr: 'setup/qr',
       Tasks: 'tasks',
       Crm: 'crm',
@@ -435,6 +438,11 @@ export function RootNavigator() {
           <AppStack.Screen
             name="MyHolidays"
             component={MyHolidaysScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyBranch"
+            component={MyBranchScreen}
             options={{animation: 'slide_from_right'}}
           />
           <AppStack.Screen

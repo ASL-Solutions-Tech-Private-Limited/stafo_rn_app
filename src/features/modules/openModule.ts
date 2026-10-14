@@ -42,6 +42,15 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('MyLeave');
     return;
   }
+  if (role !== 'company' && id === 'branches') {
+    navigation.navigate('MyBranch');
+    return;
+  }
+  if (role === 'company' && id === 'attendance') {
+    // Everyone's attendance for a day is the People tab (same as the home card).
+    navigation.navigate('CompanyTabs', {screen: 'People'});
+    return;
+  }
   if (role !== 'company' && (id === 'holidays' || id === 'policies')) {
     navigation.navigate(id === 'holidays' ? 'MyHolidays' : 'MyPolicies');
     return;
