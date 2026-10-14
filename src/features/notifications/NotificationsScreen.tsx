@@ -1,9 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {Linking, View} from 'react-native';
 import {Bell} from 'lucide-react-native';
 import {Button, Card, EmptyState, PressableScale, Text} from '../../components/ui';
 import {formatDay, formatTime, toDateKey} from '../../lib/date';
-import {getPushToken, pushSupported} from '../../lib/push';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
 import {IconWell, SetupScreen} from '../setup/parts';
@@ -22,29 +21,6 @@ const dayOf = (at: number, now = new Date()) => {
   }
   return `${formatDay(d)}${d.getFullYear() !== now.getFullYear() ? ` ${d.getFullYear()}` : ''}`;
 };
-
-/** Debug builds only: this phone's push token, to send a test from the Firebase console. */
-function DevPushToken() {
-  const [token, setToken] = useState<string | null>(null);
-  useEffect(() => {
-    getPushToken()
-      .then(setToken)
-      .catch(() => setToken(''));
-  }, []);
-  if (!__DEV__ || !pushSupported) {
-    return null;
-  }
-  return (
-    <Card style={{gap: 4}}>
-      <Text variant="overline" tone="muted">
-        PUSH TOKEN (DEBUG BUILD)
-      </Text>
-      <Text variant="caption" selectable>
-        {token === null ? 'Getting token…' : token || 'No token: Firebase didn’t give one.'}
-      </Text>
-    </Card>
-  );
-}
 
 /** What this phone received, newest first. */
 export function NotificationsScreen(_: AppScreenProps<'Notifications'>) {
@@ -143,7 +119,6 @@ export function NotificationsScreen(_: AppScreenProps<'Notifications'>) {
             />
           </Card>
         )}
-        <DevPushToken />
         {items.length ? (
           <Text variant="caption" tone="subtle" style={{textAlign: 'center'}}>
             Shows notifications this phone received.
