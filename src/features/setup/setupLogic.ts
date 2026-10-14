@@ -26,6 +26,29 @@ export function fenceStatus(b: Branch): FenceStatus {
   };
 }
 
+/** What a typed radius may be, in metres. */
+export const MIN_RADIUS_M = 10;
+export const MAX_RADIUS_M = 100_000;
+
+/** Why a typed radius (in metres) can't be saved, or null. */
+export function radiusError(text: string): string | null {
+  const t = text.trim();
+  if (!t) {
+    return 'Enter the radius in metres.';
+  }
+  if (!/^\d+$/.test(t)) {
+    return 'Whole metres only, like 200.';
+  }
+  const m = Number(t);
+  if (m < MIN_RADIUS_M) {
+    return `At least ${MIN_RADIUS_M} m; GPS is rarely more precise than that.`;
+  }
+  if (m > MAX_RADIUS_M) {
+    return `At most ${formatRadius(MAX_RADIUS_M)}.`;
+  }
+  return null;
+}
+
 export function formatRadius(m: number) {
   return m >= 1000 ? `${Number((m / 1000).toFixed(m % 1000 ? 1 : 0))} km` : `${Math.round(m)} m`;
 }

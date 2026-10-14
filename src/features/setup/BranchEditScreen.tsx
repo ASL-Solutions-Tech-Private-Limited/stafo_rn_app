@@ -15,6 +15,7 @@ import {
   formatRadius,
   MAX_SENSIBLE_RADIUS_M,
   RADIUS_CHOICES_M,
+  radiusError,
   type FenceStatus,
 } from './setupLogic';
 
@@ -46,6 +47,9 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
   const [address, setAddress] = useState('');
   const [center, setCenter] = useState<{latitude: number; longitude: number} | null>(null);
   const [radiusM, setRadiusM] = useState(150);
+  // Typed radius in metres; used instead of the chips while `typing`.
+  const [typing, setTyping] = useState(false);
+  const [typed, setTyped] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showMe, setShowMe] = useState(false);
   // A branch without a fence opens on a default city; make them place the pin themselves.
@@ -67,7 +71,12 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
       if (fence.kind !== 'none') {
         setCenter({latitude: fence.latitude, longitude: fence.longitude});
         setPlaced(true);
-        setRadiusM(fence.kind === 'wide' ? 150 : fence.radiusM);
+        // Keep what's saved, even an unusual radius; it shows as typed.
+        setRadiusM(fence.radiusM);
+        if (!RADIUS_CHOICES_M.includes(fence.radiusM)) {
+          setTyping(true);
+          setTyped(String(Math.round(fence.radiusM)));
+        }
       }
     }
   }, [id, branch, fence]);
@@ -95,10 +104,9 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
     }
   };
 
-  const radiusChoices = RADIUS_CHOICES_M.includes(radiusM)
-    ? RADIUS_CHOICES_M
-    : [...RADIUS_CHOICES_M, radiusM].sort((a, b) => a - b);
-  const canSave = !!name.trim() && !!center && placed;
+  const typedError = typing ? radiusError(typed) : null;
+  const effectiveRadius = typing ? (typedError ? null : Number(typed.trim())) : radiusM;
+  const canSave = !!name.trim() && !!center && placed && effectiveRadius != null;
 
   return (
     <SetupScreen
@@ -131,7 +139,7 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
           {center && placed ? (
             <Circle
               center={center}
-              radius={radiusM}
+              radius={effectiveRadius ?? radiusM}
               strokeColor={colors.primary}
               strokeWidth={2}
               fillColor="rgba(47,84,235,0.14)"
@@ -203,19 +211,25 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
         <Text variant="label">Punch-in radius</Text>
         <Text variant="caption" tone="muted">
           Geo attendance only works inside this circle.
-          {fence.kind === 'wide'
-            ? ` It was ${formatRadius(fence.radiusM)}, which lets people punch in from far away.`
-            : ''}
         </Text>
         <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm}}>
-          {radiusChoices.map(m => {
-            const on = m === radiusM;
+          {[
+            ...RADIUS_CHOICES_M.map(m => ({key: String(m), label: formatRadius(m), m})),
+            {key: 'custom', label: 'Custom', m: null},
+          ].map(c => {
+            const on = c.m == null ? typing : !typing && c.m === radiusM;
             return (
               <PressableScale
-                key={m}
+                key={c.key}
                 onPress={() => {
                   haptics.select();
-                  setRadiusM(m);
+                  if (c.m == null) {
+                    setTyping(true);
+                    setTyped(t => t || String(Math.round(radiusM)));
+                  } else {
+                    setTyping(false);
+                    setRadiusM(c.m);
+                  }
                 }}
                 accessibilityRole="radio"
                 accessibilityState={{checked: on}}
@@ -231,12 +245,34 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
                   justifyContent: 'center',
                 }}>
                 <Text variant="label" color={on ? colors.primary : colors.textMuted}>
-                  {formatRadius(m)}
+                  {c.label}
                 </Text>
               </PressableScale>
             );
           })}
         </View>
+        {typing ? (
+          <View style={{marginTop: spacing.sm}}>
+            <TextField
+              label="Radius in metres"
+              value={typed}
+              onChangeText={t => setTyped(t.replace(/[^0-9]/g, ''))}
+              keyboardType="number-pad"
+              maxLength={6}
+              placeholder="e.g. 200"
+              error={typed ? typedError : null}
+              hint={
+                !typedError && effectiveRadius != null
+                  ? effectiveRadius > MAX_SENSIBLE_RADIUS_M
+                    ? `${formatRadius(
+                        effectiveRadius,
+                      )} lets people punch in from far away. Most offices use 50–300 m.`
+                    : formatRadius(effectiveRadius)
+                  : undefined
+              }
+            />
+          </View>
+        ) : null}
       </View>
 
       <TextField
@@ -267,7 +303,7 @@ export function BranchEditScreen({navigation, route}: AppScreenProps<'SetupBranc
                 branch_address: address,
                 latitude: Number(center.latitude.toFixed(7)),
                 longitude: Number(center.longitude.toFixed(7)),
-                radar: Math.min(radiusM, MAX_SENSIBLE_RADIUS_M),
+                radar: effectiveRadius!,
               },
             },
             {onSuccess: () => navigation.goBack()},

@@ -4,6 +4,7 @@ import {
   daysLabel,
   fenceStatus,
   formatRadius,
+  radiusError,
   isOvernight,
   shiftDays,
   shiftLengthMs,
@@ -90,5 +91,18 @@ describe('holidays', () => {
     );
     expect(upcoming.map(x => x.title)).toEqual(['Maha Dashmi', 'Kali Puja']);
     expect(past.map(x => x.title)).toEqual(['Independence Day', 'Bank Holiday']);
+  });
+});
+
+describe('typed punch-in radius', () => {
+  it('accepts whole metres from 10 m to 100 km (production has 20 m and 99 km)', () => {
+    expect(['10', '20', ' 750 ', '99000', '100000'].map(radiusError)).toEqual([null, null, null, null, null]);
+  });
+  it('explains what is wrong', () => {
+    expect(radiusError('')).toBe('Enter the radius in metres.');
+    expect(radiusError('1.5')).toBe('Whole metres only, like 200.');
+    expect(radiusError('abc')).toBe('Whole metres only, like 200.');
+    expect(radiusError('5')).toMatch(/At least 10 m/);
+    expect(radiusError('100001')).toBe('At most 100 km.');
   });
 });
