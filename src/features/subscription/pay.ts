@@ -2,9 +2,10 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {createPayuOrder, payuHash, reportPayuPayment, type Plan} from '../../api/endpoints/subscription';
 import {FEATURES, PAYU_HASH_PATH} from '../../config/features';
 import {openPayuCheckout, payuAvailable} from '../../lib/payu';
+import {payuHashLocal} from '../../lib/payuHash';
 import {useSession} from '../../store/session';
 
-/** Paying in the app is on only when the backend is ready and the SDK is in this build. */
+/** Paying in the app is on when switched on and the PayU SDK is in this build. */
 export const canPayInApp = () => FEATURES.inAppPayment && payuAvailable();
 
 export type PaymentOutcome =
@@ -24,7 +25,7 @@ export function usePayForPlan() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (plan: Plan): Promise<PaymentOutcome> => {
-      const order = await createPayuOrder(companyId!, plan.id);
+      const {order, salt} = await createPayuOrder(companyId!, plan.id);
       const result = await openPayuCheckout({
         key: order.merchantKey,
         txnid: order.txnid,
@@ -34,7 +35,10 @@ export function usePayForPlan() {
         email: order.email,
         phone: order.phone,
         extra: {udf1: String(order.user_id), udf2: String(order.duration), udf3: String(order.package_id)},
-        getHash: (name, hashString) => payuHash(PAYU_HASH_PATH, name, hashString, order.txnid),
+        // While the server still sends the salt, hash like the native app did;
+        // after the backend change, the server computes it.
+        getHash: async (name, hashString) =>
+          salt ? payuHashLocal(hashString, salt) : payuHash(PAYU_HASH_PATH, name, hashString, order.txnid),
       });
       if (result.status === 'cancelled' || result.status === 'error') {
         return result;

@@ -5,15 +5,14 @@
  * Off for now: records change on the backend when the company approves or
  * rejects a punch-fix request. Turn on once the company may edit directly.
  *
- * inAppPayment: paying for a plan with PayU from the Subscription screen.
- * Off until the backend (1) stops sending the PayU salt from api/hasgenerate,
- * (2) has an endpoint that returns PayU hashes (set PAYU_HASH_PATH), and
- * (3) checks each payment with PayU before extending a plan. Until then the
- * Subscription screen sends people to STAFO sales.
+ * inAppPayment: paying for a plan with PayU from the Subscription screen, as
+ * the native app did. Security still depends on the backend: it should stop
+ * sending the PayU salt from api/hasgenerate (the app then asks PAYU_HASH_PATH
+ * for hashes) and check each payment with PayU before extending a plan.
  */
 export const FEATURES = {
   editAttendance: false,
-  inAppPayment: false,
+  inAppPayment: true,
 } as const;
 
 /** Server endpoint that computes PayU hashes; agree the path with the backend team. */

@@ -64,8 +64,10 @@ export type PayuOrder = {
 };
 
 /**
- * Starts a payment for a plan. The server must NOT send the merchant salt any
- * more; if it still does, it's dropped here and never used or stored.
+ * Starts a payment for a plan. Today the server also sends the merchant salt
+ * (as it did for the native app); it's returned separately so it's only used
+ * for this payment's hashes and never stored. Once the backend stops sending
+ * it, hashes come from the server instead (see payuHash).
  */
 export async function createPayuOrder(companyId: string, packageId: number) {
   const {data} = await api.post<BasicResponse & {hashParam?: (PayuOrder & {salt?: string}) | null}>(
@@ -76,7 +78,6 @@ export async function createPayuOrder(companyId: string, packageId: number) {
   if (!p?.merchantKey || !p.txnid || !p.amount) {
     throw new Error('Couldn’t start the payment. Please try again.');
   }
-  // Copy only what the checkout needs, so a salt in the response goes nowhere.
   const order: PayuOrder = {
     merchantKey: p.merchantKey,
     txnid: p.txnid,
@@ -89,7 +90,7 @@ export async function createPayuOrder(companyId: string, packageId: number) {
     package_id: p.package_id,
     user_id: p.user_id,
   };
-  return order;
+  return {order, salt: p.salt?.trim() || null};
 }
 
 /**

@@ -59,3 +59,13 @@ describe('subscription maths on real plans', () => {
     expect(planProgress(null, now)).toBeNull();
   });
 });
+
+describe('PayU hash', () => {
+  it('is SHA-512 hex of the string plus salt', () => {
+    // SHA-512("abc"), the standard test vector.
+    const {payuHashLocal} = require('../src/lib/payuHash');
+    expect(payuHashLocal('ab', 'c')).toBe(
+      'ddaf35a193617abacc417349ae20413112e6fa4e89a97ea20a9eeee64b55d39a2192992a274fc1a836ba3c23a3feebbd454d4423643ce80e2a9ac94fa54ca49f',
+    );
+  });
+});
