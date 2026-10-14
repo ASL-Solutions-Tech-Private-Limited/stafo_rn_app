@@ -58,7 +58,8 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+// R8: removes unused code from release builds (the app's code was ~31 MB unshrunk).
+def enableProguardInReleaseBuilds = true
 
 def releaseKeystoreFile = rootProject.file("keystore.properties")
 def releaseKeystore = null
@@ -122,6 +123,7 @@ android {
             // try on a phone, refused by the Play Store.
             signingConfig releaseKeystore != null ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
     }

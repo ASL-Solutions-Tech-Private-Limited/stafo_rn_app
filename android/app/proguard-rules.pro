@@ -8,3 +8,9 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# Room (used by WorkManager, which Firebase and other libraries start at launch)
+# finds each database's generated *_Impl class by name; keep them and their names.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
+-keep class androidx.work.impl.WorkDatabase_Impl { *; }
+-keepnames class androidx.work.impl.WorkDatabase
