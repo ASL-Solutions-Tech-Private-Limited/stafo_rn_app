@@ -14,3 +14,8 @@
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
 -keep class androidx.work.impl.WorkDatabase_Impl { *; }
 -keepnames class androidx.work.impl.WorkDatabase
+
+# PayU CheckoutPro (subscription payments) loads parts of itself by name.
+-keep class com.payu.** { *; }
+-keep class com.payubiz.** { *; }
+-dontwarn com.payu.**

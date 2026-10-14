@@ -21,3 +21,20 @@ buildscript {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// payu-non-seam-less-react declares BuildConfig fields but doesn't enable
+// BuildConfig, which current Android Gradle Plugin requires; turn it on for it.
+subprojects { p ->
+    if (p.name == "payu-non-seam-less-react") {
+        p.pluginManager.withPlugin("com.android.library") {
+            p.android.buildFeatures.buildConfig = true
+        }
+    }
+}
+
+// PayU's checkout pulls in PhonePe's intent SDK, published only on PhonePe's repository.
+allprojects {
+    repositories {
+        maven { url "https://phonepe.mycloudrepo.io/public/repositories/phonepe-intentsdk-android" }
+    }
+}

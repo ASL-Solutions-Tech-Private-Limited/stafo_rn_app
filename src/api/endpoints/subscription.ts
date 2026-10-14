@@ -45,3 +45,91 @@ export async function getSubscription() {
   const body = ensureOk(data);
   return {subscription: body.data ?? null, invoiceUrl: body.downloadUrl || null};
 }
+
+// ---------- PayU payment ----------
+
+/** What the server prepares for a PayU checkout (api/hasgenerate). */
+export type PayuOrder = {
+  merchantKey: string;
+  txnid: string;
+  amount: string;
+  productinfo: string;
+  firstname: string;
+  email: string;
+  phone: string;
+  /** Plan length in days and package, echoed back when reporting the payment. */
+  duration: number;
+  package_id: number;
+  user_id: number;
+};
+
+/**
+ * Starts a payment for a plan. The server must NOT send the merchant salt any
+ * more; if it still does, it's dropped here and never used or stored.
+ */
+export async function createPayuOrder(companyId: string, packageId: number) {
+  const {data} = await api.post<BasicResponse & {hashParam?: (PayuOrder & {salt?: string}) | null}>(
+    'api/hasgenerate',
+    {company_id: companyId, package_id: String(packageId)},
+  );
+  const p = ensureOk(data).hashParam;
+  if (!p?.merchantKey || !p.txnid || !p.amount) {
+    throw new Error('Couldn’t start the payment. Please try again.');
+  }
+  // Copy only what the checkout needs, so a salt in the response goes nowhere.
+  const order: PayuOrder = {
+    merchantKey: p.merchantKey,
+    txnid: p.txnid,
+    amount: p.amount,
+    productinfo: p.productinfo,
+    firstname: p.firstname,
+    email: p.email,
+    phone: String(p.phone ?? ''),
+    duration: p.duration,
+    package_id: p.package_id,
+    user_id: p.user_id,
+  };
+  return order;
+}
+
+/**
+ * The hash PayU's checkout asks for while it runs, computed by the server with
+ * the salt it keeps to itself. PAYU_HASH_PATH is set once the backend has it.
+ */
+export async function payuHash(path: string, hashName: string, hashString: string, txnid: string) {
+  const {data} = await api.post<BasicResponse & {hash?: string}>(path, {
+    hash_name: hashName,
+    hash_string: hashString,
+    txnid,
+  });
+  const hash = ensureOk(data).hash;
+  if (!hash) {
+    throw new Error('The server didn’t return a payment hash.');
+  }
+  return hash;
+}
+
+/**
+ * Tells the server how the payment ended. The server must confirm it with
+ * PayU (verify_payment) before extending the plan; the app's word isn't proof.
+ */
+export async function reportPayuPayment(p: {
+  companyId: string;
+  order: PayuOrder;
+  status: 'success' | 'failed';
+  amount: string;
+  txnid: string;
+  payuResponse: Record<string, unknown>;
+}) {
+  const {data} = await api.post<BasicResponse>('api/paymentUpdate', {
+    company_id: p.companyId,
+    duration: String(p.order.duration),
+    packageId: String(p.order.package_id),
+    amount: p.amount,
+    txnid: p.txnid,
+    status: p.status,
+    payment_Message: p.status,
+    payment_info: p.payuResponse,
+  });
+  return ensureOk(data);
+}

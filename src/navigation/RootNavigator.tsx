@@ -43,7 +43,10 @@ import {AttendanceQrScreen} from '../features/qr/AttendanceQrScreen';
 import {NotificationsScreen} from '../features/notifications/NotificationsScreen';
 import {PerformanceScreen, ScoringTypesScreen} from '../features/performance/PerformanceScreen';
 import {RankDetailScreen, RankingsScreen} from '../features/performance/RankingsScreen';
-import {SalaryPayoutsScreen, SubscriptionScreen} from '../features/performance/SubscriptionScreen';
+import {SalaryPayoutsScreen} from '../features/performance/SubscriptionScreen';
+import {ChoosePlanScreen} from '../features/subscription/ChoosePlanScreen';
+import {PaymentResultScreen} from '../features/subscription/PaymentResultScreen';
+import {SubscriptionScreen} from '../features/subscription/SubscriptionScreen';
 import {CategoriesScreen, CategoryFormScreen} from '../features/expenses/CategoriesScreen';
 import {ClaimFormScreen} from '../features/expenses/ClaimFormScreen';
 import {ClaimScreen} from '../features/expenses/ClaimScreen';
@@ -371,6 +374,16 @@ export function RootNavigator() {
             name="Subscription"
             component={SubscriptionScreen}
             options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="ChoosePlan"
+            component={ChoosePlanScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="PaymentResult"
+            component={PaymentResultScreen}
+            options={{animation: 'fade', gestureEnabled: false}}
           />
           <AppStack.Screen
             name="SalaryPayouts"

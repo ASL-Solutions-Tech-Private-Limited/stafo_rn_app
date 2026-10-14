@@ -61,6 +61,14 @@ export type AppStackParamList = {
   Rankings: undefined;
   RankDetail: {employeeId: number; name: string; month: number; year: number; rank?: number; of?: number};
   Subscription: undefined;
+  ChoosePlan: undefined;
+  PaymentResult: {
+    status: 'success' | 'failed' | 'pending';
+    txnid: string;
+    amount: string;
+    mode?: string;
+    plan: string;
+  };
   SalaryPayouts: undefined;
   Notifications: undefined;
   VehicleForm: {id?: number} | undefined;
