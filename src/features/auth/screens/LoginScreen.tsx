@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Pressable, View} from 'react-native';
 import {useMutation} from '@tanstack/react-query';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ArrowRight, Building2, Phone, ShieldCheck, UserRoundSearch} from 'lucide-react-native';
 import {sendOtp} from '../../../api/endpoints/auth';
 import {BottomSheet, Button, Gradient, Screen, Text, TextField, toast} from '../../../components/ui';
+import {askPushPermission} from '../../../lib/push';
 import type {AuthScreenProps} from '../../../navigation/types';
 import {useTheme} from '../../../theme/ThemeProvider';
 
@@ -19,6 +20,11 @@ export function LoginScreen({navigation, route}: AuthScreenProps<'Login'>) {
   const [signupSheet, setSignupSheet] = useState(false);
 
   const valid = MOBILE_PATTERN.test(mobile);
+
+  // Ask for notifications here, once: the push token is sent when they sign in.
+  useEffect(() => {
+    askPushPermission().catch(() => {});
+  }, []);
 
   const otp = useMutation({
     mutationFn: sendOtp,

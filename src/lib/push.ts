@@ -19,52 +19,23 @@ function fcm(): Messaging | null {
   }
 }
 
-export type PushPermission = 'granted' | 'denied' | 'unsupported';
-
-/** Whether the phone lets the app show notifications (asks nothing). */
-export async function pushPermission(): Promise<PushPermission> {
+/**
+ * Asks to show notifications (iOS, Android 13+), on the login screen. If the
+ * phone already said no, the system shows nothing and this resolves false.
+ */
+export async function askPushPermission(): Promise<boolean> {
   if (!pushSupported) {
-    return 'unsupported';
+    return false;
   }
   if (Platform.OS === 'ios') {
     const m = fcm();
-    // NOT_DETERMINED counts as off, so the card offers to ask.
-    return m && (await m.hasPermission(m.getMessaging())) > 0 ? 'granted' : 'denied';
+    return !!m && (await m.requestPermission(m.getMessaging())) > 0;
   }
   if (Number(Platform.Version) < 33) {
-    return 'granted';
-  }
-  return (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS))
-    ? 'granted'
-    : 'denied';
-}
-
-/** Asks to show notifications (iOS, Android 13+); after a "never ask", opens Settings. */
-export async function askPushPermission(): Promise<PushPermission> {
-  if (!pushSupported) {
-    return 'unsupported';
-  }
-  if (Platform.OS === 'ios') {
-    const m = fcm();
-    if (!m) {
-      return 'unsupported';
-    }
-    const before = await m.hasPermission(m.getMessaging());
-    if (before === m.AuthorizationStatus.DENIED) {
-      // iOS asks only once; after that it's in Settings.
-      Linking.openSettings().catch(() => {});
-      return 'denied';
-    }
-    return (await m.requestPermission(m.getMessaging())) > 0 ? 'granted' : 'denied';
-  }
-  if (Number(Platform.Version) < 33) {
-    return 'granted';
+    return true;
   }
   const r = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-  if (r === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
-    Linking.openSettings().catch(() => {});
-  }
-  return r === PermissionsAndroid.RESULTS.GRANTED ? 'granted' : 'denied';
+  return r === PermissionsAndroid.RESULTS.GRANTED;
 }
 
 /** This phone's push token for the server, or '' when push isn't available. */

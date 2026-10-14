@@ -1,55 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {AppState, Linking, View} from 'react-native';
-import {Bell, BellOff} from 'lucide-react-native';
+import {Linking, View} from 'react-native';
+import {Bell} from 'lucide-react-native';
 import {Button, Card, EmptyState, PressableScale, Text} from '../../components/ui';
 import {formatDay, formatTime, toDateKey} from '../../lib/date';
-import {
-  askPushPermission,
-  getPushToken,
-  pushPermission,
-  pushSupported,
-  type PushPermission,
-} from '../../lib/push';
+import {getPushToken, pushSupported} from '../../lib/push';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
 import {IconWell, SetupScreen} from '../setup/parts';
 import {linkOf, unreadCount, useInbox, type InboxItem} from './inbox';
-
-/** Re-checks on return from Settings. */
-export function usePushPermission() {
-  const [state, setState] = useState<PushPermission>(pushSupported ? 'granted' : 'unsupported');
-  useEffect(() => {
-    const check = () =>
-      pushPermission()
-        .then(setState)
-        .catch(() => {});
-    check();
-    const sub = AppState.addEventListener('change', s => s === 'active' && check());
-    return () => sub.remove();
-  }, []);
-  return [state, () => askPushPermission().then(setState)] as const;
-}
-
-/** Card asking to turn notifications on; nothing when they're on or unsupported. */
-export function PushOffCard() {
-  const {colors, spacing} = useTheme();
-  const [permission, ask] = usePushPermission();
-  if (permission !== 'denied') {
-    return null;
-  }
-  return (
-    <Card style={{backgroundColor: colors.warningSoft, borderColor: 'transparent', gap: spacing.md}}>
-      <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
-        <IconWell icon={BellOff} fg={colors.warning} bg={colors.surface} />
-        <View style={{flex: 1}}>
-          <Text variant="title">Notifications are off</Text>
-          <Text variant="caption">Turn them on to hear about approvals, tasks and payslips.</Text>
-        </View>
-      </View>
-      <Button title="Turn on" size="sm" onPress={ask} />
-    </Card>
-  );
-}
 
 const dayOf = (at: number, now = new Date()) => {
   const d = new Date(at);
@@ -118,7 +76,6 @@ export function NotificationsScreen(_: AppScreenProps<'Notifications'>) {
         ) : undefined
       }>
       <View style={{gap: spacing.md}}>
-        <PushOffCard />
         {items.length ? (
           groups.map(g => (
             <View key={g.day} style={{gap: spacing.sm}}>
