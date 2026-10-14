@@ -2,15 +2,12 @@ import {Linking, PermissionsAndroid, Platform} from 'react-native';
 import {toast} from '../components/ui/toast';
 import {linkOf, toInboxItem, useInbox} from '../features/notifications/inbox';
 
-/**
- * Firebase push, Android only for now: iOS has no Firebase config or APNs key
- * yet, and the native module isn't linked there (see react-native.config.js).
- */
-export const pushSupported = Platform.OS === 'android';
+/** Firebase push (FCM; through APNs on iOS). */
+export const pushSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 
 type Messaging = typeof import('@react-native-firebase/messaging');
 
-// Loaded lazily so iOS never touches the unlinked native module.
+// Loaded lazily, so a missing native module only turns push off.
 function fcm(): Messaging | null {
   if (!pushSupported) {
     return null;
@@ -29,6 +26,11 @@ export async function pushPermission(): Promise<PushPermission> {
   if (!pushSupported) {
     return 'unsupported';
   }
+  if (Platform.OS === 'ios') {
+    const m = fcm();
+    // NOT_DETERMINED counts as off, so the card offers to ask.
+    return m && (await m.hasPermission(m.getMessaging())) > 0 ? 'granted' : 'denied';
+  }
   if (Number(Platform.Version) < 33) {
     return 'granted';
   }
@@ -37,10 +39,23 @@ export async function pushPermission(): Promise<PushPermission> {
     : 'denied';
 }
 
-/** Asks to show notifications (Android 13+); after a "never ask", opens Settings. */
+/** Asks to show notifications (iOS, Android 13+); after a "never ask", opens Settings. */
 export async function askPushPermission(): Promise<PushPermission> {
   if (!pushSupported) {
     return 'unsupported';
+  }
+  if (Platform.OS === 'ios') {
+    const m = fcm();
+    if (!m) {
+      return 'unsupported';
+    }
+    const before = await m.hasPermission(m.getMessaging());
+    if (before === m.AuthorizationStatus.DENIED) {
+      // iOS asks only once; after that it's in Settings.
+      Linking.openSettings().catch(() => {});
+      return 'denied';
+    }
+    return (await m.requestPermission(m.getMessaging())) > 0 ? 'granted' : 'denied';
   }
   if (Number(Platform.Version) < 33) {
     return 'granted';
@@ -59,6 +74,13 @@ export async function getPushToken(): Promise<string> {
     return '';
   }
   try {
+    if (Platform.OS === 'ios') {
+      // iOS needs permission before APNs gives Firebase a device token.
+      const status = await m.hasPermission(m.getMessaging());
+      if (status === m.AuthorizationStatus.NOT_DETERMINED) {
+        await m.requestPermission(m.getMessaging());
+      }
+    }
     return await m.getToken(m.getMessaging());
   } catch {
     return '';

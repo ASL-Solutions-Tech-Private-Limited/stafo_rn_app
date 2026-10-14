@@ -119,13 +119,6 @@ export function NotificationsScreen(_: AppScreenProps<'Notifications'>) {
       }>
       <View style={{gap: spacing.md}}>
         <PushOffCard />
-        {!pushSupported ? (
-          <Card>
-            <Text variant="caption" tone="muted">
-              Push notifications aren’t set up on iPhone yet.
-            </Text>
-          </Card>
-        ) : null}
         {items.length ? (
           groups.map(g => (
             <View key={g.day} style={{gap: spacing.sm}}>

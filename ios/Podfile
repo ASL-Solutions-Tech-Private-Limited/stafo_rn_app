@@ -10,6 +10,10 @@ IOS_TARGET = [Gem::Version.new(min_ios_version_supported), Gem::Version.new('15.
 platform :ios, IOS_TARGET
 prepare_react_native_project!
 
+# Firebase (push) through CocoaPods, not Swift Package Manager: the SPM copies
+# collide when pods are linked statically, as they are here.
+$RNFirebaseDisableSPM = true
+
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
@@ -18,6 +22,12 @@ end
 
 target 'StafoApp' do
   config = use_native_modules!
+
+  # Firebase's Swift pods import these, which needs module maps when linked statically.
+  %w[GoogleUtilities FirebaseCore FirebaseCoreExtension FirebaseCoreInternal
+     FirebaseInstallations GoogleDataTransport nanopb].each do |name|
+    pod name, :modular_headers => true
+  end
 
   use_react_native!(
     :path => config[:reactNativePath],
