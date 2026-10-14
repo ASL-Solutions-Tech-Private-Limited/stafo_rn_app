@@ -60,6 +60,13 @@ react {
  */
 def enableProguardInReleaseBuilds = false
 
+def releaseKeystoreFile = rootProject.file("keystore.properties")
+def releaseKeystore = null
+if (releaseKeystoreFile.exists()) {
+    releaseKeystore = new Properties()
+    releaseKeystoreFile.withInputStream { releaseKeystore.load(it) }
+}
+
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
  *
@@ -94,15 +101,26 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        // The STAFO upload key, the same one the native app (1.7.0) was signed with.
+        // Its path and passwords live in android/keystore.properties, which is not
+        // committed (see keystore.properties.example).
+        if (releaseKeystore != null) {
+            release {
+                storeFile rootProject.file(releaseKeystore['storeFile'])
+                storePassword releaseKeystore['storePassword']
+                keyAlias releaseKeystore['keyAlias']
+                keyPassword releaseKeystore['keyPassword']
+            }
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            // Without keystore.properties a release build is debug-signed: fine to
+            // try on a phone, refused by the Play Store.
+            signingConfig releaseKeystore != null ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
