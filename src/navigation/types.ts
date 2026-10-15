@@ -70,6 +70,12 @@ export type AppStackParamList = {
     plan: string;
   };
   SalaryPayouts: undefined;
+  CompanyProfileEdit: undefined;
+  CompanyDocuments: undefined;
+  MyDocuments: undefined;
+  HelpSupport: undefined;
+  Feedback: undefined;
+  Refer: undefined;
   Notifications: undefined;
   VehicleForm: {id?: number} | undefined;
   QrPunch: {direction: 'in' | 'out'};

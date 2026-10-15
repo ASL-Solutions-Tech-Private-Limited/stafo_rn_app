@@ -1,26 +1,47 @@
 import React, {useState} from 'react';
 import {Pressable, View} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
 import {
   Briefcase,
   Building2,
   CalendarDays,
+  ChevronRight,
+  FileText,
+  Gift,
   Hash,
+  LifeBuoy,
   LogOut,
   Mail,
   MapPin,
+  MessageSquare,
   Monitor,
   Moon,
+  Pencil,
   Phone,
   Sun,
+  Trash2,
   type LucideIcon,
 } from 'lucide-react-native';
-import {Avatar, Badge, Card, ConfirmDialog, Screen, Text} from '../../../components/ui';
+import {
+  Avatar,
+  Badge,
+  BottomSheet,
+  Button,
+  Card,
+  ConfirmDialog,
+  Screen,
+  Text,
+  TextField,
+} from '../../../components/ui';
 import {APP_ENV} from '../../../config/env';
 import {formatDay, parseServerDate} from '../../../lib/date';
 import {signOut, useSession} from '../../../store/session';
 import {useTheme, useThemePreference, type ThemePreference} from '../../../theme/ThemeProvider';
+import type {AppStackParamList} from '../../../navigation/types';
 import {useCompanyProfile, useEmployeeDetails} from '../../home/queries';
+import {confirmsName} from '../accountLogic';
+import {useDeleteCompany} from '../accountQueries';
 
 type Row = {icon: LucideIcon; label: string; value?: string | null};
 
@@ -40,6 +61,26 @@ export function ProfileScreen() {
 
       {role === 'company' ? <CompanyProfile /> : <EmployeeProfile />}
 
+      {role === 'company' ? (
+        <LinkSection
+          title="Company"
+          links={[
+            {icon: Building2, label: 'Company profile', to: 'CompanyProfileEdit'},
+            {icon: FileText, label: 'Company documents', to: 'CompanyDocuments'},
+          ]}
+        />
+      ) : (
+        <LinkSection title="Documents" links={[{icon: FileText, label: 'My documents', to: 'MyDocuments'}]} />
+      )}
+      <LinkSection
+        title="Support"
+        links={[
+          {icon: LifeBuoy, label: 'Help & support', to: 'HelpSupport'},
+          {icon: MessageSquare, label: 'Send feedback', to: 'Feedback'},
+          {icon: Gift, label: 'Refer STAFO', to: 'Refer'},
+        ]}
+      />
+
       <Text variant="overline" tone="muted" style={{marginTop: spacing.xxl, marginBottom: spacing.md}}>
         Appearance
       </Text>
@@ -56,6 +97,8 @@ export function ProfileScreen() {
           </Text>
         </Pressable>
       </Card>
+
+      {role === 'company' ? <DeleteCompany /> : null}
 
       <Text variant="caption" tone="subtle" align="center" style={{marginTop: spacing.xl}}>
         STAFO {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
@@ -126,6 +169,7 @@ function EmployeeProfile() {
 
 function CompanyProfile() {
   const {spacing} = useTheme();
+  const navigation = useNavigation();
   const company = useSession(s => s.company);
   const profile = useCompanyProfile();
   // The login payload stores type, city and state as database ids ("2", "617");
@@ -151,6 +195,15 @@ function CompanyProfile() {
         <Text variant="body" tone="muted">
           Company admin
         </Text>
+        <Button
+          title="Edit details"
+          icon={Pencil}
+          variant="ghost"
+          size="sm"
+          fullWidth={false}
+          style={{marginTop: spacing.md}}
+          onPress={() => navigation.navigate('CompanyProfileEdit')}
+        />
       </Card>
       <InfoList rows={rows} />
     </>
@@ -235,5 +288,121 @@ function AppearancePicker() {
         );
       })}
     </View>
+  );
+}
+
+type Link = {icon: LucideIcon; label: string; to: keyof AppStackParamList};
+
+function LinkSection({title, links}: {title: string; links: Link[]}) {
+  const {colors, spacing} = useTheme();
+  const navigation = useNavigation();
+  return (
+    <>
+      <Text variant="overline" tone="muted" style={{marginTop: spacing.xxl, marginBottom: spacing.md}}>
+        {title}
+      </Text>
+      <Card padded={false}>
+        {links.map((l, i) => (
+          <Pressable
+            key={l.to}
+            onPress={() => navigation.navigate(l.to as never)}
+            accessibilityRole="button"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.md,
+              padding: spacing.lg,
+              borderTopWidth: i ? 1 : 0,
+              borderTopColor: colors.border,
+            }}>
+            <l.icon size={18} color={colors.textMuted} />
+            <Text variant="title" style={{flex: 1}}>
+              {l.label}
+            </Text>
+            <ChevronRight size={18} color={colors.textSubtle} />
+          </Pressable>
+        ))}
+      </Card>
+    </>
+  );
+}
+
+const LOSES = [
+  'All employees are signed out and can no longer use STAFO for your company',
+  'Attendance, leave, payroll and expense records are removed',
+  'Your subscription ends with no refund for the remaining days',
+];
+
+/** Deleting can't be undone, so they type the company name to confirm. */
+function DeleteCompany() {
+  const {colors, spacing} = useTheme();
+  const name = useSession(s => s.company?.company_name ?? '');
+  const del = useDeleteCompany();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const ok = confirmsName(typed, name);
+  return (
+    <>
+      <Pressable
+        onPress={() => {
+          setTyped('');
+          setOpen(true);
+        }}
+        accessibilityRole="button"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          marginTop: spacing.xl,
+          padding: spacing.sm,
+        }}>
+        <Trash2 size={16} color={colors.danger} />
+        <Text variant="label" tone="danger">
+          Delete company account
+        </Text>
+      </Pressable>
+      <BottomSheet
+        visible={open}
+        onClose={() => !del.isPending && setOpen(false)}
+        title="Delete company account?">
+        <View style={{gap: spacing.md}}>
+          <Text variant="body" tone="muted">
+            This can’t be undone.
+          </Text>
+          {LOSES.map(l => (
+            <View key={l} style={{flexDirection: 'row', gap: spacing.sm}}>
+              <Text variant="body" tone="danger">
+                •
+              </Text>
+              <Text variant="body" style={{flex: 1}}>
+                {l}
+              </Text>
+            </View>
+          ))}
+          <TextField
+            label={`Type “${name}” to confirm`}
+            value={typed}
+            onChangeText={setTyped}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Button
+            title="Delete permanently"
+            icon={Trash2}
+            variant="danger"
+            disabled={!ok}
+            loading={del.isPending}
+            onPress={() => del.mutate()}
+          />
+          <Button
+            title="Keep my account"
+            variant="ghost"
+            disabled={del.isPending}
+            onPress={() => setOpen(false)}
+          />
+        </View>
+      </BottomSheet>
+    </>
   );
 }

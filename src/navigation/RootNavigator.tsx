@@ -47,6 +47,14 @@ import {SalaryPayoutsScreen} from '../features/performance/SubscriptionScreen';
 import {ChoosePlanScreen} from '../features/subscription/ChoosePlanScreen';
 import {PaymentResultScreen} from '../features/subscription/PaymentResultScreen';
 import {SubscriptionScreen} from '../features/subscription/SubscriptionScreen';
+import {
+  CompanyDocumentsScreen,
+  CompanyProfileEditScreen,
+  FeedbackScreen,
+  HelpSupportScreen,
+  MyDocumentsScreen,
+  ReferScreen,
+} from '../features/profile/screens/AccountScreens';
 import {CategoriesScreen, CategoryFormScreen} from '../features/expenses/CategoriesScreen';
 import {ClaimFormScreen} from '../features/expenses/ClaimFormScreen';
 import {ClaimScreen} from '../features/expenses/ClaimScreen';
@@ -111,6 +119,9 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   MyHolidays: 'employee',
   MyPolicies: 'employee',
   MyBranch: 'employee',
+  CompanyProfileEdit: 'company',
+  CompanyDocuments: 'company',
+  MyDocuments: 'employee',
 };
 
 const linking: LinkingOptions<AppStackParamList> = {
@@ -136,6 +147,12 @@ const linking: LinkingOptions<AppStackParamList> = {
       Notifications: 'notifications',
       Rankings: 'rankings',
       Subscription: 'subscription',
+      CompanyProfileEdit: 'company/edit',
+      CompanyDocuments: 'company/documents',
+      MyDocuments: 'documents',
+      HelpSupport: 'help',
+      Feedback: 'feedback',
+      Refer: 'refer',
       Claim: {path: 'claim/:id', parse: {id: Number}},
       ClaimForm: 'expenses/new',
       Lead: {path: 'lead/:id', parse: {id: Number}},
@@ -385,6 +402,32 @@ export function RootNavigator() {
             component={PaymentResultScreen}
             options={{animation: 'fade', gestureEnabled: false}}
           />
+          <AppStack.Screen
+            name="CompanyProfileEdit"
+            component={CompanyProfileEditScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="CompanyDocuments"
+            component={CompanyDocumentsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="MyDocuments"
+            component={MyDocumentsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="HelpSupport"
+            component={HelpSupportScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="Feedback"
+            component={FeedbackScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen name="Refer" component={ReferScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen
             name="SalaryPayouts"
             component={SalaryPayoutsScreen}

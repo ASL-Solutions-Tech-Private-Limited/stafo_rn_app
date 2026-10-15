@@ -1,4 +1,11 @@
-import {daysUntil, holidayOnWeekOff, holidaysInYear, policyUrl, splitHolidays, untilLabel} from '../src/features/setup/setupLogic';
+import {
+  daysUntil,
+  holidayOnWeekOff,
+  holidaysInYear,
+  policyUrl,
+  splitHolidays,
+  untilLabel,
+} from '../src/features/setup/setupLogic';
 
 // Company 1's real 2026 holidays and Day Shift (Mon–Fri).
 const h = (id: number, title: string, d: string) => ({id, title, start_date: d, end_date: d});
@@ -8,7 +15,18 @@ const holidays = [
   h(3, 'Bank Holiday', '2026-03-31'),
   h(4, 'Maha Dashmi', '2026-10-21'),
 ];
-const shift = {id: 2, start_time: '10:00', end_time: '22:00', sunday: 0, monday: 1, tuesday: 1, wednesday: 1, thursday: 1, friday: 1, saturday: 0};
+const shift = {
+  id: 2,
+  start_time: '10:00',
+  end_time: '22:00',
+  sunday: 0,
+  monday: 1,
+  tuesday: 1,
+  wednesday: 1,
+  thursday: 1,
+  friday: 1,
+  saturday: 0,
+};
 const today = new Date(2026, 9, 3, 13, 0);
 
 describe('employee holidays', () => {

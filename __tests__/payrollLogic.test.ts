@@ -1,5 +1,11 @@
 import type {SalaryLine} from '../src/api/types';
-import {formatMoney, netPay, payStatus, payrollMonths, periodRange} from '../src/features/payroll/payrollLogic';
+import {
+  formatMoney,
+  netPay,
+  payStatus,
+  payrollMonths,
+  periodRange,
+} from '../src/features/payroll/payrollLogic';
 
 const line = (label: string, amount: number, payment_type = 'Earning'): SalaryLine => ({
   id: label.length,
@@ -12,11 +18,17 @@ const line = (label: string, amount: number, payment_type = 'Earning'): SalaryLi
 describe('netPay', () => {
   it("reproduces the server's preview for Demo Employee", () => {
     const earnings = [2600, 1200, 400, 2000, 600, 1000].map((a, i) => line(`e${i}`, a));
-    const deductions = [line('ESIC', 0, 'Deduction'), line('PT', 100, 'Deduction'), line('IT', 500, 'Deduction')];
+    const deductions = [
+      line('ESIC', 0, 'Deduction'),
+      line('PT', 100, 'Deduction'),
+      line('IT', 500, 'Deduction'),
+    ];
     expect(netPay({basic: 10000, earnings, deductions, lossOfPay: 6774.18, expense: 0})).toBe(10425.82);
   });
   it('adds expenses and reflects an adjusted line', () => {
-    expect(netPay({basic: 9000, earnings: [line('HRA', 1000)], deductions: [], lossOfPay: 0, expense: 250.5})).toBe(10250.5);
+    expect(
+      netPay({basic: 9000, earnings: [line('HRA', 1000)], deductions: [], lossOfPay: 0, expense: 250.5}),
+    ).toBe(10250.5);
   });
 });
 

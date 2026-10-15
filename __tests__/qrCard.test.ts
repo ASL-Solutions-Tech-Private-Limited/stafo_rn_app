@@ -30,11 +30,41 @@ describe('printable QR card', () => {
 
 describe('peopleOnCode', () => {
   const people = [
-    {name: 'Demo Employee', attendance_type: 'selfie', branch_name: 'ASL WALLETS', department_name: 'IT', status: '1'},
-    {name: 'Asha', attendance_type: 'qr code', branch_name: 'ASL WALLETS', department_name: 'IT', status: '1'},
-    {name: 'Ravi', attendance_type: 'QR Code', branch_name: 'asl wallets ', department_name: 'it', status: '1'},
-    {name: 'Left', attendance_type: 'qr code', branch_name: 'ASL WALLETS', department_name: 'IT', status: '0'},
-    {name: 'Sales', attendance_type: 'qr code', branch_name: 'ASL WALLETS', department_name: 'Sales', status: '1'},
+    {
+      name: 'Demo Employee',
+      attendance_type: 'selfie',
+      branch_name: 'ASL WALLETS',
+      department_name: 'IT',
+      status: '1',
+    },
+    {
+      name: 'Asha',
+      attendance_type: 'qr code',
+      branch_name: 'ASL WALLETS',
+      department_name: 'IT',
+      status: '1',
+    },
+    {
+      name: 'Ravi',
+      attendance_type: 'QR Code',
+      branch_name: 'asl wallets ',
+      department_name: 'it',
+      status: '1',
+    },
+    {
+      name: 'Left',
+      attendance_type: 'qr code',
+      branch_name: 'ASL WALLETS',
+      department_name: 'IT',
+      status: '0',
+    },
+    {
+      name: 'Sales',
+      attendance_type: 'qr code',
+      branch_name: 'ASL WALLETS',
+      department_name: 'Sales',
+      status: '1',
+    },
   ];
   it('counts active QR people at that branch and department', () => {
     expect(peopleOnCode(people, 'ASL WALLETS', 'IT').map(p => p.name)).toEqual(['Asha', 'Ravi']);

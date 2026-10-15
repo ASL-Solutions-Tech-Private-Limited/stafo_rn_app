@@ -7,7 +7,9 @@ const at = (h: number, m = 0, d = 5) => new Date(2026, 9, d, h, m);
 describe('planTracking', () => {
   it('needs their consent first', () => {
     for (const geo_status of ['0', '1', null]) {
-      expect(planTracking({geo_status, shifts: [day], punches: punchedIn('2026-10-05 09:42:00')}, at(12))).toEqual({
+      expect(
+        planTracking({geo_status, shifts: [day], punches: punchedIn('2026-10-05 09:42:00')}, at(12)),
+      ).toEqual({
         track: false,
         reason: 'no-consent',
       });
@@ -21,9 +23,14 @@ describe('planTracking', () => {
   });
 
   it('stops 15 minutes after the shift ends', () => {
-    const plan = planTracking({geo_status: '2', shifts: [day], punches: punchedIn('2026-10-05 09:42:00')}, at(12));
+    const plan = planTracking(
+      {geo_status: '2', shifts: [day], punches: punchedIn('2026-10-05 09:42:00')},
+      at(12),
+    );
     expect(plan).toEqual({track: true, stopAt: at(22, 15)});
-    expect(planTracking({geo_status: '2', shifts: [day], punches: punchedIn('2026-10-05 09:42:00')}, at(22, 20))).toEqual({
+    expect(
+      planTracking({geo_status: '2', shifts: [day], punches: punchedIn('2026-10-05 09:42:00')}, at(22, 20)),
+    ).toEqual({
       track: false,
       reason: 'shift-over',
     });
@@ -31,14 +38,23 @@ describe('planTracking', () => {
 
   it('carries a night shift into the next morning', () => {
     const night = {id: 2, start_time: '10:00 PM', end_time: '06:00 AM'};
-    const plan = planTracking({geo_status: '2', shifts: [night], punches: punchedIn('2026-10-05 21:55:00')}, at(23));
+    const plan = planTracking(
+      {geo_status: '2', shifts: [night], punches: punchedIn('2026-10-05 21:55:00')},
+      at(23),
+    );
     expect(plan).toEqual({track: true, stopAt: at(6, 15, 6)});
-    const afterMidnight = planTracking({geo_status: '2', shifts: [night], punches: punchedIn('2026-10-05 21:55:00')}, at(2, 0, 6));
+    const afterMidnight = planTracking(
+      {geo_status: '2', shifts: [night], punches: punchedIn('2026-10-05 21:55:00')},
+      at(2, 0, 6),
+    );
     expect(afterMidnight).toEqual({track: true, stopAt: at(6, 15, 6)});
   });
 
   it('caps a punch-in with no shift at 12 hours', () => {
-    const plan = planTracking({geo_status: '2', shifts: [], punches: punchedIn('2026-10-05 09:00:00')}, at(12));
+    const plan = planTracking(
+      {geo_status: '2', shifts: [], punches: punchedIn('2026-10-05 09:00:00')},
+      at(12),
+    );
     expect(plan).toEqual({track: true, stopAt: at(21)});
   });
 });

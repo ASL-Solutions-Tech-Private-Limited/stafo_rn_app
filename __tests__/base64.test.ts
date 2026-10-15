@@ -12,10 +12,14 @@ describe('base64ToArrayBuffer', () => {
   });
   it('strips a data: prefix and line breaks', () => {
     const b64 = Buffer.from('png bytes').toString('base64');
-    expect(bytes(`data:image/png;base64,${b64.slice(0, 4)}\n${b64.slice(4)}`)).toEqual(Array.from(Buffer.from('png bytes')));
+    expect(bytes(`data:image/png;base64,${b64.slice(0, 4)}\n${b64.slice(4)}`)).toEqual(
+      Array.from(Buffer.from('png bytes')),
+    );
   });
   it('decodes the QR payload production prints', () => {
-    const text = Buffer.from(base64ToArrayBuffer('eyJjb21wYW55X2lkIjoxLCJicmFuY2hfaWQiOjgyLCJkZXBhcnRtZW50X2lkIjoyfQ==')).toString();
+    const text = Buffer.from(
+      base64ToArrayBuffer('eyJjb21wYW55X2lkIjoxLCJicmFuY2hfaWQiOjgyLCJkZXBhcnRtZW50X2lkIjoyfQ=='),
+    ).toString();
     expect(JSON.parse(text)).toEqual({company_id: 1, branch_id: 82, department_id: 2});
   });
 });

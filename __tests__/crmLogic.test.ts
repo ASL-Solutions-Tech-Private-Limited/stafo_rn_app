@@ -1,4 +1,13 @@
-import {crmCounts, filterLeads, isFollowUpDue, leadInput, leadPhone, nextDate, phoneWasLost, stageOf} from '../src/features/crm/crmLogic';
+import {
+  crmCounts,
+  filterLeads,
+  isFollowUpDue,
+  leadInput,
+  leadPhone,
+  nextDate,
+  phoneWasLost,
+  stageOf,
+} from '../src/features/crm/crmLogic';
 
 // Production's 5 leads for company 1 (fetched 3 Oct 2026).
 const leads = require('./fixtures/leads-company1.json').data;
@@ -28,7 +37,12 @@ describe('CRM rules on real leads', () => {
   });
   it('counts and orders the pipeline', () => {
     expect(crmCounts(leads, now)).toEqual({leads: 5, dueToday: 0, overdue: 3, won: 2});
-    expect(isFollowUpDue(leads.find((l: any) => l.id === 3), now)).toBe(false);
+    expect(
+      isFollowUpDue(
+        leads.find((l: any) => l.id === 3),
+        now,
+      ),
+    ).toBe(false);
     expect(filterLeads(leads, 'all', '', now).map((l: any) => l.id)).toEqual([6, 9, 5, 4, 3]);
     expect(filterLeads(leads, 'won', '', now).map((l: any) => l.id)).toEqual([4, 3]);
     expect(filterLeads(leads, 'all', 'jio', now).map((l: any) => l.id)).toEqual([9, 3]);

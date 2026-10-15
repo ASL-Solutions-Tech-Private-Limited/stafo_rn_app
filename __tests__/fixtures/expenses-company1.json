@@ -1,1 +1,328 @@
-{"categories": [{"id": 2, "company_id": 1, "name": "Client Visit", "description": null, "is_document_req": "No", "status": "Active", "created_at": "2025-06-21T21:40:56.000000Z", "updated_at": "2025-06-26T15:43:58.000000Z", "expense_forms": [{"id": 45, "company_id": 1, "type_id": 2, "field_name": "Visitor Name", "field_type": "text", "description": null, "status": "Active", "created_at": "2025-10-25T10:16:51.000000Z", "updated_at": "2025-10-25T10:16:51.000000Z"}, {"id": 46, "company_id": 1, "type_id": 2, "field_name": "Visit Date", "field_type": "date", "description": null, "status": "Active", "created_at": "2025-10-25T10:16:51.000000Z", "updated_at": "2025-10-25T10:16:51.000000Z"}, {"id": 47, "company_id": 1, "type_id": 2, "field_name": "Reason", "field_type": "text", "description": null, "status": "Active", "created_at": "2025-10-25T10:16:51.000000Z", "updated_at": "2025-10-25T10:16:51.000000Z"}, {"id": 48, "company_id": 1, "type_id": 2, "field_name": "Status", "field_type": "Text", "description": null, "status": "Active", "created_at": "2025-10-25T10:16:51.000000Z", "updated_at": "2025-10-25T10:16:51.000000Z"}]}, {"id": 3, "company_id": 1, "name": "Travel", "description": null, "is_document_req": "No", "status": "Active", "created_at": "2025-06-24T16:15:22.000000Z", "updated_at": "2025-06-24T16:15:22.000000Z", "expense_forms": [{"id": 22, "company_id": 1, "type_id": 3, "field_name": "Place Name", "field_type": "text", "description": null, "status": "Active", "created_at": "2025-06-25T21:09:16.000000Z", "updated_at": "2025-06-25T21:09:16.000000Z"}, {"id": 23, "company_id": 1, "type_id": 3, "field_name": "Date", "field_type": "date", "description": null, "status": "Active", "created_at": "2025-06-25T21:09:16.000000Z", "updated_at": "2025-06-25T21:09:16.000000Z"}, {"id": 24, "company_id": 1, "type_id": 3, "field_name": "Reason", "field_type": "textarea", "description": null, "status": "Active", "created_at": "2025-06-25T21:09:16.000000Z", "updated_at": "2025-06-25T21:09:16.000000Z"}]}, {"id": 5, "company_id": 1, "name": "Food", "description": null, "is_document_req": "Yes", "status": "Active", "created_at": "2025-06-25T15:30:40.000000Z", "updated_at": "2025-06-25T15:30:40.000000Z", "expense_forms": [{"id": 20, "company_id": 1, "type_id": 5, "field_name": "Name", "field_type": "text", "description": null, "status": "Active", "created_at": "2025-06-25T15:30:40.000000Z", "updated_at": "2025-06-25T15:30:40.000000Z"}, {"id": 21, "company_id": 1, "type_id": 5, "field_name": "Date", "field_type": "date", "description": null, "status": "Active", "created_at": "2025-06-25T15:30:40.000000Z", "updated_at": "2025-06-25T15:30:40.000000Z"}]}, {"id": 9, "company_id": 1, "name": "Travel  Test", "description": null, "is_document_req": "Yes", "status": "Active", "created_at": "2025-07-18T03:31:43.000000Z", "updated_at": "2025-07-18T03:31:43.000000Z", "expense_forms": [{"id": 42, "company_id": 1, "type_id": 9, "field_name": "hshs", "field_type": "text", "description": null, "status": "Active", "created_at": "2025-07-18T03:31:43.000000Z", "updated_at": "2025-07-18T03:31:43.000000Z"}, {"id": 43, "company_id": 1, "type_id": 9, "field_name": "Amount", "field_type": "number", "description": null, "status": "Active", "created_at": "2025-07-18T03:31:43.000000Z", "updated_at": "2025-07-18T03:31:43.000000Z"}]}], "claims": [{"id": 1, "company_id": 1, "employee_id": 24, "expensetype_id": 3, "amount": "200.00", "status": "Rejected", "created_at": "2025-06-24T23:24:18.000000Z", "updated_at": "2025-06-25T16:35:32.000000Z", "expense_type": {"id": 3, "name": "Travel", "description": null}, "expense_details": [], "attachments": []}, {"id": 2, "company_id": 1, "employee_id": 24, "expensetype_id": 3, "amount": "200.00", "status": "Approved", "created_at": "2025-06-24T23:25:05.000000Z", "updated_at": "2025-06-25T16:35:44.000000Z", "expense_type": {"id": 3, "name": "Travel", "description": null}, "expense_details": [], "attachments": []}, {"id": 26, "company_id": 1, "employee_id": 24, "expensetype_id": 5, "amount": "580.00", "status": "Approved", "created_at": "2025-06-26T14:16:02.000000Z", "updated_at": "2025-06-26T16:25:37.000000Z", "expense_type": {"id": 5, "name": "Food", "description": null}, "expense_details": [{"id": 24, "expense_id": 26, "expenseform_id": 20, "expense_value": "test", "created_at": "2025-06-26T15:36:37.000000Z", "updated_at": "2025-06-26T15:36:37.000000Z"}, {"id": 25, "expense_id": 26, "expenseform_id": 21, "expense_value": "25 Jun 2025", "created_at": "2025-06-26T15:36:37.000000Z", "updated_at": "2025-06-26T15:36:37.000000Z"}], "attachments": [{"id": 3, "expense_id": 26, "filename": "attachment_01750913162.jpg"}]}, {"id": 27, "company_id": 1, "employee_id": 24, "expensetype_id": 3, "amount": "250.00", "status": "Approved", "created_at": "2025-06-26T15:37:17.000000Z", "updated_at": "2025-07-04T19:08:30.000000Z", "expense_type": {"id": 3, "name": "Travel", "description": null}, "expense_details": [{"id": 26, "expense_id": 27, "expenseform_id": 22, "expense_value": "Kolkata", "created_at": "2025-06-26T15:37:17.000000Z", "updated_at": "2025-06-26T15:37:17.000000Z"}, {"id": 27, "expense_id": 27, "expenseform_id": 23, "expense_value": "26 Jun 2025", "created_at": "2025-06-26T15:37:17.000000Z", "updated_at": "2025-06-26T15:37:17.000000Z"}, {"id": 28, "expense_id": 27, "expenseform_id": 24, "expense_value": "test", "created_at": "2025-06-26T15:37:17.000000Z", "updated_at": "2025-06-26T15:37:17.000000Z"}], "attachments": []}, {"id": 28, "company_id": 1, "employee_id": 24, "expensetype_id": 2, "amount": "250.00", "status": "Approved", "created_at": "2025-07-04T19:11:20.000000Z", "updated_at": "2025-07-04T19:11:31.000000Z", "expense_type": {"id": 2, "name": "Client Visit", "description": null}, "expense_details": [], "attachments": []}, {"id": 30, "company_id": 1, "employee_id": 24, "expensetype_id": 2, "amount": "58000.00", "status": "Pending", "created_at": "2025-10-25T10:18:43.000000Z", "updated_at": "2025-10-25T10:18:43.000000Z", "expense_type": {"id": 2, "name": "Client Visit", "description": null}, "expense_details": [{"id": 34, "expense_id": 30, "expenseform_id": 45, "expense_value": "Hamid", "created_at": "2025-10-25T10:18:43.000000Z", "updated_at": "2025-10-25T10:18:43.000000Z"}, {"id": 35, "expense_id": 30, "expenseform_id": 46, "expense_value": "24 Oct 2025", "created_at": "2025-10-25T10:18:43.000000Z", "updated_at": "2025-10-25T10:18:43.000000Z"}, {"id": 36, "expense_id": 30, "expenseform_id": 47, "expense_value": "For deal", "created_at": "2025-10-25T10:18:43.000000Z", "updated_at": "2025-10-25T10:18:43.000000Z"}, {"id": 37, "expense_id": 30, "expenseform_id": 48, "expense_value": "In Progress", "created_at": "2025-10-25T10:18:43.000000Z", "updated_at": "2025-10-25T10:18:43.000000Z"}], "attachments": []}]}
+{
+  "categories": [
+    {
+      "id": 2,
+      "company_id": 1,
+      "name": "Client Visit",
+      "description": null,
+      "is_document_req": "No",
+      "status": "Active",
+      "created_at": "2025-06-21T21:40:56.000000Z",
+      "updated_at": "2025-06-26T15:43:58.000000Z",
+      "expense_forms": [
+        {
+          "id": 45,
+          "company_id": 1,
+          "type_id": 2,
+          "field_name": "Visitor Name",
+          "field_type": "text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-10-25T10:16:51.000000Z",
+          "updated_at": "2025-10-25T10:16:51.000000Z"
+        },
+        {
+          "id": 46,
+          "company_id": 1,
+          "type_id": 2,
+          "field_name": "Visit Date",
+          "field_type": "date",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-10-25T10:16:51.000000Z",
+          "updated_at": "2025-10-25T10:16:51.000000Z"
+        },
+        {
+          "id": 47,
+          "company_id": 1,
+          "type_id": 2,
+          "field_name": "Reason",
+          "field_type": "text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-10-25T10:16:51.000000Z",
+          "updated_at": "2025-10-25T10:16:51.000000Z"
+        },
+        {
+          "id": 48,
+          "company_id": 1,
+          "type_id": 2,
+          "field_name": "Status",
+          "field_type": "Text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-10-25T10:16:51.000000Z",
+          "updated_at": "2025-10-25T10:16:51.000000Z"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "company_id": 1,
+      "name": "Travel",
+      "description": null,
+      "is_document_req": "No",
+      "status": "Active",
+      "created_at": "2025-06-24T16:15:22.000000Z",
+      "updated_at": "2025-06-24T16:15:22.000000Z",
+      "expense_forms": [
+        {
+          "id": 22,
+          "company_id": 1,
+          "type_id": 3,
+          "field_name": "Place Name",
+          "field_type": "text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-06-25T21:09:16.000000Z",
+          "updated_at": "2025-06-25T21:09:16.000000Z"
+        },
+        {
+          "id": 23,
+          "company_id": 1,
+          "type_id": 3,
+          "field_name": "Date",
+          "field_type": "date",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-06-25T21:09:16.000000Z",
+          "updated_at": "2025-06-25T21:09:16.000000Z"
+        },
+        {
+          "id": 24,
+          "company_id": 1,
+          "type_id": 3,
+          "field_name": "Reason",
+          "field_type": "textarea",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-06-25T21:09:16.000000Z",
+          "updated_at": "2025-06-25T21:09:16.000000Z"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "company_id": 1,
+      "name": "Food",
+      "description": null,
+      "is_document_req": "Yes",
+      "status": "Active",
+      "created_at": "2025-06-25T15:30:40.000000Z",
+      "updated_at": "2025-06-25T15:30:40.000000Z",
+      "expense_forms": [
+        {
+          "id": 20,
+          "company_id": 1,
+          "type_id": 5,
+          "field_name": "Name",
+          "field_type": "text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-06-25T15:30:40.000000Z",
+          "updated_at": "2025-06-25T15:30:40.000000Z"
+        },
+        {
+          "id": 21,
+          "company_id": 1,
+          "type_id": 5,
+          "field_name": "Date",
+          "field_type": "date",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-06-25T15:30:40.000000Z",
+          "updated_at": "2025-06-25T15:30:40.000000Z"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "company_id": 1,
+      "name": "Travel  Test",
+      "description": null,
+      "is_document_req": "Yes",
+      "status": "Active",
+      "created_at": "2025-07-18T03:31:43.000000Z",
+      "updated_at": "2025-07-18T03:31:43.000000Z",
+      "expense_forms": [
+        {
+          "id": 42,
+          "company_id": 1,
+          "type_id": 9,
+          "field_name": "hshs",
+          "field_type": "text",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-07-18T03:31:43.000000Z",
+          "updated_at": "2025-07-18T03:31:43.000000Z"
+        },
+        {
+          "id": 43,
+          "company_id": 1,
+          "type_id": 9,
+          "field_name": "Amount",
+          "field_type": "number",
+          "description": null,
+          "status": "Active",
+          "created_at": "2025-07-18T03:31:43.000000Z",
+          "updated_at": "2025-07-18T03:31:43.000000Z"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": 1,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 3,
+      "amount": "200.00",
+      "status": "Rejected",
+      "created_at": "2025-06-24T23:24:18.000000Z",
+      "updated_at": "2025-06-25T16:35:32.000000Z",
+      "expense_type": {"id": 3, "name": "Travel", "description": null},
+      "expense_details": [],
+      "attachments": []
+    },
+    {
+      "id": 2,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 3,
+      "amount": "200.00",
+      "status": "Approved",
+      "created_at": "2025-06-24T23:25:05.000000Z",
+      "updated_at": "2025-06-25T16:35:44.000000Z",
+      "expense_type": {"id": 3, "name": "Travel", "description": null},
+      "expense_details": [],
+      "attachments": []
+    },
+    {
+      "id": 26,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 5,
+      "amount": "580.00",
+      "status": "Approved",
+      "created_at": "2025-06-26T14:16:02.000000Z",
+      "updated_at": "2025-06-26T16:25:37.000000Z",
+      "expense_type": {"id": 5, "name": "Food", "description": null},
+      "expense_details": [
+        {
+          "id": 24,
+          "expense_id": 26,
+          "expenseform_id": 20,
+          "expense_value": "test",
+          "created_at": "2025-06-26T15:36:37.000000Z",
+          "updated_at": "2025-06-26T15:36:37.000000Z"
+        },
+        {
+          "id": 25,
+          "expense_id": 26,
+          "expenseform_id": 21,
+          "expense_value": "25 Jun 2025",
+          "created_at": "2025-06-26T15:36:37.000000Z",
+          "updated_at": "2025-06-26T15:36:37.000000Z"
+        }
+      ],
+      "attachments": [{"id": 3, "expense_id": 26, "filename": "attachment_01750913162.jpg"}]
+    },
+    {
+      "id": 27,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 3,
+      "amount": "250.00",
+      "status": "Approved",
+      "created_at": "2025-06-26T15:37:17.000000Z",
+      "updated_at": "2025-07-04T19:08:30.000000Z",
+      "expense_type": {"id": 3, "name": "Travel", "description": null},
+      "expense_details": [
+        {
+          "id": 26,
+          "expense_id": 27,
+          "expenseform_id": 22,
+          "expense_value": "Kolkata",
+          "created_at": "2025-06-26T15:37:17.000000Z",
+          "updated_at": "2025-06-26T15:37:17.000000Z"
+        },
+        {
+          "id": 27,
+          "expense_id": 27,
+          "expenseform_id": 23,
+          "expense_value": "26 Jun 2025",
+          "created_at": "2025-06-26T15:37:17.000000Z",
+          "updated_at": "2025-06-26T15:37:17.000000Z"
+        },
+        {
+          "id": 28,
+          "expense_id": 27,
+          "expenseform_id": 24,
+          "expense_value": "test",
+          "created_at": "2025-06-26T15:37:17.000000Z",
+          "updated_at": "2025-06-26T15:37:17.000000Z"
+        }
+      ],
+      "attachments": []
+    },
+    {
+      "id": 28,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 2,
+      "amount": "250.00",
+      "status": "Approved",
+      "created_at": "2025-07-04T19:11:20.000000Z",
+      "updated_at": "2025-07-04T19:11:31.000000Z",
+      "expense_type": {"id": 2, "name": "Client Visit", "description": null},
+      "expense_details": [],
+      "attachments": []
+    },
+    {
+      "id": 30,
+      "company_id": 1,
+      "employee_id": 24,
+      "expensetype_id": 2,
+      "amount": "58000.00",
+      "status": "Pending",
+      "created_at": "2025-10-25T10:18:43.000000Z",
+      "updated_at": "2025-10-25T10:18:43.000000Z",
+      "expense_type": {"id": 2, "name": "Client Visit", "description": null},
+      "expense_details": [
+        {
+          "id": 34,
+          "expense_id": 30,
+          "expenseform_id": 45,
+          "expense_value": "Hamid",
+          "created_at": "2025-10-25T10:18:43.000000Z",
+          "updated_at": "2025-10-25T10:18:43.000000Z"
+        },
+        {
+          "id": 35,
+          "expense_id": 30,
+          "expenseform_id": 46,
+          "expense_value": "24 Oct 2025",
+          "created_at": "2025-10-25T10:18:43.000000Z",
+          "updated_at": "2025-10-25T10:18:43.000000Z"
+        },
+        {
+          "id": 36,
+          "expense_id": 30,
+          "expenseform_id": 47,
+          "expense_value": "For deal",
+          "created_at": "2025-10-25T10:18:43.000000Z",
+          "updated_at": "2025-10-25T10:18:43.000000Z"
+        },
+        {
+          "id": 37,
+          "expense_id": 30,
+          "expenseform_id": 48,
+          "expense_value": "In Progress",
+          "created_at": "2025-10-25T10:18:43.000000Z",
+          "updated_at": "2025-10-25T10:18:43.000000Z"
+        }
+      ],
+      "attachments": []
+    }
+  ]
+}

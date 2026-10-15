@@ -87,7 +87,10 @@ describe('update body', () => {
   });
 
   it('applies edits and keeps fields the form does not show', () => {
-    const body = buildUpdateBody({...hamid, city: 5, job_title_id: 3}, {...editFromProfile(hamid), pf_number: ' KN/12345 ', salary: ''});
+    const body = buildUpdateBody(
+      {...hamid, city: 5, job_title_id: 3},
+      {...editFromProfile(hamid), pf_number: ' KN/12345 ', salary: ''},
+    );
     expect(body.pf_number).toBe('KN/12345');
     expect(body.salary).toBe('0');
     expect(body.city).toBe(5);

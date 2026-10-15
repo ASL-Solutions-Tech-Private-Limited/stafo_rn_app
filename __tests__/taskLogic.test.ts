@@ -22,7 +22,9 @@ const now = new Date(2026, 9, 3, 13);
 
 describe('task status', () => {
   it('reads the mix stored on the server', () => {
-    expect(['in_progress', 'In Progress', 'Active', 'Completed', 'Pending', 'Overdue', '', null].map(taskStatus)).toEqual([
+    expect(
+      ['in_progress', 'In Progress', 'Active', 'Completed', 'Pending', 'Overdue', '', null].map(taskStatus),
+    ).toEqual([
       'in-progress',
       'in-progress',
       'in-progress',
@@ -48,7 +50,12 @@ describe('real tasks', () => {
     expect(dueLabel({end_date: '2026-10-03', status: 'Pending'}, now)).toBe('Due today');
     expect(dueLabel({end_date: '2026-10-09', status: 'Active'}, now)).toBe('Due 9 Oct');
     expect(dueLabel({end_date: '2026-10-01', status: 'Completed'}, now)).toBe('Done');
-    expect(daysLate(tasks.find((t: any) => t.id === 21), now)).toBe(0);
+    expect(
+      daysLate(
+        tasks.find((t: any) => t.id === 21),
+        now,
+      ),
+    ).toBe(0);
   });
   it('orders tabs', () => {
     expect(tasksFor(tasks, 'open', now).map((t: any) => t.id)).toEqual([22, 25, 26, 27]);

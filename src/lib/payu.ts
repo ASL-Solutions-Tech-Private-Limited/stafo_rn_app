@@ -27,6 +27,11 @@ const sdk = (): {openCheckoutScreen: (p: object) => void; hashGenerated: (m: obj
 
 export const payuAvailable = () => !!sdk();
 
+type PayuEvent = {payuResponse?: unknown; payUResponse?: unknown} | null | undefined;
+
+/** Android sends {payuResponse}; iOS may send {payUResponse} or the response itself. */
+const resultOf = (e: PayuEvent) => e?.payuResponse ?? e?.payUResponse ?? e;
+
 /** PayU's result arrives as a JSON string; sometimes nested under "result". */
 function parse(raw: unknown): Record<string, unknown> {
   try {
@@ -58,8 +63,8 @@ export function openPayuCheckout(c: PayuCheckout): Promise<PayuResult> {
           native.hashGenerated({[e.hashName]: ''});
         }
       }),
-      emitter.addListener('onPaymentSuccess', (e: {payuResponse?: unknown}) => {
-        const r = parse(e.payuResponse);
+      emitter.addListener('onPaymentSuccess', (e: PayuEvent) => {
+        const r = parse(resultOf(e));
         done({
           status: 'success',
           txnid: String(r.txnid ?? c.txnid),
@@ -68,8 +73,8 @@ export function openPayuCheckout(c: PayuCheckout): Promise<PayuResult> {
           response: r,
         });
       }),
-      emitter.addListener('onPaymentFailure', (e: {payuResponse?: unknown}) =>
-        done({status: 'failed', response: parse(e.payuResponse)}),
+      emitter.addListener('onPaymentFailure', (e: PayuEvent) =>
+        done({status: 'failed', response: parse(resultOf(e))}),
       ),
       emitter.addListener('onPaymentCancel', () => done({status: 'cancelled'})),
       emitter.addListener('onError', (e: {errorMsg?: string; errorMessage?: string}) =>

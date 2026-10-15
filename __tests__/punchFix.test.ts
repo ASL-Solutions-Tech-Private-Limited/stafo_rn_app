@@ -1,13 +1,33 @@
-import {fixableDates, punchFixEligibility, punchOutTimeError, suggestedPunchOut} from '../src/features/attendance/punchFix';
+import {
+  fixableDates,
+  punchFixEligibility,
+  punchOutTimeError,
+  suggestedPunchOut,
+} from '../src/features/attendance/punchFix';
 
 // Day Shift as on production: Mon–Fri, 10:00–22:00.
-const shift = {id: 2, start_time: '10:00', end_time: '22:00', sunday: 0, monday: 1, tuesday: 1, wednesday: 1, thursday: 1, friday: 1, saturday: 0};
+const shift = {
+  id: 2,
+  start_time: '10:00',
+  end_time: '22:00',
+  sunday: 0,
+  monday: 1,
+  tuesday: 1,
+  wednesday: 1,
+  thursday: 1,
+  friday: 1,
+  saturday: 0,
+};
 const sat3Oct = new Date(2026, 9, 3, 15, 0);
 const mon5Oct = new Date(2026, 9, 5, 11, 0);
 
 describe('fixableDates', () => {
   it('is yesterday and the 2 working days before it, never today', () => {
-    expect(fixableDates(shift, [], new Date(2026, 9, 8, 9))).toEqual(['2026-10-07', '2026-10-06', '2026-10-05']);
+    expect(fixableDates(shift, [], new Date(2026, 9, 8, 9))).toEqual([
+      '2026-10-07',
+      '2026-10-06',
+      '2026-10-05',
+    ]);
   });
   it('skips the weekend', () => {
     expect(fixableDates(shift, [], mon5Oct)).toEqual(['2026-10-02', '2026-10-01', '2026-09-30']);
