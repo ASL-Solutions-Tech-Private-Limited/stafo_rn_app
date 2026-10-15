@@ -1,12 +1,27 @@
-import React, {useState} from 'react';
-import {Pressable, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {StatusBar, View, type LayoutChangeEvent} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  ReduceMotion,
+  useAnimatedReaction,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  ZoomIn,
+  type SharedValue,
+} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import DeviceInfo from 'react-native-device-info';
 import {
   Briefcase,
   Building2,
   CalendarDays,
   ChevronRight,
+  Crown,
   FileText,
   Gift,
   Hash,
@@ -25,85 +40,203 @@ import {
 } from 'lucide-react-native';
 import {
   Avatar,
-  Badge,
   BottomSheet,
   Button,
   Card,
   ConfirmDialog,
-  Screen,
+  Gradient,
+  PressableScale,
+  Reveal,
   Text,
   TextField,
 } from '../../../components/ui';
 import {APP_ENV} from '../../../config/env';
 import {formatDay, parseServerDate} from '../../../lib/date';
+import {haptics} from '../../../lib/haptics';
+import type {AppStackParamList} from '../../../navigation/types';
 import {signOut, useSession} from '../../../store/session';
 import {useTheme, useThemePreference, type ThemePreference} from '../../../theme/ThemeProvider';
-import type {AppStackParamList} from '../../../navigation/types';
 import {useCompanyProfile, useEmployeeDetails} from '../../home/queries';
+import {IconWell} from '../../setup/parts';
 import {confirmsName} from '../accountLogic';
 import {useDeleteCompany} from '../accountQueries';
 
 type Row = {icon: LucideIcon; label: string; value?: string | null};
+type Tint = 'primary' | 'info' | 'success' | 'warning' | 'danger';
+type Link = {icon: LucideIcon; label: string; hint: string; tint: Tint; to: keyof AppStackParamList};
+
+const HERO_OVERLAP = 44;
+/** Scroll distance over which the compact header fades in. */
+const COLLAPSE_START = 150;
+const COLLAPSE_END = 210;
 
 export function ProfileScreen() {
-  const {colors, spacing} = useTheme();
+  const {colors, spacing, dark} = useTheme();
   const role = useSession(s => s.role);
   const [confirmOut, setConfirmOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const scrollY = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler(e => {
+    scrollY.value = e.contentOffset.y;
+  });
+  const isCompany = role === 'company';
+  const insets = useSafeAreaInsets();
+  // Once the hero has scrolled away, a solid header takes over and the status bar turns dark.
+  const [collapsed, setCollapsed] = useState(false);
+  useAnimatedReaction(
+    () => scrollY.value > (COLLAPSE_START + COLLAPSE_END) / 2,
+    (now, before) => {
+      if (now !== before) {
+        scheduleOnRN(setCollapsed, now);
+      }
+    },
+  );
+  const headerStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [COLLAPSE_START, COLLAPSE_END], [0, 1], Extrapolation.CLAMP),
+    transform: [
+      {translateY: interpolate(scrollY.value, [COLLAPSE_START, COLLAPSE_END], [-12, 0], Extrapolation.CLAMP)},
+    ],
+  }));
 
   return (
-    <Screen
-      scroll
-      safeBottom={false}
-      contentStyle={{paddingHorizontal: spacing.lg, paddingBottom: spacing.xxxl}}>
-      <Text variant="h1" style={{marginTop: spacing.lg, marginBottom: spacing.xl}}>
-        Profile
-      </Text>
+    <View style={{flex: 1, backgroundColor: colors.background}}>
+      <StatusBar barStyle={collapsed && !dark ? 'dark-content' : 'light-content'} animated />
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{paddingBottom: spacing.xxxl}}>
+        {isCompany ? <CompanyProfile scrollY={scrollY} /> : <EmployeeProfile scrollY={scrollY} />}
 
-      {role === 'company' ? <CompanyProfile /> : <EmployeeProfile />}
+        <View style={{paddingHorizontal: spacing.lg}}>
+          <Reveal index={2}>
+            {isCompany ? (
+              <LinkSection
+                title="Company"
+                links={[
+                  {
+                    icon: Building2,
+                    label: 'Company profile',
+                    hint: 'Name, GST, address and bank',
+                    tint: 'primary',
+                    to: 'CompanyProfileEdit',
+                  },
+                  {
+                    icon: FileText,
+                    label: 'Company documents',
+                    hint: 'Registration, GST, PAN and more',
+                    tint: 'info',
+                    to: 'CompanyDocuments',
+                  },
+                  {
+                    icon: Crown,
+                    label: 'Plan & billing',
+                    hint: 'Your subscription and renewals',
+                    tint: 'warning',
+                    to: 'Subscription',
+                  },
+                ]}
+              />
+            ) : (
+              <LinkSection
+                title="Documents"
+                links={[
+                  {
+                    icon: FileText,
+                    label: 'My documents',
+                    hint: 'Offer letter, ID and more',
+                    tint: 'info',
+                    to: 'MyDocuments',
+                  },
+                ]}
+              />
+            )}
+          </Reveal>
 
-      {role === 'company' ? (
-        <LinkSection
-          title="Company"
-          links={[
-            {icon: Building2, label: 'Company profile', to: 'CompanyProfileEdit'},
-            {icon: FileText, label: 'Company documents', to: 'CompanyDocuments'},
-          ]}
-        />
-      ) : (
-        <LinkSection title="Documents" links={[{icon: FileText, label: 'My documents', to: 'MyDocuments'}]} />
-      )}
-      <LinkSection
-        title="Support"
-        links={[
-          {icon: LifeBuoy, label: 'Help & support', to: 'HelpSupport'},
-          {icon: MessageSquare, label: 'Send feedback', to: 'Feedback'},
-          {icon: Gift, label: 'Refer STAFO', to: 'Refer'},
-        ]}
-      />
+          <Reveal index={3}>
+            <LinkSection
+              title="Support"
+              links={[
+                {
+                  icon: LifeBuoy,
+                  label: 'Help & support',
+                  hint: 'FAQs, call or email us',
+                  tint: 'primary',
+                  to: 'HelpSupport',
+                },
+                {
+                  icon: MessageSquare,
+                  label: 'Send feedback',
+                  hint: 'Tell us what to improve',
+                  tint: 'success',
+                  to: 'Feedback',
+                },
+                {
+                  icon: Gift,
+                  label: 'Refer STAFO',
+                  hint: 'Invite another business',
+                  tint: 'warning',
+                  to: 'Refer',
+                },
+              ]}
+            />
+          </Reveal>
 
-      <Text variant="overline" tone="muted" style={{marginTop: spacing.xxl, marginBottom: spacing.md}}>
-        Appearance
-      </Text>
-      <AppearancePicker />
+          <Reveal index={4}>
+            <SectionTitle>Appearance</SectionTitle>
+            <AppearancePicker />
+          </Reveal>
 
-      <Card padded={false} style={{marginTop: spacing.xxl}}>
-        <Pressable
-          onPress={() => setConfirmOut(true)}
-          accessibilityRole="button"
-          style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg}}>
-          <LogOut size={20} color={colors.danger} />
-          <Text variant="title" tone="danger">
-            Sign out
+          <Reveal index={5}>
+            <SectionTitle>Account</SectionTitle>
+            <Card padded={false}>
+              <MenuRow
+                icon={LogOut}
+                tint="danger"
+                label="Sign out"
+                danger
+                onPress={() => setConfirmOut(true)}
+              />
+              {isCompany ? (
+                <MenuRow
+                  icon={Trash2}
+                  tint="danger"
+                  label="Delete company account"
+                  hint="Removes all company data"
+                  danger
+                  divider
+                  onPress={() => setDeleting(true)}
+                />
+              ) : null}
+            </Card>
+          </Reveal>
+
+          <Text variant="caption" tone="subtle" align="center" style={{marginTop: spacing.xl}}>
+            STAFO {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
+            {APP_ENV === 'staging' ? ' · staging' : ''}
           </Text>
-        </Pressable>
-      </Card>
+        </View>
+      </Animated.ScrollView>
 
-      {role === 'company' ? <DeleteCompany /> : null}
-
-      <Text variant="caption" tone="subtle" align="center" style={{marginTop: spacing.xl}}>
-        STAFO {DeviceInfo.getVersion()} ({DeviceInfo.getBuildNumber()})
-        {APP_ENV === 'staging' ? ' · staging' : ''}
-      </Text>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            paddingTop: insets.top,
+            backgroundColor: colors.surface,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          },
+          headerStyle,
+        ]}>
+        <View style={{height: 52, justifyContent: 'center', paddingHorizontal: spacing.lg}}>
+          <Text variant="h3">Profile</Text>
+        </View>
+      </Animated.View>
 
       <ConfirmDialog
         visible={confirmOut}
@@ -118,12 +251,130 @@ export function ProfileScreen() {
           signOut();
         }}
       />
-    </Screen>
+      {isCompany ? <DeleteCompanySheet visible={deleting} onClose={() => setDeleting(false)} /> : null}
+    </View>
   );
 }
 
-function EmployeeProfile() {
+function SectionTitle({children}: {children: string}) {
   const {spacing} = useTheme();
+  return (
+    <Text variant="overline" tone="muted" style={{marginTop: spacing.xxl, marginBottom: spacing.md}}>
+      {children}
+    </Text>
+  );
+}
+
+/** Gradient header: avatar pops in, zooms a little on pull-down, and fades as the page scrolls. */
+function ProfileHero({
+  name,
+  role,
+  badge,
+  uri,
+  onEdit,
+  scrollY,
+}: {
+  name?: string | null;
+  role?: string | null;
+  badge?: string | null;
+  uri?: string | null;
+  onEdit?: () => void;
+  scrollY: SharedValue<number>;
+}) {
+  const {colors, spacing, radius} = useTheme();
+  const insets = useSafeAreaInsets();
+
+  const avatarStyle = useAnimatedStyle(() => ({
+    transform: [{scale: interpolate(scrollY.value, [-140, 0], [1.18, 1], Extrapolation.CLAMP)}],
+  }));
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, 160], [1, 0.2], Extrapolation.CLAMP),
+    transform: [{translateY: interpolate(scrollY.value, [0, 160], [0, 40], Extrapolation.CLAMP)}],
+  }));
+
+  return (
+    <Gradient
+      from={colors.heroFrom}
+      to={colors.heroTo}
+      decorated
+      style={{
+        paddingTop: insets.top + spacing.md,
+        paddingHorizontal: spacing.xl,
+        paddingBottom: HERO_OVERLAP + spacing.xl,
+      }}>
+      <View style={{flexDirection: 'row', alignItems: 'center', minHeight: 40}}>
+        <Text variant="h2" tone="inverse" style={{flex: 1}}>
+          Profile
+        </Text>
+        {onEdit ? (
+          <PressableScale
+            onPress={() => {
+              haptics.tap();
+              onEdit();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Edit company details"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              paddingHorizontal: spacing.md,
+              paddingVertical: spacing.sm,
+              borderRadius: radius.pill,
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,255,255,0.24)',
+            }}>
+            <Pencil size={15} color="#FFFFFF" />
+            <Text variant="label" tone="inverse">
+              Edit
+            </Text>
+          </PressableScale>
+        ) : null}
+      </View>
+
+      <Animated.View style={[{alignItems: 'center', marginTop: spacing.lg}, contentStyle]}>
+        <Animated.View
+          entering={ZoomIn.springify().damping(14).reduceMotion(ReduceMotion.System)}
+          style={avatarStyle}>
+          <View style={{padding: 4, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.16)'}}>
+            <Avatar name={name} uri={uri} size={88} ring="rgba(255,255,255,0.85)" />
+          </View>
+        </Animated.View>
+        <Reveal index={1} style={{alignItems: 'center'}}>
+          <Text variant="h2" tone="inverse" align="center" numberOfLines={2} style={{marginTop: spacing.md}}>
+            {name}
+          </Text>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: spacing.sm,
+              marginTop: spacing.sm,
+            }}>
+            {[role, badge].filter(Boolean).map(t => (
+              <View
+                key={t}
+                style={{
+                  paddingHorizontal: spacing.md,
+                  paddingVertical: 4,
+                  borderRadius: radius.pill,
+                  backgroundColor: 'rgba(255,255,255,0.16)',
+                }}>
+                <Text variant="caption" color="rgba(255,255,255,0.92)" numberOfLines={1}>
+                  {t}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </Reveal>
+      </Animated.View>
+    </Gradient>
+  );
+}
+
+function EmployeeProfile({scrollY}: {scrollY: SharedValue<number>}) {
   const employee = useSession(s => s.employee);
   const details = useEmployeeDetails();
   const d = details.data?.data;
@@ -144,31 +395,19 @@ function EmployeeProfile() {
 
   return (
     <>
-      <Card style={{alignItems: 'center', paddingVertical: spacing.xxl}}>
-        <Avatar name={d?.name ?? employee?.name} uri={details.data?.image_url} size={84} />
-        <Text variant="h2" style={{marginTop: spacing.md}}>
-          {d?.name ?? employee?.name}
-        </Text>
-        {d?.position || employee?.position ? (
-          <Text variant="body" tone="muted">
-            {d?.position ?? employee?.position}
-          </Text>
-        ) : null}
-        {details.data?.company_name ? (
-          <Badge
-            label={details.data.company_name}
-            tone="primary"
-            style={{alignSelf: 'center', marginTop: spacing.md}}
-          />
-        ) : null}
-      </Card>
-      <InfoList rows={rows} />
+      <ProfileHero
+        name={d?.name ?? employee?.name}
+        role={d?.position ?? employee?.position}
+        badge={details.data?.company_name}
+        uri={details.data?.image_url}
+        scrollY={scrollY}
+      />
+      <InfoCard rows={rows} />
     </>
   );
 }
 
-function CompanyProfile() {
-  const {spacing} = useTheme();
+function CompanyProfile({scrollY}: {scrollY: SharedValue<number>}) {
   const navigation = useNavigation();
   const company = useSession(s => s.company);
   const profile = useCompanyProfile();
@@ -182,66 +421,148 @@ function CompanyProfile() {
     {icon: Mail, label: 'Email', value: company?.email},
     {icon: Briefcase, label: 'Company type', value: named(company?.company_type)},
     {icon: MapPin, label: 'Location', value: location || null},
-    {icon: Hash, label: 'GST', value: company?.gst_number},
+    {icon: Hash, label: 'GSTIN', value: company?.gst_number},
   ];
 
   return (
     <>
-      <Card style={{alignItems: 'center', paddingVertical: spacing.xxl}}>
-        <Avatar name={company?.company_name} uri={profile.data?.data?.company_logo} size={84} />
-        <Text variant="h2" align="center" style={{marginTop: spacing.md}}>
-          {company?.company_name}
-        </Text>
-        <Text variant="body" tone="muted">
-          Company admin
-        </Text>
-        <Button
-          title="Edit details"
-          icon={Pencil}
-          variant="ghost"
-          size="sm"
-          fullWidth={false}
-          style={{marginTop: spacing.md}}
-          onPress={() => navigation.navigate('CompanyProfileEdit')}
-        />
-      </Card>
-      <InfoList rows={rows} />
+      <ProfileHero
+        name={company?.company_name}
+        role="Company admin"
+        uri={profile.data?.data?.company_logo}
+        onEdit={() => navigation.navigate('CompanyProfileEdit')}
+        scrollY={scrollY}
+      />
+      <InfoCard rows={rows} />
     </>
   );
 }
 
-function InfoList({rows}: {rows: Row[]}) {
+/** Contact details, lifted over the bottom of the hero. */
+function InfoCard({rows}: {rows: Row[]}) {
   const {colors, spacing} = useTheme();
   const visible = rows.filter(r => r.value);
   if (!visible.length) {
-    return null;
+    return <View style={{height: spacing.md}} />;
   }
   return (
-    <Card padded={false} style={{marginTop: spacing.lg}}>
-      {visible.map((row, i) => (
-        <View
-          key={row.label}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.md,
-            padding: spacing.lg,
-            borderTopWidth: i ? 1 : 0,
-            borderTopColor: colors.border,
-          }}>
-          <row.icon size={18} color={colors.textMuted} />
-          <Text variant="body" tone="muted" style={{width: 110}}>
-            {row.label}
-          </Text>
-          <Text variant="title" style={{flex: 1, textAlign: 'right'}} numberOfLines={1}>
-            {row.value}
-          </Text>
-        </View>
-      ))}
-    </Card>
+    <Reveal index={1} style={{marginTop: -HERO_OVERLAP, paddingHorizontal: spacing.lg}}>
+      <Card padded={false}>
+        {visible.map((row, i) => (
+          <View
+            key={row.label}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.md,
+              paddingHorizontal: spacing.lg,
+              paddingVertical: spacing.md,
+              borderTopWidth: i ? 1 : 0,
+              borderTopColor: colors.border,
+            }}>
+            <IconWell icon={row.icon} fg={colors.primary} bg={colors.primarySoft} size={36} />
+            <View style={{flex: 1, minWidth: 0}}>
+              <Text variant="caption" tone="muted">
+                {row.label}
+              </Text>
+              <Text variant="title" numberOfLines={1} selectable>
+                {row.value}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </Card>
+    </Reveal>
   );
 }
 
+function useTint(tint: Tint) {
+  const {colors} = useTheme();
+  return {
+    primary: {fg: colors.primary, bg: colors.primarySoft},
+    info: {fg: colors.info, bg: colors.infoSoft},
+    success: {fg: colors.success, bg: colors.successSoft},
+    warning: {fg: colors.warning, bg: colors.warningSoft},
+    danger: {fg: colors.danger, bg: colors.dangerSoft},
+  }[tint];
+}
+
+function MenuRow({
+  icon,
+  tint,
+  label,
+  hint,
+  danger,
+  divider,
+  onPress,
+}: {
+  icon: LucideIcon;
+  tint: Tint;
+  label: string;
+  hint?: string;
+  danger?: boolean;
+  divider?: boolean;
+  onPress: () => void;
+}) {
+  const {colors, spacing} = useTheme();
+  const t = useTint(tint);
+  return (
+    <PressableScale
+      onPress={() => {
+        haptics.tap();
+        onPress();
+      }}
+      scaleTo={0.98}
+      accessibilityRole="button"
+      accessibilityHint={hint}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        borderTopWidth: divider ? 1 : 0,
+        borderTopColor: colors.border,
+      }}>
+      <IconWell icon={icon} fg={t.fg} bg={t.bg} size={38} />
+      <View style={{flex: 1, minWidth: 0}}>
+        <Text variant="title" tone={danger ? 'danger' : undefined}>
+          {label}
+        </Text>
+        {hint ? (
+          <Text variant="caption" tone="muted" numberOfLines={1}>
+            {hint}
+          </Text>
+        ) : null}
+      </View>
+      {danger ? null : <ChevronRight size={18} color={colors.textSubtle} />}
+    </PressableScale>
+  );
+}
+
+function LinkSection({title, links}: {title: string; links: Link[]}) {
+  const navigation = useNavigation();
+  return (
+    <>
+      <SectionTitle>{title}</SectionTitle>
+      <Card padded={false}>
+        {links.map((l, i) => (
+          <MenuRow
+            key={l.to}
+            icon={l.icon}
+            tint={l.tint}
+            label={l.label}
+            hint={l.hint}
+            divider={i > 0}
+            onPress={() => navigation.navigate(l.to as never)}
+          />
+        ))}
+      </Card>
+    </>
+  );
+}
+
+/** Segmented control whose highlight slides to the chosen option. */
 function AppearancePicker() {
   const {colors, spacing, radius} = useTheme();
   const {preference, setPreference} = useThemePreference();
@@ -250,8 +571,23 @@ function AppearancePicker() {
     {value: 'light', label: 'Light', icon: Sun},
     {value: 'dark', label: 'Dark', icon: Moon},
   ];
+  const index = Math.max(
+    0,
+    options.findIndex(o => o.value === preference),
+  );
+  const [width, setWidth] = useState(0);
+  const x = useSharedValue(0);
+  const segment = width / options.length;
+
+  useEffect(() => {
+    x.value = withSpring(index * segment, {damping: 18, stiffness: 180, reduceMotion: ReduceMotion.System});
+  }, [index, segment, x]);
+
+  const pill = useAnimatedStyle(() => ({transform: [{translateX: x.value}]}));
+
   return (
     <View
+      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width - 10)}
       style={{
         flexDirection: 'row',
         padding: 4,
@@ -261,12 +597,32 @@ function AppearancePicker() {
         borderColor: colors.border,
       }}
       accessibilityRole="radiogroup">
+      {width ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            {
+              position: 'absolute',
+              top: 4,
+              bottom: 4,
+              left: 4,
+              width: segment,
+              borderRadius: radius.md,
+              backgroundColor: colors.primarySoft,
+            },
+            pill,
+          ]}
+        />
+      ) : null}
       {options.map(o => {
         const active = preference === o.value;
         return (
-          <Pressable
+          <PressableScale
             key={o.value}
-            onPress={() => setPreference(o.value)}
+            onPress={() => {
+              haptics.select();
+              setPreference(o.value);
+            }}
             accessibilityRole="radio"
             accessibilityState={{checked: active}}
             style={{
@@ -276,54 +632,15 @@ function AppearancePicker() {
               justifyContent: 'center',
               gap: 6,
               paddingVertical: spacing.md,
-              borderRadius: radius.md,
-              // Surface, not 'transparent', so Android keeps the corner radius when toggled.
-              backgroundColor: active ? colors.primarySoft : colors.surface,
             }}>
             <o.icon size={16} color={active ? colors.primary : colors.textMuted} />
             <Text variant="label" tone={active ? 'primary' : 'muted'}>
               {o.label}
             </Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </View>
-  );
-}
-
-type Link = {icon: LucideIcon; label: string; to: keyof AppStackParamList};
-
-function LinkSection({title, links}: {title: string; links: Link[]}) {
-  const {colors, spacing} = useTheme();
-  const navigation = useNavigation();
-  return (
-    <>
-      <Text variant="overline" tone="muted" style={{marginTop: spacing.xxl, marginBottom: spacing.md}}>
-        {title}
-      </Text>
-      <Card padded={false}>
-        {links.map((l, i) => (
-          <Pressable
-            key={l.to}
-            onPress={() => navigation.navigate(l.to as never)}
-            accessibilityRole="button"
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              padding: spacing.lg,
-              borderTopWidth: i ? 1 : 0,
-              borderTopColor: colors.border,
-            }}>
-            <l.icon size={18} color={colors.textMuted} />
-            <Text variant="title" style={{flex: 1}}>
-              {l.label}
-            </Text>
-            <ChevronRight size={18} color={colors.textSubtle} />
-          </Pressable>
-        ))}
-      </Card>
-    </>
   );
 }
 
@@ -334,75 +651,53 @@ const LOSES = [
 ];
 
 /** Deleting can't be undone, so they type the company name to confirm. */
-function DeleteCompany() {
-  const {colors, spacing} = useTheme();
+function DeleteCompanySheet({visible, onClose}: {visible: boolean; onClose: () => void}) {
+  const {spacing} = useTheme();
   const name = useSession(s => s.company?.company_name ?? '');
   const del = useDeleteCompany();
-  const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState('');
   const ok = confirmsName(typed, name);
+  useEffect(() => {
+    if (visible) {
+      setTyped('');
+    }
+  }, [visible]);
   return (
-    <>
-      <Pressable
-        onPress={() => {
-          setTyped('');
-          setOpen(true);
-        }}
-        accessibilityRole="button"
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: spacing.sm,
-          marginTop: spacing.xl,
-          padding: spacing.sm,
-        }}>
-        <Trash2 size={16} color={colors.danger} />
-        <Text variant="label" tone="danger">
-          Delete company account
+    <BottomSheet
+      visible={visible}
+      onClose={() => !del.isPending && onClose()}
+      title="Delete company account?">
+      <View style={{gap: spacing.md}}>
+        <Text variant="body" tone="muted">
+          This can’t be undone.
         </Text>
-      </Pressable>
-      <BottomSheet
-        visible={open}
-        onClose={() => !del.isPending && setOpen(false)}
-        title="Delete company account?">
-        <View style={{gap: spacing.md}}>
-          <Text variant="body" tone="muted">
-            This can’t be undone.
-          </Text>
-          {LOSES.map(l => (
-            <View key={l} style={{flexDirection: 'row', gap: spacing.sm}}>
-              <Text variant="body" tone="danger">
-                •
-              </Text>
-              <Text variant="body" style={{flex: 1}}>
-                {l}
-              </Text>
-            </View>
-          ))}
-          <TextField
-            label={`Type “${name}” to confirm`}
-            value={typed}
-            onChangeText={setTyped}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          <Button
-            title="Delete permanently"
-            icon={Trash2}
-            variant="danger"
-            disabled={!ok}
-            loading={del.isPending}
-            onPress={() => del.mutate()}
-          />
-          <Button
-            title="Keep my account"
-            variant="ghost"
-            disabled={del.isPending}
-            onPress={() => setOpen(false)}
-          />
-        </View>
-      </BottomSheet>
-    </>
+        {LOSES.map(l => (
+          <View key={l} style={{flexDirection: 'row', gap: spacing.sm}}>
+            <Text variant="body" tone="danger">
+              •
+            </Text>
+            <Text variant="body" style={{flex: 1}}>
+              {l}
+            </Text>
+          </View>
+        ))}
+        <TextField
+          label={`Type “${name}” to confirm`}
+          value={typed}
+          onChangeText={setTyped}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <Button
+          title="Delete permanently"
+          icon={Trash2}
+          variant="danger"
+          disabled={!ok}
+          loading={del.isPending}
+          onPress={() => del.mutate()}
+        />
+        <Button title="Keep my account" variant="ghost" disabled={del.isPending} onPress={onClose} />
+      </View>
+    </BottomSheet>
   );
 }

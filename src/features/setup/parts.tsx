@@ -9,6 +9,7 @@ import {
   EmptyState,
   IconButton,
   PressableScale,
+  Reveal,
   Screen,
   Skeleton,
   Text,
@@ -63,7 +64,7 @@ export function SetupScreen({
           />
         ) : undefined
       }>
-      <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm}}>
+      <Reveal style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.sm}}>
         <IconButton icon={ArrowLeft} accessibilityLabel="Back" onPress={() => navigation.goBack()} />
         <View style={{flex: 1}}>
           <Text variant="h2">{title}</Text>
@@ -75,8 +76,9 @@ export function SetupScreen({
         </View>
         {action}
         {onAdd ? <Button title={addLabel} icon={Plus} size="sm" fullWidth={false} onPress={onAdd} /> : null}
-      </View>
-      <View style={{marginTop: spacing.lg, gap: spacing.md}}>
+      </Reveal>
+      {/* Content rises in just after the header, on every setup and account screen. */}
+      <Reveal index={1} style={{marginTop: spacing.lg, gap: spacing.md}}>
         {query?.isPending ? (
           <>
             <Skeleton height={84} radius={radius.lg} />
@@ -92,7 +94,7 @@ export function SetupScreen({
         ) : (
           children
         )}
-      </View>
+      </Reveal>
     </Screen>
   );
 }
