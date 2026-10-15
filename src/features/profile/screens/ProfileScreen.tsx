@@ -34,6 +34,7 @@ import {
   Moon,
   Pencil,
   Phone,
+  ShieldCheck,
   Sun,
   Trash2,
   type LucideIcon,
@@ -120,6 +121,13 @@ export function ProfileScreen() {
                     hint: 'Name, GST, address and bank',
                     tint: 'primary',
                     to: 'CompanyProfileEdit',
+                  },
+                  {
+                    icon: ShieldCheck,
+                    label: 'Company verification',
+                    hint: 'PAN, GSTIN, registration and Aadhaar',
+                    tint: 'success',
+                    to: 'VerifyCompany',
                   },
                   {
                     icon: FileText,

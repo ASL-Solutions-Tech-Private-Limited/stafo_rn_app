@@ -17,7 +17,6 @@ export function LoginScreen({navigation, route}: AuthScreenProps<'Login'>) {
   const [mobile, setMobile] = useState(route.params?.mobile ?? '');
   const [touched, setTouched] = useState(false);
   const [noAccountSheet, setNoAccountSheet] = useState(false);
-  const [signupSheet, setSignupSheet] = useState(false);
 
   const valid = MOBILE_PATTERN.test(mobile);
 
@@ -128,7 +127,7 @@ export function LoginScreen({navigation, route}: AuthScreenProps<'Login'>) {
         <View style={{flex: 1, minHeight: spacing.huge}} />
 
         <Pressable
-          onPress={() => setSignupSheet(true)}
+          onPress={() => navigation.navigate('Register', valid ? {mobile} : undefined)}
           accessibilityRole="button"
           style={{flexDirection: 'row', justifyContent: 'center', paddingVertical: spacing.xl}}>
           <Text variant="body" tone="muted">
@@ -153,25 +152,25 @@ export function LoginScreen({navigation, route}: AuthScreenProps<'Login'>) {
           />
           <InfoRow
             icon={Building2}
-            title="Setting up your business?"
-            body="Register your company to start managing attendance, leave and payroll."
+            title="Own a business?"
+            body="Register it with this number to manage attendance, leave and payroll."
+          />
+          <Button
+            title="Register my company"
+            icon={Building2}
+            onPress={() => {
+              setNoAccountSheet(false);
+              navigation.navigate('Register', {mobile});
+            }}
+            style={{marginTop: spacing.sm}}
           />
           <Button
             title="Try a different number"
             variant="secondary"
             icon={Phone}
             onPress={() => setNoAccountSheet(false)}
-            style={{marginTop: spacing.sm}}
           />
         </View>
-      </BottomSheet>
-
-      <BottomSheet
-        visible={signupSheet}
-        onClose={() => setSignupSheet(false)}
-        title="Company registration"
-        subtitle="Self-serve company sign-up is coming to the new STAFO app soon. Until then, contact the STAFO team and we'll set up your account.">
-        <Button title="Got it" onPress={() => setSignupSheet(false)} />
       </BottomSheet>
     </Screen>
   );

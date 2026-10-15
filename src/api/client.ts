@@ -50,7 +50,13 @@ export function toApiError(error: unknown): ApiError {
   }
   if (axios.isAxiosError(error)) {
     const status = error.response?.status;
-    const serverMessage = (error.response?.data as {message?: string} | undefined)?.message;
+    const body = error.response?.data as {message?: string; errors?: Record<string, string[]>} | undefined;
+    // Laravel validation: "Validation error." says nothing, so show the first field's reason.
+    const firstFieldError = body?.errors ? Object.values(body.errors).flat()[0] : undefined;
+    if (firstFieldError) {
+      return new ApiError(firstFieldError.replace(/\b(company|owner) info\.\s*/gi, ''), status);
+    }
+    const serverMessage = body?.message;
     if (serverMessage) {
       return new ApiError(serverMessage, status);
     }

@@ -9,6 +9,7 @@ export type AuthStackParamList = {
   Onboarding: undefined;
   Login: {mobile?: string} | undefined;
   Otp: {mobile: string; devOtp?: string};
+  Register: {mobile?: string} | undefined;
   DeviceApproval: undefined;
 };
 
@@ -70,6 +71,8 @@ export type AppStackParamList = {
     plan: string;
   };
   SalaryPayouts: undefined;
+  Welcome: undefined;
+  VerifyCompany: undefined;
   CompanyProfileEdit: undefined;
   CompanyDocuments: undefined;
   MyDocuments: undefined;

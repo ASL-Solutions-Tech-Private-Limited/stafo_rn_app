@@ -86,7 +86,7 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
       {data && !verified ? (
         <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
           <Card
-            onPress={() => navigation.navigate('Profile')}
+            onPress={() => rootNavigation.navigate('VerifyCompany')}
             elevated={false}
             style={{
               flexDirection: 'row',

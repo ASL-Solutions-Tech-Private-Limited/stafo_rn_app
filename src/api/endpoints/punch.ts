@@ -24,16 +24,23 @@ export async function punchWithSelfie(employeeId: number, image: LocalImage) {
   const form = new FormData();
   form.append('employee_id', String(employeeId));
   form.append('image', {uri: image.uri, type: image.mime, name: image.name} as unknown as Blob);
-  const {data} = await api.post<BasicResponse & {similarity?: number}>('api/employee/selfie-attendance', form, {
-    headers: {'Content-Type': 'multipart/form-data'},
-    timeout: 60_000,
-  });
+  const {data} = await api.post<BasicResponse & {similarity?: number}>(
+    'api/employee/selfie-attendance',
+    form,
+    {
+      headers: {'Content-Type': 'multipart/form-data'},
+      timeout: 60_000,
+    },
+  );
   return ensureOk(data);
 }
 
 /** QR punch with the code scanned at the branch. */
 export async function punchWithQr(employeeId: number, qrcode: string) {
-  const {data} = await api.post<BasicResponse>('api/employee/qr-attendance', {employee_id: employeeId, qrcode});
+  const {data} = await api.post<BasicResponse>('api/employee/qr-attendance', {
+    employee_id: employeeId,
+    qrcode,
+  });
   return ensureOk(data);
 }
 
@@ -55,7 +62,12 @@ export async function getMyPunchFixes(employeeId: number) {
 }
 
 /** Ask for a forgotten punch-out to be added: date "yyyy-MM-dd", time "HH:mm". */
-export async function askForPunchOut(body: {employee_id: number; date: string; punch_out_time: string; reason: string}) {
+export async function askForPunchOut(body: {
+  employee_id: number;
+  date: string;
+  punch_out_time: string;
+  reason: string;
+}) {
   const {data} = await api.post<BasicResponse>('api/employee/missed-punchout-request', body);
   return ensureOk(data);
 }

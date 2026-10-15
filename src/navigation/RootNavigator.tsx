@@ -47,6 +47,9 @@ import {SalaryPayoutsScreen} from '../features/performance/SubscriptionScreen';
 import {ChoosePlanScreen} from '../features/subscription/ChoosePlanScreen';
 import {PaymentResultScreen} from '../features/subscription/PaymentResultScreen';
 import {SubscriptionScreen} from '../features/subscription/SubscriptionScreen';
+import {RegisterScreen} from '../features/auth/screens/RegisterScreen';
+import {VerifyCompanyScreen} from '../features/kyc/VerifyCompanyScreen';
+import {WelcomeScreen} from '../features/kyc/WelcomeScreen';
 import {
   CompanyDocumentsScreen,
   CompanyProfileEditScreen,
@@ -120,6 +123,8 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   MyPolicies: 'employee',
   MyBranch: 'employee',
   CompanyProfileEdit: 'company',
+  VerifyCompany: 'company',
+  Welcome: 'company',
   CompanyDocuments: 'company',
   MyDocuments: 'employee',
 };
@@ -148,6 +153,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       Rankings: 'rankings',
       Subscription: 'subscription',
       CompanyProfileEdit: 'company/edit',
+      VerifyCompany: 'verify',
       CompanyDocuments: 'company/documents',
       MyDocuments: 'documents',
       HelpSupport: 'help',
@@ -224,6 +230,8 @@ export function RootNavigator() {
   const token = useSession(s => s.token);
   const role = useSession(s => s.role);
   const pendingDevice = useSession(s => s.pendingDeviceEmployee);
+  // Read once when the signed-in stack mounts: a new company opens on the welcome checklist.
+  const welcome = useSession(s => s.welcome);
   const onboardingSeen = storage.getBoolean(StorageKeys.onboardingSeen) ?? false;
 
   const navTheme = useMemo<NavTheme>(() => {
@@ -246,7 +254,9 @@ export function RootNavigator() {
   return (
     <NavigationContainer theme={navTheme} linking={linking} onReady={() => BootSplash.hide({fade: true})}>
       {signedIn ? (
-        <AppStack.Navigator screenOptions={{headerShown: false}}>
+        <AppStack.Navigator
+          screenOptions={{headerShown: false}}
+          initialRouteName={role === 'company' && welcome ? 'Welcome' : undefined}>
           {role === 'company' ? (
             <AppStack.Screen name="CompanyTabs" component={CompanyTabNavigator} />
           ) : (
@@ -403,6 +413,16 @@ export function RootNavigator() {
             options={{animation: 'fade', gestureEnabled: false}}
           />
           <AppStack.Screen
+            name="Welcome"
+            component={WelcomeScreen}
+            options={{animation: 'fade', gestureEnabled: false}}
+          />
+          <AppStack.Screen
+            name="VerifyCompany"
+            component={VerifyCompanyScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
             name="CompanyProfileEdit"
             component={CompanyProfileEditScreen}
             options={{animation: 'slide_from_right'}}
@@ -541,6 +561,7 @@ export function RootNavigator() {
               <AuthStack.Screen name="Onboarding" component={OnboardingScreen} />
               <AuthStack.Screen name="Login" component={LoginScreen} />
               <AuthStack.Screen name="Otp" component={OtpScreen} />
+              <AuthStack.Screen name="Register" component={RegisterScreen} />
             </>
           )}
         </AuthStack.Navigator>

@@ -18,8 +18,11 @@ type SessionState = {
   /** Filled from the dashboards; many endpoints need these ids. */
   companyId: string | null;
   branchId: string | null;
+  /** Just registered: show the welcome checklist once. Not persisted. */
+  welcome: boolean;
 
-  signInCompany: (token: string, company: CompanyAccount) => void;
+  signInCompany: (token: string, company: CompanyAccount, opts?: {welcome?: boolean}) => void;
+  dismissWelcome: () => void;
   signInEmployee: (token: string, employee: EmployeeAccount) => void;
   setPendingDevice: (employee: EmployeeAccount) => void;
   setOrgIds: (ids: {companyId?: string | null; branchId?: string | null}) => void;
@@ -34,20 +37,23 @@ const initial = {
   pendingDeviceEmployee: null,
   companyId: null,
   branchId: null,
+  welcome: false,
 };
 
 export const useSession = create<SessionState>()(
   persist(
     set => ({
       ...initial,
-      signInCompany: (token, company) =>
+      signInCompany: (token, company, opts) =>
         set({
           ...initial,
           token,
           role: 'company',
           company,
           companyId: company.id != null ? String(company.id) : null,
+          welcome: !!opts?.welcome,
         }),
+      dismissWelcome: () => set({welcome: false}),
       signInEmployee: (token, employee) =>
         set({
           ...initial,
