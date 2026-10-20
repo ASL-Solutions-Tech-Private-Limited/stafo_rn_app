@@ -50,6 +50,7 @@ import {SubscriptionScreen} from '../features/subscription/SubscriptionScreen';
 import {RegisterScreen} from '../features/auth/screens/RegisterScreen';
 import {VerifyCompanyScreen} from '../features/kyc/VerifyCompanyScreen';
 import {WelcomeScreen} from '../features/kyc/WelcomeScreen';
+import {BillersScreen, BillResultScreen, BillsScreen, PayBillScreen} from '../features/bbps/BillsScreens';
 import {
   CompanyDocumentsScreen,
   CompanyProfileEditScreen,
@@ -154,6 +155,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       Subscription: 'subscription',
       CompanyProfileEdit: 'company/edit',
       VerifyCompany: 'verify',
+      Bills: 'bills',
       CompanyDocuments: 'company/documents',
       MyDocuments: 'documents',
       HelpSupport: 'help',
@@ -415,6 +417,22 @@ export function RootNavigator() {
           <AppStack.Screen
             name="Welcome"
             component={WelcomeScreen}
+            options={{animation: 'fade', gestureEnabled: false}}
+          />
+          <AppStack.Screen name="Bills" component={BillsScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen
+            name="Billers"
+            component={BillersScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="PayBill"
+            component={PayBillScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="BillResult"
+            component={BillResultScreen}
             options={{animation: 'fade', gestureEnabled: false}}
           />
           <AppStack.Screen

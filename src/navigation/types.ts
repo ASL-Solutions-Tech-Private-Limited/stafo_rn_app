@@ -72,6 +72,16 @@ export type AppStackParamList = {
   };
   SalaryPayouts: undefined;
   Welcome: undefined;
+  Bills: undefined;
+  Billers: {category: string};
+  PayBill: {category: string; operatorCode: string; name: string};
+  BillResult: {
+    status: 'success' | 'failed' | 'pending';
+    txnid: string;
+    amount: string;
+    biller: string;
+    category: string;
+  };
   VerifyCompany: undefined;
   CompanyProfileEdit: undefined;
   CompanyDocuments: undefined;

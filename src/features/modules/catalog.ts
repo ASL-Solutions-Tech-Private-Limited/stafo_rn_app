@@ -14,6 +14,7 @@ import {
   MapPinned,
   Medal,
   Receipt,
+  ReceiptIndianRupee,
   Settings2,
   Smartphone,
   Trophy,
@@ -44,6 +45,7 @@ export type ModuleId =
   | 'performance'
   | 'rankings'
   | 'subscription'
+  | 'bill-payments'
   | 'company-setup';
 
 export type ModuleGroup = 'Workday' | 'People' | 'Work' | 'Finance';
@@ -242,6 +244,15 @@ export const MODULES: AppModule[] = [
     group: 'Finance',
     roles: ['company'],
     phase: 5,
+  },
+  {
+    id: 'bill-payments',
+    title: 'Pay bills',
+    description: 'Recharges and bills through Bharat BillPay',
+    icon: ReceiptIndianRupee,
+    group: 'Finance',
+    roles: ['employee', 'company'],
+    phase: 6,
   },
   {
     id: 'subscription',

@@ -59,6 +59,10 @@ export function openModule(navigation: Navigator, id: ModuleId, role: string | n
     navigation.navigate('Crm');
     return;
   }
+  if (id === 'bill-payments') {
+    navigation.navigate('Bills');
+    return;
+  }
   if (id === 'expenses') {
     navigation.navigate('Expenses');
     return;

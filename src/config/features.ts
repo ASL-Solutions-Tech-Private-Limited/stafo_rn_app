@@ -15,5 +15,11 @@ export const FEATURES = {
   inAppPayment: true,
 } as const;
 
+/**
+ * STAFO's PayU merchant key. It is public (PayU shows it in every checkout);
+ * the salt is not, and never goes in the app.
+ */
+export const PAYU_MERCHANT_KEY = '1AJhSD';
+
 /** Server endpoint that computes PayU hashes; agree the path with the backend team. */
 export const PAYU_HASH_PATH = 'api/payu/hash';
