@@ -112,7 +112,9 @@ export function RoleHomeSection() {
   const {spacing} = useTheme();
   const navigation = useNavigation();
   const {role, group, members} = useStaffRole();
-  const requests = useDemoRoles(s => (role === 'employee' ? [] : s.requests[role]));
+  // Select the stored object, not a new [] per render (that loops forever).
+  const allRequests = useDemoRoles(s => s.requests);
+  const requests = role === 'employee' ? [] : allRequests[role];
   if (role === 'employee') {
     return null;
   }
