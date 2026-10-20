@@ -1,5 +1,7 @@
 import {
   amountError,
+  choicesOf,
+  needsOneOf,
   amountRule,
   fieldError,
   fieldsOf,
@@ -49,4 +51,23 @@ test('amounts', () => {
 test('short biller names', () => {
   expect(shortBillerName('Bangalore Electricity Supply Co. Ltd (BESCOM)')).toBe('BESCOM');
   expect(shortBillerName('Tata Play')).toBe('Tata Play');
+});
+
+test('fixed-choice fields, amount fields and either-or billers', () => {
+  expect(choicesOf('^(Andhra Pradesh)$|^(Assam)$|^(West Bengal)$')).toEqual([
+    'Andhra Pradesh',
+    'Assam',
+    'West Bengal',
+  ]);
+  expect(choicesOf('^(Delhi)$')).toEqual(['Delhi']);
+  expect(choicesOf('^[0-9]{10}$')).toBeNull();
+  expect(choicesOf('^[6-9][0-9]{9}$|^[0-9]{17}$')).toBeNull();
+  const [amt] = fieldsOf({paramName: 'Amount', dataType: 'NUMERIC'});
+  expect(amt.isAmount).toBe(true);
+  const gas = fieldsOf([
+    {paramName: 'LPG ID', isOptional: 'true'},
+    {paramName: 'Registered Contact Number', isOptional: 'true'},
+  ]);
+  expect(needsOneOf(gas, {})).toMatch(/at least one/);
+  expect(needsOneOf(gas, {'LPG ID': '12345678901234567'})).toBeNull();
 });

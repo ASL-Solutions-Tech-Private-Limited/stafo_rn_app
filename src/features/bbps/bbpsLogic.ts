@@ -22,7 +22,21 @@ export type Field = {
   min: number;
   max: number;
   pattern: RegExp | null;
+  /** Set when the pattern only allows a fixed list (e.g. Circle: "^(Assam)$|^(Bihar)$…"). */
+  choices: string[] | null;
+  /** The biller asks for the amount itself (e.g. Sun Direct), so it replaces the app's amount box. */
+  isAmount: boolean;
 };
+
+/** "^(Assam)$|^(Bihar)$" → ["Assam", "Bihar"]; null for any other pattern. */
+export function choicesOf(regEx: string | undefined): string[] | null {
+  if (!regEx) {
+    return null;
+  }
+  const parts = regEx.split('|');
+  const names = parts.map(p => p.match(/^\^\(([^()|^$\\[\]*+?{}]+)\)\$$/)?.[1]);
+  return names.every(Boolean) ? (names as string[]) : null;
+}
 
 /** The biller's input fields, whether the server sent one object or a list. */
 export function fieldsOf(params: RawParam | RawParam[] | null | undefined): Field[] {
@@ -43,6 +57,8 @@ export function fieldsOf(params: RawParam | RawParam[] | null | undefined): Fiel
         min: Number(p.minLength) || 0,
         max: Number(p.maxLength) || 0,
         pattern,
+        choices: choicesOf(p.regEx),
+        isAmount: /^amount$/i.test(p.paramName!.trim()),
       };
     });
 }
@@ -65,6 +81,15 @@ export function fieldError(f: Field, raw: string): string | null {
     return `Check your ${f.name}.`;
   }
   return null;
+}
+
+/** Billers whose fields are all optional want at least one of them (e.g. "LPG ID or mobile"). */
+export function needsOneOf(fields: Field[], values: Record<string, string>) {
+  return fields.length > 1 &&
+    fields.every(f => f.optional) &&
+    fields.every(f => !(values[f.name] ?? '').trim())
+    ? `Fill in at least one: ${fields.map(f => f.name).join(', ')}.`
+    : null;
 }
 
 /** "₹1,234.50" from paise. */

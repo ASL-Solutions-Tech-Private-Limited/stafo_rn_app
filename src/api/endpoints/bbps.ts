@@ -60,13 +60,16 @@ type MdmBiller = {
   billerName?: string;
   billerCategory?: string;
   billerCoverage?: string;
-  billerFetchRequiremet?: string;
-  billerFetchRequirement?: string;
-  billerPaymentExactness?: string;
+  billerFetchRequiremet?: unknown;
+  billerFetchRequirement?: unknown;
+  billerPaymentExactness?: unknown;
   billerInputParams?: {paramInfo?: RawParam | RawParam[]};
 };
 
 type MdmBody = {mdmRequestNew?: {biller?: MdmBiller}};
+
+/** BBPS sends some text fields as [] when empty. */
+const text = (v: unknown) => (typeof v === 'string' ? v : '');
 
 export async function getBillerDetail(operatorCode: string): Promise<BillerDetail> {
   const {data} = await api.get<MdmBody & {data?: MdmBody; status?: number | boolean; message?: string}>(
@@ -83,8 +86,9 @@ export async function getBillerDetail(operatorCode: string): Promise<BillerDetai
     billerId: b.billerId ?? operatorCode,
     name: b.billerName ?? '',
     category: b.billerCategory ?? '',
-    fetchRequirement: b.billerFetchRequiremet ?? b.billerFetchRequirement ?? 'MANDATORY',
-    paymentExactness: b.billerPaymentExactness ?? '',
+    fetchRequirement: text(b.billerFetchRequiremet ?? b.billerFetchRequirement) || 'MANDATORY',
+    // Often [] instead of a string.
+    paymentExactness: text(b.billerPaymentExactness),
     coverage: b.billerCoverage ?? null,
     params: b.billerInputParams?.paramInfo ?? null,
   };

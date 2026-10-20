@@ -240,7 +240,7 @@ export function RegisterScreen({navigation, route}: AuthScreenProps<'Register'>)
   );
 }
 
-function SelectField({
+export function SelectField({
   label,
   value,
   loading,

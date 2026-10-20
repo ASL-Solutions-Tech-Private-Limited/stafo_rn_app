@@ -45,10 +45,12 @@ import {
   fieldError,
   fieldsOf,
   formatAmount,
+  needsOneOf,
   POPULAR,
   rupeesFromPaise,
   shortBillerName,
 } from './bbpsLogic';
+import {OptionSheet, SelectField} from '../auth/screens/RegisterScreen';
 import {categoryIcon, categoryTint} from './categoryIcons';
 import {usePayBill} from './payBill';
 
@@ -273,12 +275,17 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
   const [bill, setBill] = useState<FetchedBill | null>(null);
   const [amount, setAmount] = useState('');
   const [triedPay, setTriedPay] = useState(false);
+  const [picking, setPicking] = useState<string | null>(null);
   const mustFetch = (detail.data?.fetchRequirement ?? 'MANDATORY').toUpperCase() === 'MANDATORY';
   const rule = amountRule(category, detail.data?.paymentExactness ?? '', bill?.amountPaise ?? 0);
   const fieldErrors = Object.fromEntries(fields.map(f => [f.name, fieldError(f, values[f.name] ?? '')]));
-  const hasFieldError = Object.values(fieldErrors).some(Boolean);
+  const oneOf = needsOneOf(fields, values);
+  const hasFieldError = Object.values(fieldErrors).some(Boolean) || !!oneOf;
   const ready = !mustFetch || !!bill;
-  const amtError = amountError(amount, rule);
+  // Some billers ask for the amount as one of their own fields.
+  const amountField = fields.find(f => f.isAmount);
+  const payAmount = amountField ? (values[amountField.name] ?? '').trim() : amount;
+  const amtError = amountError(payAmount, amountField ? {min: 1} : rule);
   const pay = usePayBill();
   const inApp = canPayInApp();
 
@@ -317,7 +324,7 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
       return;
     }
     pay.mutate(
-      {operatorCode, category, amount: Number(amount).toFixed(2), bill},
+      {operatorCode, category, amount: Number(payAmount).toFixed(2), bill},
       {
         onSuccess: r => {
           if (r.status === 'cancelled') {
@@ -349,48 +356,94 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
   };
 
   return (
-    <SetupScreen title={shortBillerName(name)} subtitle={category} query={detail}>
-      <Card style={{gap: spacing.lg}}>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
-          <Avatar name={shortBillerName(name)} size={44} />
-          <View style={{flex: 1}}>
-            <Text variant="title" numberOfLines={2}>
-              {name}
-            </Text>
-            {detail.data?.coverage ? (
-              <Text variant="caption" tone="muted">
-                {detail.data.coverage.replace(/^IND-?/, 'India · ').replace(/^India · $/, 'All India')}
+    <SetupScreen
+      title={shortBillerName(name)}
+      subtitle={category}
+      query={detail.isError ? undefined : detail}>
+      {detail.isError ? (
+        <Card>
+          <EmptyState
+            icon={CircleAlert}
+            title="Biller unavailable"
+            message="Bharat BillPay didn’t return this biller’s details. Try again in a while, or pick another biller."
+            action={
+              <View style={{flexDirection: 'row', gap: spacing.sm}}>
+                <Button
+                  title="Try again"
+                  size="sm"
+                  variant="ghost"
+                  fullWidth={false}
+                  onPress={() => detail.refetch()}
+                />
+                <Button
+                  title="Choose another"
+                  size="sm"
+                  fullWidth={false}
+                  onPress={() => navigation.goBack()}
+                />
+              </View>
+            }
+          />
+        </Card>
+      ) : null}
+      {detail.data ? (
+        <Card style={{gap: spacing.lg}}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
+            <Avatar name={shortBillerName(name)} size={44} />
+            <View style={{flex: 1}}>
+              <Text variant="title" numberOfLines={2}>
+                {name}
               </Text>
-            ) : null}
+              {detail.data?.coverage ? (
+                <Text variant="caption" tone="muted">
+                  {detail.data.coverage.replace(/^IND-?/, 'India · ').replace(/^India · $/, 'All India')}
+                </Text>
+              ) : null}
+            </View>
           </View>
-        </View>
-        {fields.map(f => (
-          <TextField
-            key={f.name}
-            label={f.optional ? `${f.name} (optional)` : f.name}
-            value={values[f.name] ?? ''}
-            onChangeText={t => {
-              setValues(v => ({...v, [f.name]: f.numeric ? t.replace(/\D/g, '') : t}));
-              // A changed number means a different bill.
-              setBill(null);
-            }}
-            keyboardType={f.numeric ? 'number-pad' : 'default'}
-            maxLength={f.max || undefined}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            editable={!pay.isPending}
-            error={tried ? fieldErrors[f.name] : null}
-          />
-        ))}
-        {mustFetch && !bill ? (
-          <Button
-            title="Fetch bill"
-            icon={ReceiptIndianRupee}
-            loading={fetch.isPending}
-            onPress={submitFetch}
-          />
-        ) : null}
-      </Card>
+          {fields.map(f =>
+            f.choices ? (
+              <SelectField
+                key={f.name}
+                label={f.optional ? `${f.name} (optional)` : f.name}
+                value={values[f.name] || undefined}
+                error={tried ? fieldErrors[f.name] : null}
+                onPress={() => setPicking(f.name)}
+              />
+            ) : (
+              <TextField
+                key={f.name}
+                label={f.optional ? `${f.name} (optional)` : f.name}
+                value={values[f.name] ?? ''}
+                onChangeText={t => {
+                  setValues(v => ({...v, [f.name]: f.numeric ? t.replace(/\D/g, '') : t}));
+                  // A changed number means a different bill.
+                  setBill(null);
+                }}
+                keyboardType={f.numeric ? 'number-pad' : 'default'}
+                maxLength={f.max || undefined}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={!pay.isPending}
+                error={tried ? fieldErrors[f.name] : null}
+              />
+            ),
+          )}
+          {tried && oneOf ? (
+            <Text variant="caption" tone="danger">
+              {oneOf}
+            </Text>
+          ) : null}
+          {mustFetch && !bill ? (
+            <Button
+              title="Fetch bill"
+              icon={ReceiptIndianRupee}
+              loading={fetch.isPending}
+              onPress={submitFetch}
+            />
+          ) : null}
+        </Card>
+      ) : null}
 
       {bill ? (
         <Reveal>
@@ -431,7 +484,7 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
 
       {ready ? (
         <Reveal index={1} style={{gap: spacing.md}}>
-          {rule.editable || !bill ? (
+          {!amountField && (rule.editable || !bill) ? (
             <TextField
               label="Amount"
               icon={IndianRupee}
@@ -444,7 +497,7 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
             />
           ) : null}
           <Button
-            title={amtError ? 'Pay' : `Pay ${formatAmount(Number(amount))}`}
+            title={amtError ? 'Pay' : `Pay ${formatAmount(Number(payAmount))}`}
             loading={pay.isPending}
             disabled={!inApp}
             onPress={submitPay}
@@ -456,6 +509,26 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
           ) : null}
         </Reveal>
       ) : null}
+      <OptionSheet
+        title={picking ?? ''}
+        visible={picking != null}
+        options={(fields.find(f => f.name === picking)?.choices ?? []).map((n, i) => ({id: i, name: n}))}
+        selected={(() => {
+          const f = fields.find(x => x.name === picking);
+          const i = f?.choices?.indexOf(values[f.name] ?? '') ?? -1;
+          return i >= 0 ? i : null;
+        })()}
+        onClose={() => setPicking(null)}
+        onSelect={i => {
+          const f = fields.find(x => x.name === picking);
+          if (f?.choices) {
+            haptics.select();
+            setValues(v => ({...v, [f.name]: f.choices![i]}));
+            setBill(null);
+          }
+          setPicking(null);
+        }}
+      />
     </SetupScreen>
   );
 }
