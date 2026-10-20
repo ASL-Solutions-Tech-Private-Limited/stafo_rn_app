@@ -9,10 +9,15 @@
  * the native app did. Security still depends on the backend: it should stop
  * sending the PayU salt from api/hasgenerate (the app then asks PAYU_HASH_PATH
  * for hashes) and check each payment with PayU before extending a plan.
+ *
+ * rolesDemo: Manager and HR views for employees, picked from their position,
+ * with sample data and a "view as" switch in Profile. For client demos until
+ * the backend has real roles.
  */
 export const FEATURES = {
   editAttendance: false,
   inAppPayment: true,
+  rolesDemo: true,
 } as const;
 
 /**

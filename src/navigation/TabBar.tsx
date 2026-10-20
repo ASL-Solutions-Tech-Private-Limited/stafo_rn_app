@@ -3,7 +3,15 @@ import {Pressable, View} from 'react-native';
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import Animated, {ReduceMotion, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {Fingerprint, House, LayoutGrid, UserRound, Users, type LucideIcon} from 'lucide-react-native';
+import {
+  Fingerprint,
+  House,
+  LayoutGrid,
+  UserRound,
+  Users,
+  UsersRound,
+  type LucideIcon,
+} from 'lucide-react-native';
 import {Text} from '../components/ui';
 import {haptics} from '../lib/haptics';
 import {useTheme} from '../theme/ThemeProvider';
@@ -12,6 +20,7 @@ const ICONS: Record<string, LucideIcon> = {
   Home: House,
   Attendance: Fingerprint,
   People: Users,
+  Team: UsersRound,
   Apps: LayoutGrid,
   Profile: UserRound,
 };

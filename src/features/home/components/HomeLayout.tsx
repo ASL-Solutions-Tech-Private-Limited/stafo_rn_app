@@ -20,6 +20,8 @@ import {HomeHero} from './HomeHero';
 type Props = {
   name: string;
   subtitle?: string | null;
+  /** "Manager" / "HR" next to the name. */
+  roleLabel?: string;
   avatarUri?: string | null;
   onAvatarPress?: () => void;
   onNotificationsPress?: () => void;
@@ -42,6 +44,7 @@ const COLLAPSE_END = 160;
 export function HomeLayout({
   name,
   subtitle,
+  roleLabel,
   avatarUri,
   onAvatarPress,
   onNotificationsPress,
@@ -99,6 +102,7 @@ export function HomeLayout({
         <HomeHero
           name={name}
           subtitle={subtitle}
+          roleLabel={roleLabel}
           avatarUri={avatarUri}
           onAvatarPress={onAvatarPress}
           onNotificationsPress={onBell}

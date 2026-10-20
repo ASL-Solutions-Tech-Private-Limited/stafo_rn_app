@@ -17,4 +17,5 @@ export const StorageKeys = {
   session: 'session',
   onboardingSeen: 'onboarding_seen',
   themePreference: 'theme_preference',
+  demoRole: 'demo_role',
 } as const;

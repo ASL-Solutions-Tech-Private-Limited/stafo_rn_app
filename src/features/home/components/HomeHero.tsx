@@ -15,6 +15,7 @@ import {useTheme} from '../../../theme/ThemeProvider';
 type Props = {
   name: string;
   subtitle?: string | null;
+  roleLabel?: string;
   avatarUri?: string | null;
   onAvatarPress?: () => void;
   onNotificationsPress?: () => void;
@@ -30,6 +31,7 @@ export const HERO_OVERLAP = 56;
 export function HomeHero({
   name,
   subtitle,
+  roleLabel,
   avatarUri,
   onAvatarPress,
   onNotificationsPress,
@@ -73,9 +75,27 @@ export function HomeHero({
               <Text variant="caption" color="rgba(255,255,255,0.75)">
                 {greeting()} 👋
               </Text>
-              <Text variant="h2" tone="inverse" numberOfLines={1}>
-                {firstName}
-              </Text>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm}}>
+                <Text variant="h2" tone="inverse" numberOfLines={1} style={{flexShrink: 1}}>
+                  {firstName}
+                </Text>
+                {roleLabel ? (
+                  <View
+                    style={{
+                      paddingHorizontal: spacing.sm,
+                      paddingVertical: 2,
+                      borderRadius: 999,
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                    }}>
+                    <Text
+                      variant="caption"
+                      tone="inverse"
+                      style={{fontFamily: 'PlusJakartaSans-Bold', letterSpacing: 0.4}}>
+                      {roleLabel.toUpperCase()}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
             </View>
             <IconButton
               icon={Bell}

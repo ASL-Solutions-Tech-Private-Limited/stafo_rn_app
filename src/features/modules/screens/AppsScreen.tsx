@@ -7,6 +7,7 @@ import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
 import {openModule} from '../openModule';
 import {GROUP_ORDER, modulesFor} from '../catalog';
+import {RoleAppsSection} from '../../roles/RoleScreens';
 
 export function AppsScreen() {
   const {colors, spacing, radius} = useTheme();
@@ -46,6 +47,8 @@ export function AppsScreen() {
         returnKeyType="search"
         containerStyle={{marginTop: spacing.xl}}
       />
+
+      {role === 'employee' && !query ? <RoleAppsSection /> : null}
 
       {groups.map(({group, items}) => (
         <View key={group} style={{marginTop: spacing.xxl}}>

@@ -15,6 +15,10 @@ export type AuthStackParamList = {
 
 export type EmployeeTabParamList = {
   Home: undefined;
+  /** Manager (demo): their team today. */
+  Team: undefined;
+  /** HR (demo): the employees they look after. */
+  People: undefined;
   Attendance: undefined;
   Apps: undefined;
   Profile: undefined;
@@ -72,6 +76,8 @@ export type AppStackParamList = {
   };
   SalaryPayouts: undefined;
   Welcome: undefined;
+  TeamRequests: {role: 'manager' | 'hr'; kind?: import('../features/roles/roleLogic').RequestKind};
+  TeamRequest: {role: 'manager' | 'hr'; id: number};
   Bills: undefined;
   Billers: {category: string};
   PayBill: {category: string; operatorCode: string; name: string};

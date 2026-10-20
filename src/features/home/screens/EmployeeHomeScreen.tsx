@@ -15,6 +15,9 @@ import {PunchResultSheet} from '../../punch/PunchResultSheet';
 import {usePunchFlow} from '../../punch/usePunchFlow';
 import {LocationSharingCard} from '../../tracking/LocationSharingCard';
 import {useTrackingSync} from '../../tracking/useTrackingSync';
+import {RoleHomeSection} from '../../roles/RoleScreens';
+import {ROLE_LABEL} from '../../roles/roleLogic';
+import {useStaffRole} from '../../roles/useStaffRole';
 import {queryKeys, useBanners, useEmployeeDashboard, useEmployeeDetails} from '../queries';
 
 export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
@@ -32,6 +35,7 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
   const subtitle = details.data?.data?.branch_name ?? info?.branch?.branch_name ?? null;
   const companyName = details.data?.company_name;
   const punch = usePunchFlow(info);
+  const {role} = useStaffRole();
   useTrackingSync(info, companyName);
 
   const refreshing = dashboard.isRefetching || details.isRefetching;
@@ -47,6 +51,7 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
     <HomeLayout
       name={name}
       subtitle={subtitle}
+      roleLabel={role === 'employee' ? undefined : ROLE_LABEL[role]}
       avatarUri={avatar}
       onAvatarPress={() => navigation.navigate('Profile')}
       refreshing={refreshing}
@@ -80,6 +85,8 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
           <LocationSharingCard info={info} companyName={companyName} />
         </Reveal>
       ) : null}
+
+      <RoleHomeSection />
 
       <Reveal index={1} style={section}>
         <SectionHeader

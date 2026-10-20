@@ -52,6 +52,8 @@ import {
   TextField,
 } from '../../../components/ui';
 import {APP_ENV} from '../../../config/env';
+import {FEATURES} from '../../../config/features';
+import {DemoRoleSwitch} from '../../roles/RoleScreens';
 import {formatDay, parseServerDate} from '../../../lib/date';
 import {haptics} from '../../../lib/haptics';
 import type {AppStackParamList} from '../../../navigation/types';
@@ -110,6 +112,11 @@ export function ProfileScreen() {
         {isCompany ? <CompanyProfile scrollY={scrollY} /> : <EmployeeProfile scrollY={scrollY} />}
 
         <View style={{paddingHorizontal: spacing.lg}}>
+          {!isCompany && FEATURES.rolesDemo ? (
+            <Reveal index={2}>
+              <DemoRoleSwitch />
+            </Reveal>
+          ) : null}
           <Reveal index={2}>
             {isCompany ? (
               <LinkSection

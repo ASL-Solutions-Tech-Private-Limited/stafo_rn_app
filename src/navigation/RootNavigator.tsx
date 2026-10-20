@@ -50,6 +50,8 @@ import {SubscriptionScreen} from '../features/subscription/SubscriptionScreen';
 import {RegisterScreen} from '../features/auth/screens/RegisterScreen';
 import {VerifyCompanyScreen} from '../features/kyc/VerifyCompanyScreen';
 import {WelcomeScreen} from '../features/kyc/WelcomeScreen';
+import {TeamRequestScreen, TeamRequestsScreen, TeamTabScreen} from '../features/roles/RoleScreens';
+import {useStaffRole} from '../features/roles/useStaffRole';
 import {BillersScreen, BillResultScreen, BillsScreen, PayBillScreen} from '../features/bbps/BillsScreens';
 import {
   CompanyDocumentsScreen,
@@ -123,6 +125,8 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   MyHolidays: 'employee',
   MyPolicies: 'employee',
   MyBranch: 'employee',
+  TeamRequests: 'employee',
+  TeamRequest: 'employee',
   CompanyProfileEdit: 'company',
   VerifyCompany: 'company',
   Welcome: 'company',
@@ -206,9 +210,12 @@ const linking: LinkingOptions<AppStackParamList> = {
 const renderTabBar = (props: React.ComponentProps<typeof TabBar>) => <TabBar {...props} />;
 
 function EmployeeTabNavigator() {
+  const {role: staffRole} = useStaffRole();
   return (
     <EmployeeTabs.Navigator tabBar={renderTabBar} screenOptions={{headerShown: false, animation: 'shift'}}>
       <EmployeeTabs.Screen name="Home" component={EmployeeHomeScreen} />
+      {staffRole === 'manager' ? <EmployeeTabs.Screen name="Team" component={TeamTabScreen} /> : null}
+      {staffRole === 'hr' ? <EmployeeTabs.Screen name="People" component={TeamTabScreen} /> : null}
       <EmployeeTabs.Screen name="Attendance" component={AttendanceTabScreen} />
       <EmployeeTabs.Screen name="Apps" component={AppsScreen} />
       <EmployeeTabs.Screen name="Profile" component={ProfileScreen} />
@@ -418,6 +425,16 @@ export function RootNavigator() {
             name="Welcome"
             component={WelcomeScreen}
             options={{animation: 'fade', gestureEnabled: false}}
+          />
+          <AppStack.Screen
+            name="TeamRequests"
+            component={TeamRequestsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="TeamRequest"
+            component={TeamRequestScreen}
+            options={{animation: 'slide_from_right'}}
           />
           <AppStack.Screen name="Bills" component={BillsScreen} options={{animation: 'slide_from_right'}} />
           <AppStack.Screen
