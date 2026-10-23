@@ -74,6 +74,7 @@ export type AppStackParamList = {
   Welcome: undefined;
   Bills: undefined;
   Celebrations: undefined;
+  OnLeave: undefined;
   BillHistory: undefined;
   Billers: {category: string};
   PayBill: {category: string; operatorCode: string; name: string};

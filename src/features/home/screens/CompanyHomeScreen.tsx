@@ -133,7 +133,7 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
           title="On leave today"
           subtitle={onLeave.length ? `${onLeave.length} away` : undefined}
           actionLabel="View all"
-          onAction={() => rootNavigation.navigate('Approvals', {filter: 'leave'})}
+          onAction={() => rootNavigation.navigate('OnLeave')}
         />
         <OnLeaveStrip entries={onLeave} />
       </Reveal>

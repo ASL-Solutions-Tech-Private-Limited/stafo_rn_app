@@ -53,6 +53,7 @@ import {WelcomeScreen} from '../features/kyc/WelcomeScreen';
 import {BillersScreen, BillResultScreen, BillsScreen, PayBillScreen} from '../features/bbps/BillsScreens';
 import {BillHistoryScreen} from '../features/bbps/BillHistoryScreen';
 import {CelebrationsScreen} from '../features/home/screens/CelebrationsScreen';
+import {OnLeaveScreen} from '../features/home/screens/OnLeaveScreen';
 import {
   CompanyDocumentsScreen,
   CompanyProfileEditScreen,
@@ -159,6 +160,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       VerifyCompany: 'verify',
       Bills: 'bills',
       Celebrations: 'celebrations',
+      OnLeave: 'on-leave',
       BillHistory: 'bills/history',
       CompanyDocuments: 'company/documents',
       MyDocuments: 'documents',
@@ -424,6 +426,11 @@ export function RootNavigator() {
             options={{animation: 'fade', gestureEnabled: false}}
           />
           <AppStack.Screen name="Bills" component={BillsScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen
+            name="OnLeave"
+            component={OnLeaveScreen}
+            options={{animation: 'slide_from_right'}}
+          />
           <AppStack.Screen
             name="Celebrations"
             component={CelebrationsScreen}

@@ -100,8 +100,8 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
         <SectionHeader
           title="On leave"
           subtitle="Teammates who are away"
-          actionLabel="My leave"
-          onAction={() => navigation.getParent()?.navigate('MyLeave')}
+          actionLabel="View all"
+          onAction={() => navigation.getParent()?.navigate('OnLeave')}
         />
         <OnLeaveStrip entries={dashboard.data?.employeesOnLeave ?? []} />
       </Reveal>
