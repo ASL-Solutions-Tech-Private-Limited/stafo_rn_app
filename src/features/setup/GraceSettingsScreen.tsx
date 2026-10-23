@@ -1,94 +1,138 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {CalendarClock, Clock3, Info, Timer} from 'lucide-react-native';
-import {Card, Text} from '../../components/ui';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {CalendarClock, Check, Clock3, IndianRupee} from 'lucide-react-native';
+import {updateGraceSettings} from '../../api/endpoints/setup';
+import {Button, Card, Text, TextField, toast} from '../../components/ui';
+import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
+import {useSession} from '../../store/session';
 import {useTheme} from '../../theme/ThemeProvider';
-import {IconWell, SetupScreen} from './parts';
-import {useGraceSettings} from './useGrace';
+import {SetupScreen} from './parts';
+import {graceErrors} from './setupLogic';
+import {graceKey, useGraceSettings} from './useGrace';
 
-/** The company's grace rule for late punch-ins (api/company/grace-settings/list). */
-export function GraceSettingsScreen(_: AppScreenProps<'SetupGrace'>) {
+/** The company's grace rule for late punch-ins, and the overtime charge. */
+export function GraceSettingsScreen({navigation}: AppScreenProps<'SetupGrace'>) {
   const {colors, spacing} = useTheme();
+  const companyId = useSession(s => s.companyId);
+  const queryClient = useQueryClient();
   const q = useGraceSettings();
-  const g = q.data;
-  const rows = g
-    ? [
-        {
-          icon: Clock3,
-          tint: {fg: colors.warning, bg: colors.warningSoft},
-          title: 'Grace time',
-          value: `${g.graceMinutes} min`,
-          hint: `A punch-in up to ${g.graceMinutes} minutes after the shift starts isn’t late.`,
-        },
-        {
-          icon: CalendarClock,
-          tint: {fg: colors.primary, bg: colors.primarySoft},
-          title: 'Grace days',
-          value: `${g.graceDays} a month`,
-          hint: `That grace can be used on ${g.graceDays} day${
-            g.graceDays === 1 ? '' : 's'
-          } a month; after that, any late punch-in counts as late.`,
-        },
-        {
-          icon: Timer,
-          tint: {fg: colors.success, bg: colors.successSoft},
-          title: 'Overtime charges',
-          value: g.overtimeCharges ?? '—',
-          hint: 'Set on the web panel.',
-        },
-      ]
-    : [];
+  const [f, setF] = useState({minutes: '', days: '', overtime: ''});
+  const [loaded, setLoaded] = useState(false);
+  const [tried, setTried] = useState(false);
+
+  useEffect(() => {
+    if (q.data && !loaded) {
+      setF({
+        minutes: String(q.data.graceMinutes),
+        days: String(q.data.graceDays),
+        overtime: q.data.overtimeCharges ?? '',
+      });
+      setLoaded(true);
+    }
+  }, [q.data, loaded]);
+
+  const errors = graceErrors(f);
+  const err = (k: keyof typeof errors) => (tried ? errors[k] ?? null : null);
+  const minutes = Number(f.minutes) || 0;
+  const days = Number(f.days) || 0;
+
+  const save = useMutation({
+    mutationFn: () =>
+      updateGraceSettings(companyId ?? '', {
+        graceMinutes: minutes,
+        graceDays: days,
+        overtimeCharges: f.overtime,
+      }),
+    onSuccess: () => {
+      haptics.success();
+      toast.success('Grace settings saved');
+      queryClient.invalidateQueries({queryKey: graceKey});
+      navigation.goBack();
+    },
+    onError: (e: Error) => {
+      haptics.error();
+      toast.error(e.message);
+    },
+  });
+
   return (
     <SetupScreen title="Grace & overtime" subtitle="When a punch-in counts as late" query={q}>
-      {g ? (
+      <Card style={{gap: spacing.lg}}>
+        <TextField
+          label="Grace time (minutes)"
+          icon={Clock3}
+          value={f.minutes}
+          onChangeText={t => setF(p => ({...p, minutes: t.replace(/\D/g, '').slice(0, 3)}))}
+          keyboardType="number-pad"
+          hint="How long after the shift starts a punch-in still isn’t late."
+          error={err('minutes')}
+        />
+        <TextField
+          label="Grace days (per month)"
+          icon={CalendarClock}
+          value={f.days}
+          onChangeText={t => setF(p => ({...p, days: t.replace(/\D/g, '').slice(0, 2)}))}
+          keyboardType="number-pad"
+          hint="On how many days a month that grace can be used."
+          error={err('days')}
+        />
+        <TextField
+          label="Overtime charges"
+          icon={IndianRupee}
+          value={f.overtime}
+          onChangeText={t => setF(p => ({...p, overtime: t.replace(/[^\d.]/g, '')}))}
+          keyboardType="decimal-pad"
+          placeholder="e.g. 300"
+          error={err('overtime')}
+        />
+      </Card>
+
+      {!errors.minutes && !errors.days ? (
         <Card style={{gap: spacing.sm, backgroundColor: colors.primarySoft, borderColor: 'transparent'}}>
-          <Text variant="title">Example</Text>
+          <Text variant="title">How it works</Text>
           <Text variant="body" tone="muted">
-            Shift at 10:00 AM: in by {formatAfter(10 * 60 + g.graceMinutes)} on up to {g.graceDays} day
-            {g.graceDays === 1 ? '' : 's'} this month is fine. A {ordinal(g.graceDays + 1)} late day, or any
-            day after {formatAfter(10 * 60 + g.graceMinutes)}, is marked Late.
+            {minutes === 0
+              ? 'No grace: any punch-in after the shift starts is late.'
+              : days === 0
+              ? `No grace days: any punch-in after the shift starts is late.`
+              : `Shift at 10:00 AM: in by ${clock(10 * 60 + minutes)} on up to ${days} day${
+                  days === 1 ? '' : 's'
+                } a month is fine. The ${ordinal(days + 1)} such day, or any day after ${clock(
+                  10 * 60 + minutes,
+                )}, is marked Late.`}
           </Text>
         </Card>
       ) : null}
-      <Card padded={false}>
-        {rows.map((r, i) => (
-          <View
-            key={r.title}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              padding: spacing.lg,
-              borderTopWidth: i ? 1 : 0,
-              borderTopColor: colors.border,
-            }}>
-            <IconWell icon={r.icon} fg={r.tint.fg} bg={r.tint.bg} />
-            <View style={{flex: 1}}>
-              <Text variant="title">{r.title}</Text>
-              <Text variant="caption" tone="muted">
-                {r.hint}
-              </Text>
-            </View>
-            <Text variant="title">{r.value}</Text>
-          </View>
-        ))}
-      </Card>
-      <View style={{flexDirection: 'row', gap: spacing.sm, alignItems: 'center'}}>
-        <Info size={14} color={colors.textMuted} />
-        <Text variant="caption" tone="muted" style={{flex: 1}}>
-          Change these on the STAFO web panel for now; editing here needs a save API from the backend.
+
+      <View style={{gap: spacing.sm}}>
+        <Button
+          title="Save"
+          icon={Check}
+          loading={save.isPending}
+          disabled={!loaded}
+          onPress={() => {
+            setTried(true);
+            if (Object.keys(errors).length) {
+              haptics.error();
+              return;
+            }
+            save.mutate();
+          }}
+        />
+        <Text variant="caption" tone="muted" align="center">
+          Applies to every employee’s attendance from now on.
         </Text>
       </View>
     </SetupScreen>
   );
 }
 
-function formatAfter(minutes: number) {
+function clock(minutes: number) {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  const h12 = ((h + 11) % 12) + 1;
-  return `${h12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
 }
 
 function ordinal(n: number) {

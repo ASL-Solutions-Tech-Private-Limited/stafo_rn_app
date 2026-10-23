@@ -106,3 +106,14 @@ describe('typed punch-in radius', () => {
     expect(radiusError('100001')).toBe('At most 100 km.');
   });
 });
+
+test('grace form checks', () => {
+  const {graceErrors} = jest.requireActual('../src/features/setup/setupLogic');
+  expect(graceErrors({minutes: '15', days: '3', overtime: '300'})).toEqual({});
+  expect(Object.keys(graceErrors({minutes: '200', days: '40', overtime: 'abc'}))).toEqual([
+    'minutes',
+    'days',
+    'overtime',
+  ]);
+  expect(graceErrors({minutes: '0', days: '0', overtime: ''})).toEqual({});
+});

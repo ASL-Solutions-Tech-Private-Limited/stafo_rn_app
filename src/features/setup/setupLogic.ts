@@ -168,3 +168,19 @@ export function policyUrl(file: string | null | undefined, base: string | null |
   }
   return base ? `${base.replace(/\/+$/, '')}/${file}` : null;
 }
+
+/** Checks the grace form: minutes 0–120, days 0–31, overtime a non-negative number. */
+export function graceErrors(f: {minutes: string; days: string; overtime: string}) {
+  const e: {minutes?: string; days?: string; overtime?: string} = {};
+  const whole = (v: string) => /^\d+$/.test(v.trim());
+  if (!whole(f.minutes) || Number(f.minutes) > 120) {
+    e.minutes = 'Enter minutes from 0 to 120.';
+  }
+  if (!whole(f.days) || Number(f.days) > 31) {
+    e.days = 'Enter days from 0 to 31.';
+  }
+  if (f.overtime.trim() && !/^\d+(\.\d{1,2})?$/.test(f.overtime.trim())) {
+    e.overtime = 'Enter an amount, e.g. 300.';
+  }
+  return e;
+}

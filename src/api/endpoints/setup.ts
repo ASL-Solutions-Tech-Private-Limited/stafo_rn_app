@@ -217,3 +217,20 @@ export async function getGraceSettings(): Promise<GraceSettings> {
     overtimeCharges: v('over_time_charges') ?? null,
   };
 }
+
+/** Saves the company's grace settings (api/company/grace-settings/update). */
+export async function updateGraceSettings(
+  companyId: string,
+  s: {graceMinutes: number; graceDays: number; overtimeCharges: string},
+) {
+  const {data} = await api.post<{success?: boolean; status?: boolean; message?: string}>(
+    'api/company/grace-settings/update',
+    {
+      company_id: Number(companyId),
+      grace_time: String(s.graceMinutes),
+      grace_days: String(s.graceDays),
+      over_time_charges: s.overtimeCharges.trim(),
+    },
+  );
+  return ensureOk(data);
+}
