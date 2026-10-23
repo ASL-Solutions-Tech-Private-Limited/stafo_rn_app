@@ -411,3 +411,17 @@ export async function getBillReport(q: BillReportQuery): Promise<BillReport> {
     })),
   };
 }
+
+/**
+ * Re-checks a payment from history by its transaction ID. The server should ask
+ * PayU (verify_payment) and finish or fail the bill; as of 23 Oct 2026 it still
+ * expects the PayU result as well and rejects a bare txnId.
+ */
+export async function recheckBillPayment(p: {txnid: string; payer: Payer}) {
+  const {data} = await api.post<{success?: boolean; message?: string; data?: {status?: string} | null}>(
+    `${BBPS}checkPaymentStatus`,
+    {txnId: p.txnid, user_id: p.payer.userId, user_type: p.payer.userType},
+  );
+  const body = ensureOk(data);
+  return {status: body.data?.status?.toLowerCase() ?? null, message: body.message ?? null};
+}

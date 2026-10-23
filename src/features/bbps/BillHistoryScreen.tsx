@@ -1,9 +1,9 @@
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useInfiniteQuery} from '@tanstack/react-query';
+import {useInfiniteQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import Animated, {FadeInDown, ReduceMotion} from 'react-native-reanimated';
-import {ReceiptIndianRupee, Search} from 'lucide-react-native';
-import {getBillReport, type BillTxn} from '../../api/endpoints/bbps';
+import {ReceiptIndianRupee, RefreshCw, Search} from 'lucide-react-native';
+import {getBillReport, recheckBillPayment, type BillTxn} from '../../api/endpoints/bbps';
 import {
   Badge,
   BottomSheet,
@@ -13,6 +13,7 @@ import {
   PressableScale,
   Text,
   TextField,
+  toast,
 } from '../../components/ui';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
@@ -21,6 +22,7 @@ import {useTheme} from '../../theme/ThemeProvider';
 import {ChoiceChips, SetupScreen} from '../setup/parts';
 import {categoryOfTxn} from './bbpsLogic';
 import {categoryIcon, categoryTint} from './categoryIcons';
+import {usePayer} from './payBill';
 
 const STATUS: Record<string, {label: string; tone: 'success' | 'warning' | 'danger' | 'neutral'}> = {
   success: {label: 'Paid', tone: 'success'},
@@ -49,6 +51,32 @@ export function BillHistoryScreen(_: AppScreenProps<'BillHistory'>) {
       }),
     initialPageParam: 1,
     getNextPageParam: last => (last.page < last.lastPage ? last.page + 1 : undefined),
+  });
+  const queryClient = useQueryClient();
+  const payer = usePayer();
+  const recheck = useMutation({
+    mutationFn: (txnid: string) => {
+      if (!payer) {
+        throw new Error('Sign in again to check payments.');
+      }
+      return recheckBillPayment({txnid, payer});
+    },
+    onSuccess: r => {
+      haptics.success();
+      const st = r.status ? statusOf(r.status).label : null;
+      toast.success(st ? `Status: ${st}` : r.message ?? 'Status updated');
+      queryClient.invalidateQueries({queryKey: ['bbps-report']});
+      setOpen(null);
+    },
+    onError: (e: Error) => {
+      haptics.error();
+      // The server still wants the PayU result here; a bare transaction ID fails with "Undefined array key".
+      toast.error(
+        /undefined array key|unexpected error/i.test(e.message)
+          ? 'Status check isn’t available on the server yet. Try again later.'
+          : e.message,
+      );
+    },
   });
   const pages = report.data?.pages;
   const summary = pages?.[0]?.summary;
@@ -149,7 +177,23 @@ export function BillHistoryScreen(_: AppScreenProps<'BillHistory'>) {
                       {[t.date, t.time].filter(Boolean).join(' · ')}
                     </Text>
                   </View>
-                  <Badge label={st.label} tone={st.tone} dot />
+                  {t.status === 'pending' ? (
+                    <Button
+                      title="Check status"
+                      icon={RefreshCw}
+                      size="sm"
+                      variant="ghost"
+                      fullWidth={false}
+                      loading={recheck.isPending && recheck.variables === t.txnid}
+                      disabled={recheck.isPending}
+                      onPress={() => {
+                        haptics.tap();
+                        recheck.mutate(t.txnid);
+                      }}
+                    />
+                  ) : (
+                    <Badge label={st.label} tone={st.tone} dot />
+                  )}
                 </PressableScale>
               </Animated.View>
             );
@@ -212,6 +256,14 @@ export function BillHistoryScreen(_: AppScreenProps<'BillHistory'>) {
                 Still being confirmed by the bank or the biller. If it doesn’t go through, the money is
                 refunded automatically; don’t pay again.
               </Text>
+            ) : null}
+            {open.status === 'pending' ? (
+              <Button
+                title="Check status"
+                icon={RefreshCw}
+                loading={recheck.isPending}
+                onPress={() => recheck.mutate(open.txnid)}
+              />
             ) : null}
           </View>
         ) : null}
