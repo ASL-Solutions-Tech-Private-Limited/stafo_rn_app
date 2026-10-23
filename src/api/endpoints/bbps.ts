@@ -6,11 +6,10 @@ import {api, ensureOk} from '../client';
  */
 
 /**
- * Where the BBPS routes live. The backend serves them under "api/v1/"; the
- * native app called the same paths under "api/". (On 23 Oct 2026 "api/v1/…"
- * wasn't deployed on live yet.)
+ * Where the BBPS routes live: "api/", the same paths the native app calls.
+ * The backend also plans "api/v1/" (not on live as of 23 Oct 2026); switch here.
  */
-const BBPS = 'api/v1/';
+const BBPS = 'api/';
 
 export type BillCategory = {id: number; name: string; code: string; iconUrl: string | null};
 
