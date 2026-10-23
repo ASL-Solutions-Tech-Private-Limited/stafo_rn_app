@@ -281,7 +281,10 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
   const fieldErrors = Object.fromEntries(fields.map(f => [f.name, fieldError(f, values[f.name] ?? '')]));
   const oneOf = needsOneOf(fields, values);
   const hasFieldError = Object.values(fieldErrors).some(Boolean) || !!oneOf;
-  const ready = !mustFetch || !!bill;
+  // A fetched bill of ₹0 with a fixed amount has nothing to pay.
+  const nothingDue =
+    !!bill && bill.amountPaise <= 0 && !amountRule(category, detail.data?.paymentExactness ?? '', 0).editable;
+  const ready = (!mustFetch || !!bill) && !nothingDue;
   // Some billers ask for the amount as one of their own fields.
   const amountField = fields.find(f => f.isAmount);
   const payAmount = amountField ? (values[amountField.name] ?? '').trim() : amount;
@@ -482,6 +485,17 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
         </Reveal>
       ) : null}
 
+      {nothingDue ? (
+        <Card style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
+          <CircleCheck size={22} color={colors.success} />
+          <View style={{flex: 1}}>
+            <Text variant="title">Nothing to pay right now</Text>
+            <Text variant="caption" tone="muted">
+              {name.split(' (')[0]} shows no amount due on this account.
+            </Text>
+          </View>
+        </Card>
+      ) : null}
       {ready ? (
         <Reveal index={1} style={{gap: spacing.md}}>
           {!amountField && (rule.editable || !bill) ? (
