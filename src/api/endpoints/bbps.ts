@@ -1,22 +1,31 @@
 import {api, ensureOk} from '../client';
 
 /**
- * BBPS (Bharat Bill Payment System) bill payments, with the old app's requests.
- * Categories, billers and biller details are live; fetchBill, payBill and
- * checkPaymentStatus are on UAT until the backend deploys them.
+ * BBPS (Bharat Bill Payment System) bill payments, with the old app's requests:
+ * biller/category → getBiller → biller/detail → fetchBill → payBill → checkPaymentStatus.
  */
+
+/**
+ * Where the BBPS routes live. The backend also has them under "api/v1/" on UAT;
+ * switch this once that is deployed (on 23 Oct 2026 "api/v1/…" returned 404 on live).
+ */
+const BBPS = 'api/';
 
 export type BillCategory = {id: number; name: string; code: string; iconUrl: string | null};
 
 export async function getBillCategories(): Promise<BillCategory[]> {
-  const {data} = await api.get<{
+  const {data} = await api.post<{
     success?: boolean;
     message?: string;
-    data?: Array<{id: number; name: string; code?: string; icon_url?: string | null; status?: number}>;
-  }>('api/bbps/categories');
-  return (ensureOk(data).data ?? [])
-    .filter(c => c.status == null || Number(c.status) === 1)
-    .map(c => ({id: c.id, name: c.name, code: c.code ?? c.name, iconUrl: c.icon_url ?? null}));
+    data?: Array<{name: string; category_code?: string; category_icon?: string | null}>;
+  }>(`${BBPS}biller/category`, {});
+  // The icon files it names are missing on the server, so the app draws its own.
+  return (ensureOk(data).data ?? []).map((c, i) => ({
+    id: i,
+    name: c.name,
+    code: c.category_code ?? c.name,
+    iconUrl: null,
+  }));
 }
 
 export type Biller = {id: number; name: string; operatorCode: string};
@@ -25,11 +34,9 @@ export async function getBillers(category: string): Promise<Biller[]> {
   const {data} = await api.post<{
     success?: boolean;
     message?: string;
-    data?: Array<{id: number; name: string; operator_code: string; status?: number}>;
-  }>('api/bbps-operators/list', {category});
-  return (ensureOk(data).data ?? [])
-    .filter(b => b.status == null || Number(b.status) === 1)
-    .map(b => ({id: b.id, name: b.name, operatorCode: b.operator_code}));
+    data?: Array<{name: string; operator_code: string; category?: string}>;
+  }>(`${BBPS}getBiller`, {category});
+  return (ensureOk(data).data ?? []).map((b, i) => ({id: i, name: b.name, operatorCode: b.operator_code}));
 }
 
 /** One field the biller needs to find the bill, e.g. "Customer ID / Account ID". */
@@ -72,10 +79,11 @@ type MdmBody = {mdmRequestNew?: {biller?: MdmBiller}};
 const text = (v: unknown) => (typeof v === 'string' ? v : '');
 
 export async function getBillerDetail(operatorCode: string): Promise<BillerDetail> {
-  const {data} = await api.get<MdmBody & {data?: MdmBody; status?: number | boolean; message?: string}>(
-    `api/bbps-operators/details/${encodeURIComponent(operatorCode)}`,
+  const {data} = await api.post<MdmBody & {data?: MdmBody; status?: number | boolean; message?: string}>(
+    `${BBPS}biller/detail`,
+    {operator_code: operatorCode},
   );
-  // Live sends mdmRequestNew at the top; the old app's endpoint wrapped it in data.
+  // biller/detail wraps mdmRequestNew in data; older routes sent it at the top.
   const b = data?.mdmRequestNew?.biller ?? data?.data?.mdmRequestNew?.biller;
   if (!b) {
     throw new Error(
@@ -133,7 +141,7 @@ export async function fetchBill(p: {operatorCode: string; category: string; inpu
         additionalInfo?: {info?: ListOrOne<{infoName?: string; infoValue?: string}>} | null;
       };
     };
-  }>('api/fetchBill', {operator_code: p.operatorCode, category: p.category, postdata: p.inputs});
+  }>(`${BBPS}fetchBill`, {operator_code: p.operatorCode, category: p.category, postdata: p.inputs});
   const d = ensureOk(data).data;
   const r = d?.billData?.billerResponse;
   if (!d?.refid || !r) {
@@ -188,7 +196,7 @@ export async function startBillPayment(p: {
       operator_code?: string;
       key?: string;
     };
-  }>('api/payBill', {
+  }>(`${BBPS}payBill`, {
     operator_code: p.operatorCode,
     user_id: p.payer.userId,
     user_type: p.payer.userType,
@@ -227,7 +235,7 @@ export async function confirmBillPayment(p: {
   payuResponse: Record<string, unknown>;
 }) {
   const {data} = await api.post<{success?: boolean; message?: string; data?: {status?: string} | null}>(
-    'api/checkPaymentStatus',
+    `${BBPS}checkPaymentStatus`,
     {
       category: p.category,
       operator_code: p.operatorCode,
