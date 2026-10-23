@@ -140,3 +140,15 @@ test('amount options, limits and suggestions', () => {
     max: 3450,
   });
 });
+
+test('bill dates read nicely', () => {
+  const {billDateLabel, dueStatus} = jest.requireActual('../src/features/bbps/bbpsLogic');
+  expect(billDateLabel('2026-11-22')).toBe('22 Nov 2026');
+  expect(billDateLabel('22.11.2026 to 20.05.2027')).toBe('22 Nov 2026 – 20 May 2027');
+  expect(billDateLabel('2026-11-22 to 2027-05-20')).toBe('22 Nov 2026 – 20 May 2027');
+  expect(billDateLabel('MONTHLY')).toBe('MONTHLY');
+  const today = new Date(2026, 9, 23);
+  expect(dueStatus('2026-11-22', today)).toEqual({tone: 'success', label: 'Due 22 Nov 2026'});
+  expect(dueStatus('2026-10-25', today)).toEqual({tone: 'warning', label: 'Due in 2 days'});
+  expect(dueStatus('2026-10-20', today)).toEqual({tone: 'danger', label: 'Overdue by 3 days'});
+});

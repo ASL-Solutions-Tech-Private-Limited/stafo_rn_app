@@ -232,3 +232,50 @@ export function shortBillerName(name: string) {
   const inBrackets = name.match(/\(([^)]+)\)\s*$/)?.[1];
   return inBrackets && inBrackets.length <= 12 ? inBrackets : name;
 }
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** Bill dates come as 2026-11-22, 22.11.2026, 22-11-2026 or 22/11/2026. */
+export function parseBillDate(raw: string | null | undefined): Date | null {
+  const s = (raw ?? '').trim();
+  let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (m) {
+    return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+  m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+  if (m) {
+    return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  }
+  return null;
+}
+
+/** "2026-11-22" → "22 Nov 2026"; "22.11.2026 to 20.05.2027" → "22 Nov 2026 – 20 May 2027"; anything else as is. */
+export function billDateLabel(raw: string | null | undefined): string {
+  const s = (raw ?? '').trim();
+  const parts = s.split(/\s+to\s+|\s+-\s+/i);
+  if (parts.length === 2 && parts.every(p => parseBillDate(p))) {
+    return parts.map(p => billDateLabel(p)).join(' – ');
+  }
+  const d = parseBillDate(s);
+  return d ? `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}` : s;
+}
+
+/** How soon the bill is due, for the chip on the bill. */
+export function dueStatus(raw: string | null | undefined, today = new Date()) {
+  const d = parseBillDate(raw);
+  if (!d) {
+    return null;
+  }
+  const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = Math.round((d.getTime() - start.getTime()) / 86_400_000);
+  if (days < 0) {
+    return {tone: 'danger' as const, label: `Overdue by ${-days} day${days === -1 ? '' : 's'}`};
+  }
+  if (days === 0) {
+    return {tone: 'danger' as const, label: 'Due today'};
+  }
+  if (days <= 3) {
+    return {tone: 'warning' as const, label: `Due in ${days} day${days === 1 ? '' : 's'}`};
+  }
+  return {tone: 'success' as const, label: `Due ${billDateLabel(raw)}`};
+}

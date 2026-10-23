@@ -57,6 +57,7 @@ import {
   shortBillerName,
 } from './bbpsLogic';
 import {OptionSheet, SelectField} from '../auth/screens/RegisterScreen';
+import {BillCard} from './BillCard';
 import {categoryIcon, categoryTint} from './categoryIcons';
 import {usePayBill} from './payBill';
 
@@ -418,7 +419,31 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
           />
         </Card>
       ) : null}
-      {detail.data ? (
+      {detail.data && bill ? (
+        <Card style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
+          <Avatar name={shortBillerName(name)} size={40} />
+          <View style={{flex: 1, minWidth: 0}}>
+            {fields
+              .filter(f => f.visible && (values[f.name] ?? '').trim())
+              .map(f => (
+                <Text key={f.name} variant="caption" tone="muted" numberOfLines={1}>
+                  {f.name} · <Text variant="caption">{values[f.name]}</Text>
+                </Text>
+              ))}
+          </View>
+          <Button
+            title="Change"
+            variant="ghost"
+            size="sm"
+            fullWidth={false}
+            disabled={pay.isPending}
+            onPress={() => {
+              haptics.tap();
+              setBill(null);
+            }}
+          />
+        </Card>
+      ) : detail.data ? (
         <Card style={{gap: spacing.lg}}>
           <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md}}>
             <Avatar name={shortBillerName(name)} size={44} />
@@ -500,38 +525,7 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
 
       {bill ? (
         <Reveal>
-          <Card style={{gap: spacing.sm}}>
-            <Text variant="overline" tone="muted">
-              YOUR BILL
-            </Text>
-            <Text variant="display">{rupeesFromPaise(bill.amountPaise)}</Text>
-            {bill.dueDate ? (
-              <Text variant="caption" tone="warning">
-                Due {bill.dueDate}
-              </Text>
-            ) : null}
-            <View style={{height: 1, backgroundColor: colors.border, marginVertical: spacing.xs}} />
-            {[
-              ['Customer', bill.customerName],
-              ['Bill number', bill.billNumber],
-              ['Bill date', bill.billDate],
-              ['Period', bill.billPeriod],
-              ...bill.info.map(i => [i.name, i.value] as const),
-            ]
-              .filter(([, v]) => v)
-              .map(([k, v]) => (
-                <View
-                  key={k}
-                  style={{flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md}}>
-                  <Text variant="body" tone="muted">
-                    {k}
-                  </Text>
-                  <Text variant="body" style={{flexShrink: 1, textAlign: 'right'}} selectable>
-                    {v}
-                  </Text>
-                </View>
-              ))}
-          </Card>
+          <BillCard bill={bill} billerName={name} />
           {options.length > 1 ? (
             <Card padded={false} style={{marginTop: spacing.md}}>
               <Text variant="overline" tone="muted" style={{padding: spacing.lg, paddingBottom: spacing.sm}}>
