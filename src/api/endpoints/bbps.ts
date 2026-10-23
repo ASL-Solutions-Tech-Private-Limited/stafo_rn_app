@@ -66,6 +66,8 @@ export type BillerDetail = {
   params: RawParam | RawParam[] | null;
   /** Fields that go together: at least `input` of `params` must be filled (Hero FinCorp: both). */
   groups: {input: number; params: string[]}[];
+  /** Amount limits the biller sets, in paise (from billerPaymentModes), when it sends them. */
+  limits: {minPaise: number | null; maxPaise: number | null};
 };
 
 type MdmBiller = {
@@ -78,7 +80,21 @@ type MdmBiller = {
   billerPaymentExactness?: unknown;
   billerInputParams?: {paramInfo?: RawParam | RawParam[]};
   CustomerParamGroups?: {group?: ParamGroup | ParamGroup[]} | null;
+  /** A plain list of mode names, or per-mode limits in paise. */
+  billerPaymentModes?: string | {paymentModeInfo?: PaymentMode | PaymentMode[]} | null;
 };
+
+type PaymentMode = {paymentMode?: string; minAmount?: string; maxAmount?: string};
+
+/** The app pays through PayU, so the online modes' limits apply; take the loosest of them. */
+function limitsOf(modes: MdmBiller['billerPaymentModes']) {
+  const list = typeof modes === 'object' && modes ? asList(modes.paymentModeInfo) : [];
+  const online = list.filter(m => /upi|debit|credit|internet|wallet|prepaid/i.test(m.paymentMode ?? ''));
+  const use = online.length ? online : list;
+  const mins = use.map(m => Number(m.minAmount)).filter(n => n > 0);
+  const maxs = use.map(m => Number(m.maxAmount)).filter(n => n > 0);
+  return {minPaise: mins.length ? Math.min(...mins) : null, maxPaise: maxs.length ? Math.max(...maxs) : null};
+}
 
 type ParamGroup = {'@attributes'?: {input?: string}; param?: string | string[]};
 
@@ -111,6 +127,7 @@ export async function getBillerDetail(operatorCode: string): Promise<BillerDetai
     paymentExactness: text(b.billerPaymentExactness),
     coverage: b.billerCoverage ?? null,
     params: b.billerInputParams?.paramInfo ?? null,
+    limits: limitsOf(b.billerPaymentModes),
     groups: asList(b.CustomerParamGroups?.group).map(g => ({
       input: Number(g['@attributes']?.input) || 1,
       params: asList(g.param),
@@ -130,6 +147,8 @@ export type FetchedBill = {
   dueDate: string | null;
   /** In paise, as BBPS sends it. */
   amountPaise: number;
+  /** Choices the bill offers, e.g. 1 / 2 / 3 months for West Bengal electricity (paise). */
+  options: {name: string; paise: number}[];
   /** Extra lines such as a balance. */
   info: {name: string; value: string}[];
 };
@@ -144,6 +163,7 @@ export async function fetchBill(p: {operatorCode: string; category: string; inpu
       message?: string;
       billData?: {
         billerResponse?: {
+          amountOptions?: {option?: ListOrOne<{amountName?: string; amountValue?: string}>} | null;
           billAmount?: string;
           billDate?: string;
           billNumber?: string;
@@ -170,6 +190,9 @@ export async function fetchBill(p: {operatorCode: string; category: string; inpu
     billPeriod: clean(r.billPeriod),
     dueDate: clean(r.dueDate),
     amountPaise: Number(r.billAmount) || 0,
+    options: asList(r.amountOptions?.option)
+      .filter(o => o.amountName && Number(o.amountValue) > 0)
+      .map(o => ({name: o.amountName!, paise: Number(o.amountValue)})),
     info: asList(d.billData?.additionalInfo?.info)
       .filter(i => i.infoName && i.infoValue)
       .map(i => ({name: i.infoName!, value: i.infoValue!})),

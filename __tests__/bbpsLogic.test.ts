@@ -113,3 +113,30 @@ test('date fields and field groups', () => {
     }),
   ).toBeNull();
 });
+
+test('amount options, limits and suggestions', () => {
+  const {optionLabel, billLimits, suggestedAmounts, withLimits} = jest.requireActual(
+    '../src/features/bbps/bbpsLogic',
+  );
+  expect(optionLabel('BASE_BILL_AMOUNT')).toBe('Full bill');
+  expect(optionLabel('3 Months Amount')).toBe('3 months');
+  expect(optionLabel('1 Month Amount')).toBe('1 month');
+  const fastag = [
+    {name: 'Fast Tag Balance', value: '570.88'},
+    {name: 'Maximum Permissible Recharge Amount', value: '10000.0'},
+    {name: 'Minimum Amount for Top-up', value: '100.0'},
+  ];
+  expect(billLimits(fastag)).toEqual({min: 100, max: 10000});
+  expect(suggestedAmounts(100, 10000)).toEqual([100, 200, 300, 500, 1000]);
+  expect(suggestedAmounts(1, 250)).toEqual([1, 100, 200]);
+  expect(withLimits({editable: true, min: 1}, {min: 100, max: 10000})).toEqual({
+    editable: true,
+    min: 100,
+    max: 10000,
+  });
+  expect(withLimits({editable: true, min: 1, max: 3450}, {min: 1, max: 100000})).toEqual({
+    editable: true,
+    min: 1,
+    max: 3450,
+  });
+});

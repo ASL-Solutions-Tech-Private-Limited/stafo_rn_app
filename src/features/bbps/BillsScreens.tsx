@@ -45,7 +45,11 @@ import {
   fieldError,
   fieldsOf,
   formatAmount,
+  billLimits,
   formatBillDate,
+  optionLabel,
+  suggestedAmounts,
+  withLimits,
   groupError,
   needsOneOf,
   POPULAR,
@@ -281,7 +285,25 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
   // Date fields: the picked day (yyyy-MM-dd); values[] holds it in the biller's format.
   const [dates, setDates] = useState<Record<string, string>>({});
   const mustFetch = (detail.data?.fetchRequirement ?? 'MANDATORY').toUpperCase() === 'MANDATORY';
-  const rule = amountRule(category, detail.data?.paymentExactness ?? '', bill?.amountPaise ?? 0);
+  // The bill's own rule (exact / above / below), narrowed by the biller's and the bill's limits.
+  const fromBill = billLimits(bill?.info ?? []);
+  const lim = detail.data?.limits;
+  const rule = withLimits(amountRule(category, detail.data?.paymentExactness ?? '', bill?.amountPaise ?? 0), {
+    min: Math.max(fromBill.min ?? 0, lim?.minPaise ? lim.minPaise / 100 : 0) || null,
+    max:
+      [fromBill.max, lim?.maxPaise ? lim.maxPaise / 100 : null]
+        .filter((n): n is number => !!n)
+        .sort((a, b) => a - b)[0] ?? null,
+  });
+  // A bill can offer choices (West Bengal: full bill, 1, 2 or 3 months); picking one sets the amount.
+  const [option, setOption] = useState<string | null>(null);
+  const options = bill?.options ?? [];
+  const limitHint = [
+    rule.min > 1 ? `Min ${formatAmount(rule.min)}` : null,
+    rule.max ? `Max ${formatAmount(rule.max)}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const fieldErrors = Object.fromEntries(fields.map(f => [f.name, fieldError(f, values[f.name] ?? '')]));
   const oneOf = groupError(detail.data?.groups ?? [], values) ?? needsOneOf(fields, values);
   const hasFieldError = Object.values(fieldErrors).some(Boolean) || !!oneOf;
@@ -306,7 +328,10 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
     onSuccess: b => {
       haptics.success();
       setBill(b);
-      setAmount((b.amountPaise / 100).toFixed(2));
+      // Start on the full bill; if the bill only lists choices, the first one.
+      const first = b.options.find(o => /base_bill/i.test(o.name)) ?? b.options[0];
+      setOption(first?.name ?? null);
+      setAmount(((first?.paise ?? b.amountPaise) / 100).toFixed(2));
     },
     onError: (e: Error) => {
       haptics.error();
@@ -507,6 +532,61 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
                 </View>
               ))}
           </Card>
+          {options.length > 1 ? (
+            <Card padded={false} style={{marginTop: spacing.md}}>
+              <Text variant="overline" tone="muted" style={{padding: spacing.lg, paddingBottom: spacing.sm}}>
+                PAY FOR
+              </Text>
+              {options.map((o, i) => {
+                const on = option === o.name;
+                return (
+                  <PressableScale
+                    key={o.name}
+                    onPress={() => {
+                      haptics.select();
+                      setOption(o.name);
+                      setAmount((o.paise / 100).toFixed(2));
+                    }}
+                    scaleTo={0.98}
+                    accessibilityRole="radio"
+                    accessibilityState={{checked: on}}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.md,
+                      paddingHorizontal: spacing.lg,
+                      paddingVertical: spacing.md,
+                      borderTopWidth: i ? 1 : 0,
+                      borderTopColor: colors.border,
+                      backgroundColor: on ? colors.primarySoft : 'transparent',
+                    }}>
+                    <View
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 10,
+                        borderWidth: 2,
+                        borderColor: on ? colors.primary : colors.borderStrong,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                      {on ? (
+                        <View
+                          style={{width: 10, height: 10, borderRadius: 5, backgroundColor: colors.primary}}
+                        />
+                      ) : null}
+                    </View>
+                    <Text variant="title" style={{flex: 1}}>
+                      {optionLabel(o.name)}
+                    </Text>
+                    <Text variant="title" tone={on ? 'primary' : undefined}>
+                      {rupeesFromPaise(o.paise)}
+                    </Text>
+                  </PressableScale>
+                );
+              })}
+            </Card>
+          ) : null}
         </Reveal>
       ) : null}
 
@@ -523,17 +603,48 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
       ) : null}
       {ready ? (
         <Reveal index={1} style={{gap: spacing.md}}>
-          {!amountField && (rule.editable || !bill) ? (
-            <TextField
-              label="Amount"
-              icon={IndianRupee}
-              value={amount}
-              onChangeText={t => setAmount(t.replace(/[^\d.]/g, ''))}
-              keyboardType="decimal-pad"
-              placeholder="0.00"
-              hint={bill && rule.min > 1 ? `At least ${formatAmount(rule.min)}` : undefined}
-              error={triedPay ? amtError : null}
-            />
+          {!amountField && (rule.editable || !bill) && options.length <= 1 ? (
+            <View style={{gap: spacing.sm}}>
+              <TextField
+                label="Amount"
+                icon={IndianRupee}
+                value={amount}
+                onChangeText={t => setAmount(t.replace(/[^\d.]/g, ''))}
+                keyboardType="decimal-pad"
+                placeholder="0.00"
+                hint={limitHint || undefined}
+                error={triedPay ? amtError : null}
+              />
+              {rule.editable ? (
+                <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm}}>
+                  {suggestedAmounts(rule.min, rule.max).map(a => {
+                    const on = Number(amount) === a;
+                    return (
+                      <PressableScale
+                        key={a}
+                        onPress={() => {
+                          haptics.select();
+                          setAmount(a.toFixed(2));
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Pay ${formatAmount(a)}`}
+                        style={{
+                          paddingHorizontal: spacing.md,
+                          paddingVertical: spacing.sm,
+                          borderRadius: 999,
+                          borderWidth: 1,
+                          borderColor: on ? colors.primary : colors.borderStrong,
+                          backgroundColor: on ? colors.primarySoft : colors.surface,
+                        }}>
+                        <Text variant="label" tone={on ? 'primary' : undefined}>
+                          ₹{a.toLocaleString('en-IN')}
+                        </Text>
+                      </PressableScale>
+                    );
+                  })}
+                </View>
+              ) : null}
+            </View>
           ) : null}
           <Button
             title={amtError ? 'Pay' : `Pay ${formatAmount(Number(payAmount))}`}

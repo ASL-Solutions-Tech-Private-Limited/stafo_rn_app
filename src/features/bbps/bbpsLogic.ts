@@ -155,6 +155,46 @@ export function formatAmount(rupees: number) {
 }
 
 /** Whether the payer can change the fetched amount, and the least they may pay. */
+/** "BASE_BILL_AMOUNT" → "Full bill"; "3 Months Amount" → "3 months". */
+export function optionLabel(name: string) {
+  if (/^base_bill_amount$/i.test(name)) {
+    return 'Full bill';
+  }
+  return name
+    .replace(/\s*amount\s*$/i, '')
+    .replace(/_/g, ' ')
+    .trim()
+    .replace(/\bMonths?\b/, m => m.toLowerCase());
+}
+
+/** The bill's own top-up limits, e.g. FASTag "Minimum Amount for Top-up: 100.0" (rupees). */
+export function billLimits(info: {name: string; value: string}[]) {
+  const num = (re: RegExp) => {
+    const v = info.find(i => re.test(i.name))?.value;
+    const n = v ? Number(v.replace(/[^\d.]/g, '')) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : null;
+  };
+  return {min: num(/minimum/i), max: num(/maximum/i)};
+}
+
+/** Quick amounts for recharges: round steps inside the limits. */
+export function suggestedAmounts(min: number, max: number | undefined) {
+  const steps = [100, 200, 300, 500, 1000, 2000, 5000];
+  const start = Math.max(1, Math.ceil(min));
+  const list = [start, ...steps.filter(s => s > start)].filter(a => max == null || a <= max);
+  return Array.from(new Set(list)).slice(0, 5);
+}
+
+/** Combine the bill's rule with limits from the biller and the bill (rupees). */
+export function withLimits(
+  rule: {editable: boolean; min: number; max?: number},
+  limits: {min: number | null; max: number | null},
+) {
+  const min = Math.max(rule.min, limits.min ?? 0);
+  const maxes = [rule.max, limits.max ?? undefined].filter((n): n is number => n != null);
+  return {...rule, min, max: maxes.length ? Math.min(...maxes) : undefined};
+}
+
 export function amountRule(category: string, exactness: string, billPaise: number) {
   const bill = billPaise / 100;
   if (OPEN_AMOUNT.includes(category)) {
