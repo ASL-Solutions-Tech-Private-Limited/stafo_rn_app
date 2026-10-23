@@ -96,3 +96,20 @@ test('values lists become dropdowns, hidden fields stay hidden', () => {
   const [hidden] = fieldsOf({paramName: 'Ref', visibility: 'false'});
   expect(hidden.visible).toBe(false);
 });
+
+test('date fields and field groups', () => {
+  const {dateFormatOf, formatBillDate, groupError} = jest.requireActual('../src/features/bbps/bbpsLogic');
+  expect(dateFormatOf('DOB of Student(DDMMYYYY)')).toBe('DDMMYYYY');
+  expect(dateFormatOf('Date of Birth (DD-MM-YYYY)')).toBe('DD-MM-YYYY');
+  expect(dateFormatOf('Loan Account Number')).toBeNull();
+  expect(formatBillDate('2009-04-07', 'DDMMYYYY')).toBe('07042009');
+  expect(formatBillDate('2009-04-07', 'DD-MM-YYYY')).toBe('07-04-2009');
+  const hero = [{input: 2, params: ['Application Id/Loan Account Number', 'Application Payment Type']}];
+  expect(groupError(hero, {'Application Id/Loan Account Number': 'ABC123'})).toMatch(/and/);
+  expect(
+    groupError(hero, {
+      'Application Id/Loan Account Number': 'ABC123',
+      'Application Payment Type': 'Full Overdue',
+    }),
+  ).toBeNull();
+});

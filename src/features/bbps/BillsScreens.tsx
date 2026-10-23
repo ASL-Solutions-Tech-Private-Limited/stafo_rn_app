@@ -32,11 +32,11 @@ import {
   TextField,
   toast,
 } from '../../components/ui';
-import {formatDay, formatTime} from '../../lib/date';
+import {formatDay, formatTime, toDateKey} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
-import {SetupScreen} from '../setup/parts';
+import {DateButton, SetupScreen} from '../setup/parts';
 import {canPayInApp} from '../subscription/pay';
 import {SALES} from '../subscription/SubscriptionScreen';
 import {
@@ -45,6 +45,8 @@ import {
   fieldError,
   fieldsOf,
   formatAmount,
+  formatBillDate,
+  groupError,
   needsOneOf,
   POPULAR,
   rupeesFromPaise,
@@ -276,10 +278,12 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
   const [amount, setAmount] = useState('');
   const [triedPay, setTriedPay] = useState(false);
   const [picking, setPicking] = useState<string | null>(null);
+  // Date fields: the picked day (yyyy-MM-dd); values[] holds it in the biller's format.
+  const [dates, setDates] = useState<Record<string, string>>({});
   const mustFetch = (detail.data?.fetchRequirement ?? 'MANDATORY').toUpperCase() === 'MANDATORY';
   const rule = amountRule(category, detail.data?.paymentExactness ?? '', bill?.amountPaise ?? 0);
   const fieldErrors = Object.fromEntries(fields.map(f => [f.name, fieldError(f, values[f.name] ?? '')]));
-  const oneOf = needsOneOf(fields, values);
+  const oneOf = groupError(detail.data?.groups ?? [], values) ?? needsOneOf(fields, values);
   const hasFieldError = Object.values(fieldErrors).some(Boolean) || !!oneOf;
   // A fetched bill of ₹0 with a fixed amount has nothing to pay.
   const nothingDue =
@@ -407,7 +411,26 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
           {fields
             .filter(f => f.visible)
             .map(f =>
-              f.choices ? (
+              f.dateFormat ? (
+                <View key={f.name}>
+                  <DateButton
+                    label={f.optional ? `${f.name} (optional)` : f.name}
+                    value={dates[f.name] ?? ''}
+                    max={toDateKey()}
+                    placeholder="Pick a date"
+                    onChange={key => {
+                      setDates(d => ({...d, [f.name]: key}));
+                      setValues(v => ({...v, [f.name]: formatBillDate(key, f.dateFormat!)}));
+                      setBill(null);
+                    }}
+                  />
+                  {tried && fieldErrors[f.name] ? (
+                    <Text variant="caption" tone="danger" style={{marginTop: spacing.xs}}>
+                      {fieldErrors[f.name]}
+                    </Text>
+                  ) : null}
+                </View>
+              ) : f.choices ? (
                 <SelectField
                   key={f.name}
                   label={f.optional ? `${f.name} (optional)` : f.name}

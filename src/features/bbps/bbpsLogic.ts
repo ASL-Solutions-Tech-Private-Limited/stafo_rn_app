@@ -26,9 +26,46 @@ export type Field = {
   choices: string[] | null;
   /** false: the biller wants it sent but not shown. */
   visible: boolean;
+  /** A date, in the format the field's name asks for, e.g. "DOB of Student(DDMMYYYY)". */
+  dateFormat: DateFormat | null;
   /** The biller asks for the amount itself (e.g. Sun Direct), so it replaces the app's amount box. */
   isAmount: boolean;
 };
+
+export type DateFormat = 'DDMMYYYY' | 'DD-MM-YYYY' | 'DD/MM/YYYY' | 'YYYY-MM-DD' | 'YYYYMMDD';
+
+const DATE_FORMATS: DateFormat[] = ['DD-MM-YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD', 'DDMMYYYY', 'YYYYMMDD'];
+
+/** BBPS has no date type; dates are named like "Date of Birth (DD-MM-YYYY)". */
+export function dateFormatOf(name: string): DateFormat | null {
+  const n = name.toUpperCase().replace(/\s+/g, '');
+  return DATE_FORMATS.find(f => n.includes(f)) ?? null;
+}
+
+/** "2009-04-07" → "07042009" for DDMMYYYY, and so on. */
+export function formatBillDate(key: string, f: DateFormat) {
+  const [y, m, d] = key.split('-');
+  return {
+    DDMMYYYY: `${d}${m}${y}`,
+    'DD-MM-YYYY': `${d}-${m}-${y}`,
+    'DD/MM/YYYY': `${d}/${m}/${y}`,
+    'YYYY-MM-DD': `${y}-${m}-${d}`,
+    YYYYMMDD: `${y}${m}${d}`,
+  }[f];
+}
+
+/** Each group needs at least `input` of its fields filled. */
+export function groupError(groups: {input: number; params: string[]}[], values: Record<string, string>) {
+  const g = groups.find(
+    x => x.params.filter(p => (values[p] ?? '').trim()).length < Math.min(x.input, x.params.length),
+  );
+  if (!g) {
+    return null;
+  }
+  return g.input >= g.params.length
+    ? `Fill in ${g.params.join(' and ')}.`
+    : `Fill in at least ${g.input} of: ${g.params.join(', ')}.`;
+}
 
 /** "EMI Overdue,Total Overdue" → ["EMI Overdue", "Total Overdue"]; null when empty. */
 export function valuesOf(values: string | undefined): string[] | null {
@@ -70,6 +107,7 @@ export function fieldsOf(params: RawParam | RawParam[] | null | undefined): Fiel
         pattern,
         choices: valuesOf(p.values) ?? choicesOf(p.regEx),
         visible: (p.visibility ?? 'true').toLowerCase() !== 'false',
+        dateFormat: dateFormatOf(p.paramName!),
         isAmount: /^amount$/i.test(p.paramName!.trim()),
       };
     });

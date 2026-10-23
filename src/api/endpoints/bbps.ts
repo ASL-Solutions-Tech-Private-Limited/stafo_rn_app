@@ -64,6 +64,8 @@ export type BillerDetail = {
   coverage: string | null;
   /** The server sends one object or a list; both are kept as they came. */
   params: RawParam | RawParam[] | null;
+  /** Fields that go together: at least `input` of `params` must be filled (Hero FinCorp: both). */
+  groups: {input: number; params: string[]}[];
 };
 
 type MdmBiller = {
@@ -75,9 +77,15 @@ type MdmBiller = {
   billerFetchRequirement?: unknown;
   billerPaymentExactness?: unknown;
   billerInputParams?: {paramInfo?: RawParam | RawParam[]};
+  CustomerParamGroups?: {group?: ParamGroup | ParamGroup[]} | null;
 };
 
+type ParamGroup = {'@attributes'?: {input?: string}; param?: string | string[]};
+
 type MdmBody = {mdmRequestNew?: {biller?: MdmBiller}};
+
+type ListOrOne<T> = T | T[] | undefined | null;
+const asList = <T>(v: ListOrOne<T>): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 
 /** BBPS sends some text fields as [] when empty. */
 const text = (v: unknown) => (typeof v === 'string' ? v : '');
@@ -103,6 +111,10 @@ export async function getBillerDetail(operatorCode: string): Promise<BillerDetai
     paymentExactness: text(b.billerPaymentExactness),
     coverage: b.billerCoverage ?? null,
     params: b.billerInputParams?.paramInfo ?? null,
+    groups: asList(b.CustomerParamGroups?.group).map(g => ({
+      input: Number(g['@attributes']?.input) || 1,
+      params: asList(g.param),
+    })),
   };
 }
 
@@ -121,9 +133,6 @@ export type FetchedBill = {
   /** Extra lines such as a balance. */
   info: {name: string; value: string}[];
 };
-
-type ListOrOne<T> = T | T[] | undefined | null;
-const asList = <T>(v: ListOrOne<T>): T[] => (Array.isArray(v) ? v : v ? [v] : []);
 
 export async function fetchBill(p: {operatorCode: string; category: string; inputs: Record<string, string>}) {
   const {data} = await api.post<{
