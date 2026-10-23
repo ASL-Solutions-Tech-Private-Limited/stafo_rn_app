@@ -132,13 +132,22 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
         <SectionHeader
           title="On leave today"
           subtitle={onLeave.length ? `${onLeave.length} away` : undefined}
+          actionLabel="View all"
+          onAction={() => rootNavigation.navigate('Approvals', {filter: 'leave'})}
         />
         <OnLeaveStrip entries={onLeave} />
       </Reveal>
 
       <Reveal index={5} style={section}>
-        <SectionHeader title="Celebrations" subtitle="Birthdays and work anniversaries" />
-        <CelebrationsStrip items={buildCelebrations(data?.birthday, data?.anniversary)} />
+        <SectionHeader
+          title="Celebrations"
+          subtitle="Birthdays and work anniversaries"
+          actionLabel="View all"
+          onAction={() => rootNavigation.navigate('Celebrations')}
+        />
+        <CelebrationsStrip
+          items={buildCelebrations(data?.birthday, data?.annyversary ?? data?.anniversary)}
+        />
       </Reveal>
     </HomeLayout>
   );

@@ -208,6 +208,8 @@ export type CompanyDashboardResponse = {
   company_id: number;
   employeesOnLeave?: LeaveEntry[] | null;
   birthday?: BirthdayEntry[] | null;
+  /** The live server spells it "annyversary", as on the employee dashboard. */
+  annyversary?: AnniversaryEntry[] | null;
   anniversary?: AnniversaryEntry[] | null;
   companyInfo?: {
     id?: number | null;

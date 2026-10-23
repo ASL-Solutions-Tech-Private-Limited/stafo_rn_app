@@ -52,6 +52,7 @@ import {VerifyCompanyScreen} from '../features/kyc/VerifyCompanyScreen';
 import {WelcomeScreen} from '../features/kyc/WelcomeScreen';
 import {BillersScreen, BillResultScreen, BillsScreen, PayBillScreen} from '../features/bbps/BillsScreens';
 import {BillHistoryScreen} from '../features/bbps/BillHistoryScreen';
+import {CelebrationsScreen} from '../features/home/screens/CelebrationsScreen';
 import {
   CompanyDocumentsScreen,
   CompanyProfileEditScreen,
@@ -157,6 +158,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       CompanyProfileEdit: 'company/edit',
       VerifyCompany: 'verify',
       Bills: 'bills',
+      Celebrations: 'celebrations',
       BillHistory: 'bills/history',
       CompanyDocuments: 'company/documents',
       MyDocuments: 'documents',
@@ -422,6 +424,11 @@ export function RootNavigator() {
             options={{animation: 'fade', gestureEnabled: false}}
           />
           <AppStack.Screen name="Bills" component={BillsScreen} options={{animation: 'slide_from_right'}} />
+          <AppStack.Screen
+            name="Celebrations"
+            component={CelebrationsScreen}
+            options={{animation: 'slide_from_right'}}
+          />
           <AppStack.Screen
             name="BillHistory"
             component={BillHistoryScreen}

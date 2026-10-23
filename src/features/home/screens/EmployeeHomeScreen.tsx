@@ -97,12 +97,22 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
       ) : null}
 
       <Reveal index={3} style={section}>
-        <SectionHeader title="On leave" subtitle="Teammates who are away" />
+        <SectionHeader
+          title="On leave"
+          subtitle="Teammates who are away"
+          actionLabel="My leave"
+          onAction={() => navigation.getParent()?.navigate('MyLeave')}
+        />
         <OnLeaveStrip entries={dashboard.data?.employeesOnLeave ?? []} />
       </Reveal>
 
       <Reveal index={4} style={section}>
-        <SectionHeader title="Celebrations" subtitle="Birthdays and work anniversaries" />
+        <SectionHeader
+          title="Celebrations"
+          subtitle="Birthdays and work anniversaries"
+          actionLabel="View all"
+          onAction={() => navigation.getParent()?.navigate('Celebrations')}
+        />
         <CelebrationsStrip items={buildCelebrations(dashboard.data?.birthday, dashboard.data?.annyversary)} />
       </Reveal>
       <PunchResultSheet onRetry={punch.start} />

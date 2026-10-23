@@ -61,12 +61,13 @@ export function OnLeaveStrip({entries}: {entries: LeaveEntry[]}) {
   );
 }
 
-type Celebration = {
+export type Celebration = {
   key: string;
   name: string;
   image?: string | null;
   kind: 'birthday' | 'anniversary';
   detail: string;
+  isToday: boolean;
 };
 
 /** "today" when day and month match, otherwise "3 Oct". */
@@ -92,6 +93,7 @@ export function buildCelebrations(
         image: b.image,
         kind: 'birthday' as const,
         detail: when === 'today' ? 'Birthday today' : when ? `Birthday · ${when}` : 'Birthday',
+        isToday: when === 'today',
       };
     }),
     ...(anniversaries ?? []).map(a => {
@@ -106,6 +108,7 @@ export function buildCelebrations(
         image: a.image,
         kind: 'anniversary' as const,
         detail: when && when !== 'today' ? `${label} · ${when}` : label,
+        isToday: when === 'today',
       };
     }),
   ];
