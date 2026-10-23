@@ -152,3 +152,10 @@ test('bill dates read nicely', () => {
   expect(dueStatus('2026-10-25', today)).toEqual({tone: 'warning', label: 'Due in 2 days'});
   expect(dueStatus('2026-10-20', today)).toEqual({tone: 'danger', label: 'Overdue by 3 days'});
 });
+
+test('history rows know their category', () => {
+  const {categoryOfTxn} = jest.requireActual('../src/features/bbps/bbpsLogic');
+  expect(categoryOfTxn('Bill Payment - Fastag - Amount 98')).toBe('Fastag');
+  expect(categoryOfTxn('Bill Payment - Loan Repayment - Amount 3450')).toBe('Loan Repayment');
+  expect(categoryOfTxn('Something')).toBe('Bill payment');
+});

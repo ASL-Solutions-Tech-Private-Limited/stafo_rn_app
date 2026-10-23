@@ -73,6 +73,7 @@ export type AppStackParamList = {
   SalaryPayouts: undefined;
   Welcome: undefined;
   Bills: undefined;
+  BillHistory: undefined;
   Billers: {category: string};
   PayBill: {category: string; operatorCode: string; name: string};
   BillResult: {

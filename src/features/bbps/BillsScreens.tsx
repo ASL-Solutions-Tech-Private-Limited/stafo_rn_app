@@ -8,6 +8,7 @@ import {
   CircleCheck,
   Clock3,
   IndianRupee,
+  History,
   ReceiptIndianRupee,
   Search,
   ShieldCheck,
@@ -107,7 +108,23 @@ export function BillsScreen({navigation}: AppScreenProps<'Bills'>) {
   };
 
   return (
-    <SetupScreen title="Pay bills" subtitle="Recharges and bills through Bharat BillPay" query={cats}>
+    <SetupScreen
+      title="Pay bills"
+      action={
+        <Button
+          title="History"
+          icon={History}
+          variant="ghost"
+          size="sm"
+          fullWidth={false}
+          onPress={() => {
+            haptics.tap();
+            navigation.navigate('BillHistory');
+          }}
+        />
+      }
+      subtitle="Recharges and bills through Bharat BillPay"
+      query={cats}>
       <TextField icon={Search} placeholder="Search electricity, DTH, FASTag…" value={q} onChangeText={setQ} />
       {matches ? (
         <CategoryList items={matches} onOpen={open} empty={`No category matches “${q}”.`} />
@@ -744,7 +761,14 @@ export function BillResultScreen({navigation, route}: AppScreenProps<'BillResult
       {status === 'failed' ? (
         <Button title="Try again" onPress={() => navigation.goBack()} />
       ) : (
-        <Button title="Done" onPress={() => navigation.navigate('Bills')} />
+        <>
+          <Button title="Done" onPress={() => navigation.navigate('Bills')} />
+          <Button
+            title="Payment history"
+            variant="ghost"
+            onPress={() => navigation.navigate('BillHistory')}
+          />
+        </>
       )}
       <Text variant="caption" tone="subtle" align="center">
         Need help? {SALES.email} · {SALES.phoneLabel}, with the transaction ID.

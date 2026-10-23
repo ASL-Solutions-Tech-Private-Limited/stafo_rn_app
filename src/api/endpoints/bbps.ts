@@ -297,3 +297,113 @@ export async function confirmBillPayment(p: {
   );
   return {ok: data?.success === true, message: data?.message ?? null};
 }
+
+// ---------- Payment history (api/bbpsReport) ----------
+
+export type BillTxnStatus = 'success' | 'pending' | 'failed' | string;
+
+export type BillTxn = {
+  id: number;
+  txnid: string;
+  amount: number;
+  formattedAmount: string;
+  productInfo: string;
+  status: BillTxnStatus;
+  payuPaymentId: string | null;
+  payerName: string | null;
+  createdAt: string;
+  date: string;
+  time: string;
+};
+
+export type BillReport = {
+  summary: {
+    total: {count: number; amount: string};
+    success: {count: number; amount: string};
+    pending: {count: number; amount: string};
+    failed: {count: number; amount: string};
+  };
+  page: number;
+  lastPage: number;
+  total: number;
+  transactions: BillTxn[];
+};
+
+export type BillReportQuery = {
+  search?: string;
+  status?: string;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  date?: string;
+  userType: 'company' | 'employee';
+  page: number;
+  perPage?: number;
+};
+
+type ReportBody = {
+  success?: boolean;
+  message?: string;
+  data?: {
+    summary?: Record<string, number | string | undefined>;
+    pagination?: {current_page?: number; last_page?: number; total?: number};
+    transactions?: Array<{
+      id: number;
+      txnid: string;
+      amount: number | string;
+      formatted_amount?: string;
+      product_info?: string;
+      status?: string;
+      payu_payment_id?: string | null;
+      payer_name?: string | null;
+      created_at?: string;
+      date?: string;
+      time?: string;
+    }>;
+  } | null;
+};
+
+/** A user's bill payments, newest first, with totals by status. */
+export async function getBillReport(q: BillReportQuery): Promise<BillReport> {
+  const {data} = await api.post<ReportBody>(`${BBPS}bbpsReport`, {
+    search: q.search ?? '',
+    status: q.status ?? '',
+    category: q.category ?? '',
+    date_from: q.dateFrom ?? '',
+    date_to: q.dateTo ?? '',
+    date: q.date ?? '',
+    user_type: q.userType,
+    per_page: q.perPage ?? 20,
+    page: q.page,
+  });
+  const d = ensureOk(data).data ?? {};
+  const s = d.summary ?? {};
+  const pick = (k: string) => ({
+    count: Number(s[`${k}_count`]) || 0,
+    amount: String(s[`${k}_amount_formatted`] ?? `₹${Number(s[`${k}_amount`]) || 0}`),
+  });
+  return {
+    summary: {
+      total: pick('total'),
+      success: pick('success'),
+      pending: pick('pending'),
+      failed: pick('failed'),
+    },
+    page: d.pagination?.current_page ?? q.page,
+    lastPage: d.pagination?.last_page ?? q.page,
+    total: d.pagination?.total ?? d.transactions?.length ?? 0,
+    transactions: (d.transactions ?? []).map(t => ({
+      id: t.id,
+      txnid: t.txnid,
+      amount: Number(t.amount) || 0,
+      formattedAmount: t.formatted_amount ?? `₹${Number(t.amount) || 0}`,
+      productInfo: t.product_info ?? 'Bill payment',
+      status: (t.status ?? 'pending').toLowerCase(),
+      payuPaymentId: t.payu_payment_id ?? null,
+      payerName: t.payer_name ?? null,
+      createdAt: t.created_at ?? '',
+      date: t.date ?? '',
+      time: t.time ?? '',
+    })),
+  };
+}

@@ -279,3 +279,9 @@ export function dueStatus(raw: string | null | undefined, today = new Date()) {
   }
   return {tone: 'success' as const, label: `Due ${billDateLabel(raw)}`};
 }
+
+/** "Bill Payment - Fastag - Amount 98" → "Fastag". */
+export function categoryOfTxn(productInfo: string) {
+  const parts = productInfo.split(/\s+-\s+/);
+  return parts.length >= 2 ? parts[1].trim() : 'Bill payment';
+}
