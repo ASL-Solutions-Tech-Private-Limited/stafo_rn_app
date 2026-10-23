@@ -129,9 +129,19 @@ android {
     }
 }
 
+// A dependency (the PayU SDK) ships Chucker's no-op; in debug it would clash with the real one.
+configurations.matching { it.name.toLowerCase().startsWith("debug") }.configureEach {
+    exclude group: "com.github.chuckerteam.chucker", module: "library-no-op"
+}
+
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    // Chucker: inspect every API call (request, response, timing) from a notification.
+    // Debug builds only; release builds get the empty no-op version, so nothing is recorded.
+    debugImplementation("com.github.chuckerteam.chucker:library:4.1.0")
+    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.1.0")
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
