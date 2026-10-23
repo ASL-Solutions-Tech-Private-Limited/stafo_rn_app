@@ -3,6 +3,7 @@ import {confirmBillPayment, startBillPayment, type FetchedBill, type Payer} from
 import {payuHash} from '../../api/endpoints/subscription';
 import {PAYU_HASH_PATH, PAYU_MERCHANT_KEY} from '../../config/features';
 import {openPayuCheckout} from '../../lib/payu';
+import {payuHashLocal} from '../../lib/payuHash';
 import {useSession} from '../../store/session';
 import type {PaymentOutcome} from '../subscription/pay';
 
@@ -32,7 +33,7 @@ export function usePayer(): (Payer & {name: string; email: string; phone: string
 
 /**
  * Starts the payment on the server, opens PayU, then asks the server to check
- * the payment and pay the biller. Hashes come from the server: the app has no salt.
+ * the payment and pay the biller. Hashing works like plan payments (subscription/pay.ts).
  */
 export function usePayBill() {
   const payer = usePayer();
@@ -63,7 +64,11 @@ export function usePayBill() {
         email: payer.email,
         phone: payer.phone,
         extra: {udf1: order.userId, udf2: order.userType, udf3: order.operatorCode},
-        getHash: (name, hashString) => payuHash(PAYU_HASH_PATH, name, hashString, order.txnid),
+        // Same as plan payments: hash with the salt the server sent, else ask the server.
+        getHash: async (name, hashString) =>
+          order.salt
+            ? payuHashLocal(hashString, order.salt)
+            : payuHash(PAYU_HASH_PATH, name, hashString, order.txnid),
       });
       if (result.status === 'cancelled' || result.status === 'error') {
         return result;

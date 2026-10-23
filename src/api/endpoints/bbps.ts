@@ -172,6 +172,8 @@ export type BillOrder = {
   operatorCode: string;
   /** Sent by some servers; otherwise the app uses STAFO's PayU key. */
   key?: string;
+  /** PayU salt, if the server sends it (as api/hasgenerate does for plans); used only for this payment. */
+  salt: string | null;
 };
 
 export type Payer = {userId: string; userType: 'company' | 'employee'};
@@ -195,7 +197,11 @@ export async function startBillPayment(p: {
       user_type?: string;
       operator_code?: string;
       key?: string;
+      merchantKey?: string;
+      salt?: string;
+      hashParam?: {salt?: string; merchantKey?: string} | null;
     };
+    hashParam?: {salt?: string; merchantKey?: string} | null;
   }>(`${BBPS}payBill`, {
     operator_code: p.operatorCode,
     user_id: p.payer.userId,
@@ -208,7 +214,8 @@ export async function startBillPayment(p: {
     },
     category: p.category,
   });
-  const d = ensureOk(data).data;
+  const body = ensureOk(data);
+  const d = body.data;
   if (!d?.txnid) {
     throw new Error(data.message || 'Couldn’t start the payment. Please try again.');
   }
@@ -219,7 +226,8 @@ export async function startBillPayment(p: {
     userId: String(d.user_id ?? p.payer.userId),
     userType: d.user_type ?? p.payer.userType,
     operatorCode: d.operator_code ?? p.operatorCode,
-    key: d.key,
+    key: d.key ?? d.merchantKey ?? d.hashParam?.merchantKey ?? body.hashParam?.merchantKey,
+    salt: (d.salt ?? d.hashParam?.salt ?? body.hashParam?.salt)?.trim() || null,
   };
 }
 
