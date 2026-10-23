@@ -2,9 +2,19 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Linking, ScrollView, StatusBar, View} from 'react-native';
 import MapView, {Polyline} from 'react-native-maps';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {ArrowLeft, ChevronLeft, ChevronRight, MapPinOff, Phone} from 'lucide-react-native';
+import {ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, MapPinOff, Phone} from 'lucide-react-native';
 import {employeePhotoUrl} from '../../api/endpoints/people';
-import {Avatar, IconButton, LiveDot, PressableScale, Skeleton, Text, toast} from '../../components/ui';
+import {
+  Avatar,
+  Button,
+  CalendarSheet,
+  IconButton,
+  LiveDot,
+  PressableScale,
+  Skeleton,
+  Text,
+  toast,
+} from '../../components/ui';
 import {
   formatDay,
   formatDuration,
@@ -41,6 +51,7 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
   const insets = useSafeAreaInsets();
   const today = toDateKey();
   const [date, setDate] = useState(route.params.date ?? today);
+  const [picking, setPicking] = useState(false);
   const isToday = date === today;
   const now = useNow(isToday, 30_000);
 
@@ -187,7 +198,18 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
             hitSlop={8}>
             <ChevronLeft size={18} color={colors.text} />
           </PressableScale>
-          <Text variant="label">{dayLabel}</Text>
+          <PressableScale
+            onPress={() => {
+              haptics.tap();
+              setPicking(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`${dayLabel}. Pick another day`}
+            hitSlop={6}
+            style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+            <CalendarDays size={15} color={colors.primary} />
+            <Text variant="label">{dayLabel}</Text>
+          </PressableScale>
           <PressableScale
             onPress={isToday ? undefined : () => step(1)}
             disabled={isToday}
@@ -267,6 +289,15 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
                   ? `${name.split(' ')[0]} hasn't shared a location today yet.`
                   : 'Location is only recorded while sharing is on during their shift.'}
               </Text>
+              <Button
+                title="Pick another day"
+                icon={CalendarDays}
+                variant="ghost"
+                size="sm"
+                fullWidth={false}
+                style={{alignSelf: 'center'}}
+                onPress={() => setPicking(true)}
+              />
             </View>
           ) : (
             <>
@@ -314,6 +345,17 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
           )}
         </ScrollView>
       </View>
+      <CalendarSheet
+        visible={picking}
+        value={date}
+        title="Show route for"
+        onClose={() => setPicking(false)}
+        onChange={d => {
+          haptics.select();
+          setDate(d);
+          setPicking(false);
+        }}
+      />
     </View>
   );
 }

@@ -219,7 +219,7 @@ export function LiveLocationScreen({navigation}: AppScreenProps<'LiveLocation'>)
 
               {notSharing.length ? (
                 <Text variant="overline" tone="muted" style={{marginTop: spacing.lg}}>
-                  Not sharing
+                  Not sharing · tap to see past days
                 </Text>
               ) : null}
               {notSharing.map((r, i) => (
@@ -227,6 +227,8 @@ export function LiveLocationScreen({navigation}: AppScreenProps<'LiveLocation'>)
                   key={r.employee.id}
                   index={i}
                   person={r}
+                  // Not sharing now, but earlier days may have a route.
+                  onPress={() => openRoute(r)}
                   right={
                     r.sharing === 'off' ? (
                       <Button
