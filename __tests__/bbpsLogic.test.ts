@@ -71,3 +71,28 @@ test('fixed-choice fields, amount fields and either-or billers', () => {
   expect(needsOneOf(gas, {})).toMatch(/at least one/);
   expect(needsOneOf(gas, {'LPG ID': '12345678901234567'})).toBeNull();
 });
+
+test('values lists become dropdowns, hidden fields stay hidden', () => {
+  const [, payType] = fieldsOf([
+    {
+      paramName: 'Application Id/Loan Account Number',
+      dataType: 'ALPHANUMERIC',
+      isOptional: 'true',
+      minLength: '3',
+      maxLength: '50',
+    },
+    {
+      paramName: 'Application Payment Type',
+      dataType: 'ALPHANUMERIC',
+      isOptional: 'true',
+      minLength: '0',
+      maxLength: '0',
+      values: 'Overdue Installment,Full Overdue,Advance EMI',
+    },
+  ]);
+  expect(payType.choices).toEqual(['Overdue Installment', 'Full Overdue', 'Advance EMI']);
+  expect(fieldError(payType, 'Full Overdue')).toBeNull();
+  expect(fieldError(payType, 'Something else')).toMatch(/Choose/);
+  const [hidden] = fieldsOf({paramName: 'Ref', visibility: 'false'});
+  expect(hidden.visible).toBe(false);
+});

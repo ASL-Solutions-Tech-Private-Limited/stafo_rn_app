@@ -47,6 +47,10 @@ export type RawParam = {
   minLength?: string;
   maxLength?: string;
   regEx?: string;
+  /** Comma-separated choices, e.g. "Overdue Installment,Full Overdue,Advance EMI": a dropdown. */
+  values?: string;
+  /** "false": don't show the field (it's still sent, empty). */
+  visibility?: string;
 };
 
 export type BillerDetail = {

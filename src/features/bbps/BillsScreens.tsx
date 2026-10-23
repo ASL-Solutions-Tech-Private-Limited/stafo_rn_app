@@ -404,34 +404,36 @@ export function PayBillScreen({navigation, route}: AppScreenProps<'PayBill'>) {
               ) : null}
             </View>
           </View>
-          {fields.map(f =>
-            f.choices ? (
-              <SelectField
-                key={f.name}
-                label={f.optional ? `${f.name} (optional)` : f.name}
-                value={values[f.name] || undefined}
-                error={tried ? fieldErrors[f.name] : null}
-                onPress={() => setPicking(f.name)}
-              />
-            ) : (
-              <TextField
-                key={f.name}
-                label={f.optional ? `${f.name} (optional)` : f.name}
-                value={values[f.name] ?? ''}
-                onChangeText={t => {
-                  setValues(v => ({...v, [f.name]: f.numeric ? t.replace(/\D/g, '') : t}));
-                  // A changed number means a different bill.
-                  setBill(null);
-                }}
-                keyboardType={f.numeric ? 'number-pad' : 'default'}
-                maxLength={f.max || undefined}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                editable={!pay.isPending}
-                error={tried ? fieldErrors[f.name] : null}
-              />
-            ),
-          )}
+          {fields
+            .filter(f => f.visible)
+            .map(f =>
+              f.choices ? (
+                <SelectField
+                  key={f.name}
+                  label={f.optional ? `${f.name} (optional)` : f.name}
+                  value={values[f.name] || undefined}
+                  error={tried ? fieldErrors[f.name] : null}
+                  onPress={() => setPicking(f.name)}
+                />
+              ) : (
+                <TextField
+                  key={f.name}
+                  label={f.optional ? `${f.name} (optional)` : f.name}
+                  value={values[f.name] ?? ''}
+                  onChangeText={t => {
+                    setValues(v => ({...v, [f.name]: f.numeric ? t.replace(/\D/g, '') : t}));
+                    // A changed number means a different bill.
+                    setBill(null);
+                  }}
+                  keyboardType={f.numeric ? 'number-pad' : 'default'}
+                  maxLength={f.max || undefined}
+                  autoCapitalize="characters"
+                  autoCorrect={false}
+                  editable={!pay.isPending}
+                  error={tried ? fieldErrors[f.name] : null}
+                />
+              ),
+            )}
           {tried && oneOf ? (
             <Text variant="caption" tone="danger">
               {oneOf}

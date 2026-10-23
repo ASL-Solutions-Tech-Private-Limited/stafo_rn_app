@@ -22,11 +22,22 @@ export type Field = {
   min: number;
   max: number;
   pattern: RegExp | null;
-  /** Set when the pattern only allows a fixed list (e.g. Circle: "^(Assam)$|^(Bihar)$…"). */
+  /** A dropdown: from the biller's "values" list, or a pattern that only allows a fixed list. */
   choices: string[] | null;
+  /** false: the biller wants it sent but not shown. */
+  visible: boolean;
   /** The biller asks for the amount itself (e.g. Sun Direct), so it replaces the app's amount box. */
   isAmount: boolean;
 };
+
+/** "EMI Overdue,Total Overdue" → ["EMI Overdue", "Total Overdue"]; null when empty. */
+export function valuesOf(values: string | undefined): string[] | null {
+  const list = (values ?? '')
+    .split(',')
+    .map(v => v.trim())
+    .filter(Boolean);
+  return list.length ? list : null;
+}
 
 /** "^(Assam)$|^(Bihar)$" → ["Assam", "Bihar"]; null for any other pattern. */
 export function choicesOf(regEx: string | undefined): string[] | null {
@@ -57,7 +68,8 @@ export function fieldsOf(params: RawParam | RawParam[] | null | undefined): Fiel
         min: Number(p.minLength) || 0,
         max: Number(p.maxLength) || 0,
         pattern,
-        choices: choicesOf(p.regEx),
+        choices: valuesOf(p.values) ?? choicesOf(p.regEx),
+        visible: (p.visibility ?? 'true').toLowerCase() !== 'false',
         isAmount: /^amount$/i.test(p.paramName!.trim()),
       };
     });
@@ -67,6 +79,9 @@ export function fieldError(f: Field, raw: string): string | null {
   const v = raw.trim();
   if (!v) {
     return f.optional ? null : `Enter your ${f.name}.`;
+  }
+  if (f.choices) {
+    return f.choices.includes(v) ? null : `Choose a ${f.name}.`;
   }
   if (f.numeric && !/^\d+$/.test(v)) {
     return 'Numbers only.';
