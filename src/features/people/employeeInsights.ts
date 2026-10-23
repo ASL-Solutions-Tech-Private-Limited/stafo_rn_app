@@ -2,8 +2,18 @@ import type {LeaveRequestRecord, MonthAttendanceRecord, ShiftWithDays} from '../
 import {atClock, parseServerDate, toDateKey} from '../../lib/date';
 import {isWorkday} from './dayStatus';
 
-/** Minutes after shift start before a punch-in counts as late. */
+/** Minutes after shift start before a punch-in counts as late, when the company has no grace settings. */
 export const LATE_GRACE_MINUTES = 10;
+
+/**
+ * The company's grace rule (api/company/grace-settings): a punch-in up to
+ * `minutes` after the shift start isn't late, on at most `days` days a month.
+ * Past `minutes`, or once the days are used up, it's late.
+ */
+export type GraceRule = {minutes: number; days: number};
+
+/** Today's rule when the company hasn't set one: 10 minutes, every day. */
+export const DEFAULT_GRACE: GraceRule = {minutes: LATE_GRACE_MINUTES, days: Infinity};
 
 export type CalendarDayKind =
   | 'present'
@@ -24,7 +34,19 @@ export type CalendarDay = {
   leave?: LeaveRequestRecord;
   /** Time worked when known better than the record's in/out (today, from live punches). */
   workedMs?: number;
+  /** Came in after the shift start but inside the grace time, using one of the month's grace days. */
+  graceUsed?: boolean;
 };
+
+/** Minutes after the shift start the employee punched in (0 or less when on time). */
+export function minutesAfterStart(r: MonthAttendanceRecord, shift?: ShiftWithDays | null) {
+  const inAt = atClock(r.date, r.in_time);
+  const start = atClock(r.date, shift?.start_time);
+  if (!inAt || !start) {
+    return 0;
+  }
+  return Math.floor((inAt.getTime() - start.getTime()) / 60_000);
+}
 
 function workedMs(r: MonthAttendanceRecord) {
   const inAt = atClock(r.date, r.in_time);
@@ -61,12 +83,14 @@ export function buildMonth(
   leaves: LeaveRequestRecord[],
   shift?: ShiftWithDays | null,
   now = new Date(),
+  grace: GraceRule = DEFAULT_GRACE,
 ): CalendarDay[] {
   const [y, m] = month.split('-').map(Number);
   const daysInMonth = new Date(y, m, 0).getDate();
   const todayKey = toDateKey(now);
   const byDate = new Map(records.map(r => [r.date, r]));
   const days: CalendarDay[] = [];
+  let graceLeft = grace.days;
 
   for (let d = 1; d <= daysInMonth; d++) {
     const date = new Date(y, m - 1, d);
@@ -74,9 +98,22 @@ export function buildMonth(
     const record = byDate.get(dateKey);
     const leave = leaveOn(dateKey, leaves);
     let kind: CalendarDayKind;
+    let graceUsed = false;
 
     if (record && isPresentText(record.attendance)) {
-      kind = record.halfday ? 'half-day' : isLate(record, shift) ? 'late' : 'present';
+      const after = minutesAfterStart(record, shift);
+      if (record.halfday) {
+        kind = 'half-day';
+      } else if (after <= 0) {
+        kind = 'present';
+      } else if (after <= grace.minutes && graceLeft > 0) {
+        // Days are used in date order, so the first late-but-within-grace days of the month are forgiven.
+        kind = 'present';
+        graceUsed = true;
+        graceLeft--;
+      } else {
+        kind = 'late';
+      }
     } else if (leave || record?.attendance.toLowerCase().includes('leave')) {
       kind = 'leave';
     } else if (dateKey > todayKey) {
@@ -89,7 +126,15 @@ export function buildMonth(
       kind = dateKey === todayKey ? 'none' : record ? 'none' : 'absent';
     }
 
-    days.push({dateKey, day: d, kind, isToday: dateKey === todayKey, record, leave});
+    days.push({
+      dateKey,
+      day: d,
+      kind,
+      isToday: dateKey === todayKey,
+      record,
+      leave,
+      ...(graceUsed ? {graceUsed} : {}),
+    });
   }
   return days;
 }

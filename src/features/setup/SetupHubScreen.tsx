@@ -6,6 +6,7 @@ import {
   CalendarOff,
   ChevronRight,
   Clock3,
+  Timer,
   FileText,
   Network,
   TriangleAlert,
@@ -19,6 +20,7 @@ import {useTheme} from '../../theme/ThemeProvider';
 import {useBranches, useDepartments, useHolidays, useLeaveTypes, usePolicies, useShifts} from './queries';
 import {SetupRow, SetupScreen} from './parts';
 import {branchesNeedingFence, fenceStatus, splitHolidays} from './setupLogic';
+import {useGraceSettings} from './useGrace';
 
 const firstFew = (names: string[], n = 3) =>
   names.length <= n ? names.join(', ') : `${names.slice(0, n).join(', ')} and ${names.length - n} more`;
@@ -40,6 +42,7 @@ export function SetupHubScreen({navigation}: AppScreenProps<'Setup'>) {
   const nextDate = next ? parseServerDate(next.start_date) : null;
   const count = (n?: number) => (n == null ? '–' : String(n));
 
+  const grace = useGraceSettings();
   return (
     <SetupScreen title="Company setup" subtitle={company?.company_name}>
       {needFence.length ? (
@@ -128,6 +131,17 @@ export function SetupHubScreen({navigation}: AppScreenProps<'Setup'>) {
           value={count(shifts.data?.length)}
           subtitle={shifts.data ? firstFew(shifts.data.map(s => s.shift_name ?? 'Shift')) : null}
           onPress={() => navigation.navigate('SetupShifts')}
+        />
+        <SetupRow
+          icon={Timer}
+          fg={colors.warning}
+          bg={colors.warningSoft}
+          title="Grace & overtime"
+          value={grace.data ? `${grace.data.graceMinutes} min` : undefined}
+          subtitle={
+            grace.data ? `${grace.data.graceDays} grace days a month` : 'When a punch-in counts as late'
+          }
+          onPress={() => navigation.navigate('SetupGrace')}
         />
         <SetupRow
           icon={CalendarDays}

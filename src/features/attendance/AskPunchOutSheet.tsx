@@ -45,7 +45,13 @@ export function AskPunchOutSheet({visible, onClose, dateKey, inTime, shift, send
       subtitle={`Punched in at ${formatClock(inTime)}. Ask for your punch-out to be added.`}>
       <View style={{gap: spacing.md}}>
         <View>
-          <TimeField label="You left at" value={time} onChange={setTime} icon={LogOut} color={colors.danger} />
+          <TimeField
+            label="You left at"
+            value={time}
+            onChange={setTime}
+            icon={LogOut}
+            color={colors.danger}
+          />
           {timeError ? (
             <Text variant="caption" tone="danger" style={{marginTop: 4}}>
               {timeError}

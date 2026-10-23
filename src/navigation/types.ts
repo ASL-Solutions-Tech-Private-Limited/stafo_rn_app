@@ -102,6 +102,7 @@ export type AppStackParamList = {
   SetupBranches: undefined;
   SetupBranchEdit: {id?: number};
   SetupShifts: undefined;
+  SetupGrace: undefined;
   SetupHolidays: undefined;
   SetupLeaveTypes: undefined;
   SetupDepartments: undefined;

@@ -168,3 +168,57 @@ describe('othersOffDuring', () => {
     expect(names).toEqual(['Priya']);
   });
 });
+
+describe('grace rule', () => {
+  const {buildMonth: build} = jest.requireActual('../src/features/people/employeeInsights');
+  const gShift = {
+    id: 1,
+    start_time: '10:00',
+    end_time: '19:00',
+    days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+  };
+  const gRec = (day: number, inTime: string) => ({
+    id: day,
+    employee_id: 1,
+    attendance: 'Present',
+    halfday: 0,
+    date: `2026-10-${String(day).padStart(2, '0')}`,
+    in_time: inTime,
+    out_time: '19:00:00',
+  });
+  const gNow = new Date(2026, 9, 31, 20, 0);
+  const kinds = (records: unknown[], grace: {minutes: number; days: number}) =>
+    build('2026-10', records, [], gShift, gNow, grace)
+      .filter((d: {record?: unknown}) => d.record)
+      .map((d: {kind: string; graceUsed?: boolean}) => `${d.kind}${d.graceUsed ? '*' : ''}`);
+
+  test('3 days a month may be up to 20 min late', () => {
+    const records = [
+      gRec(1, '10:05:00'),
+      gRec(2, '10:20:00'),
+      gRec(3, '09:55:00'),
+      gRec(5, '10:10:00'),
+      gRec(6, '10:15:00'),
+    ];
+    // 1st, 2nd and 5th use the 3 grace days; 6th is late though inside 20 min; 3rd was on time.
+    expect(kinds(records, {minutes: 20, days: 3})).toEqual([
+      'present*',
+      'present*',
+      'present',
+      'present*',
+      'late',
+    ]);
+  });
+
+  test('past the grace time is late even with days left', () => {
+    expect(kinds([gRec(1, '10:21:00')], {minutes: 20, days: 3})).toEqual(['late']);
+  });
+
+  test('without settings: 10 minutes, every day', () => {
+    expect(
+      build('2026-10', [gRec(1, '10:10:00'), gRec(2, '10:11:00')], [], gShift, gNow)
+        .filter((d: {record?: unknown}) => d.record)
+        .map((d: {kind: string}) => d.kind),
+    ).toEqual(['present', 'late']);
+  });
+});

@@ -237,6 +237,15 @@ export function AttendanceTab({
             </Text>
             <Badge label={KIND_LABEL[selected.kind].label} tone={KIND_LABEL[selected.kind].tone} dot />
           </View>
+          {selected.graceUsed ? (
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm}}>
+              <Timer size={14} color={colors.warning} />
+              <Text variant="caption" tone="muted" style={{flex: 1}}>
+                In after the shift start but within the grace time, so not late. Used grace day{' '}
+                {days.filter(d => d.graceUsed && d.dateKey <= selected.dateKey).length} this month.
+              </Text>
+            </View>
+          ) : null}
           {selected.record?.in_time ? (
             <>
               <View style={{flexDirection: 'row', gap: spacing.sm}}>

@@ -60,9 +60,13 @@ export function usePunchFlow(info: EmployeeInfo | null | undefined) {
     } catch (e) {
       haptics.error();
       show(
-        failed('Couldn’t punch you ' + direction, `${(e as Error).message} Try again with your face well lit.`, {
-          retry: true,
-        }),
+        failed(
+          'Couldn’t punch you ' + direction,
+          `${(e as Error).message} Try again with your face well lit.`,
+          {
+            retry: true,
+          },
+        ),
       );
     }
   }, [info, checking, navigation, queryClient]);

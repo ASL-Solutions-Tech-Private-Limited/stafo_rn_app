@@ -3,7 +3,12 @@ import {parseServerDate, toDateKey} from '../../lib/date';
 import {isWorkday} from '../people/dayStatus';
 import {leaveBalances} from '../people/employeeInsights';
 
-export type LeaveTypeOption = {id: number; name: string; no_of_days?: number | null; is_paid?: number | string | null};
+export type LeaveTypeOption = {
+  id: number;
+  name: string;
+  no_of_days?: number | null;
+  is_paid?: number | string | null;
+};
 
 export type TypeBalance = {
   id: number;
@@ -18,7 +23,11 @@ export type TypeBalance = {
 };
 
 /** This year's balance for every leave type the company has, including ones never taken. */
-export function typeBalances(types: LeaveTypeOption[], leaves: LeaveRequestRecord[], year = new Date().getFullYear()) {
+export function typeBalances(
+  types: LeaveTypeOption[],
+  leaves: LeaveRequestRecord[],
+  year = new Date().getFullYear(),
+) {
   const taken = new Map(leaveBalances(leaves, year).map(b => [b.key, b]));
   return types.map<TypeBalance>(t => {
     const b = taken.get(String(t.id));
@@ -38,7 +47,9 @@ export function typeBalances(types: LeaveTypeOption[], leaves: LeaveRequestRecor
 }
 
 function isHoliday(key: string, holidays: Pick<Holiday, 'start_date' | 'end_date'>[]) {
-  return holidays.some(h => h.start_date.slice(0, 10) <= key && key <= (h.end_date || h.start_date).slice(0, 10));
+  return holidays.some(
+    h => h.start_date.slice(0, 10) <= key && key <= (h.end_date || h.start_date).slice(0, 10),
+  );
 }
 
 /** Working days in [from, to]: week-offs in their shift and company holidays don't count. */
@@ -85,7 +96,9 @@ export function leaveRequestError(
     l => l.status !== 'rejected' && l.from_date.slice(0, 10) <= p.to && p.from <= l.to_date.slice(0, 10),
   );
   if (clash) {
-    return `You already have ${clash.status === 'approved' ? 'approved' : 'a pending request for'} leave on some of these days.`;
+    return `You already have ${
+      clash.status === 'approved' ? 'approved' : 'a pending request for'
+    } leave on some of these days.`;
   }
   return null;
 }

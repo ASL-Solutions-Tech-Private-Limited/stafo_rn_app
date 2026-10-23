@@ -6,7 +6,9 @@ import {isWorkday} from '../people/dayStatus';
 export const FIX_WINDOW_WORKING_DAYS = 3;
 
 function isHoliday(dateKey: string, holidays: Pick<Holiday, 'start_date' | 'end_date'>[]) {
-  return holidays.some(h => h.start_date.slice(0, 10) <= dateKey && dateKey <= (h.end_date || h.start_date).slice(0, 10));
+  return holidays.some(
+    h => h.start_date.slice(0, 10) <= dateKey && dateKey <= (h.end_date || h.start_date).slice(0, 10),
+  );
 }
 
 /**
@@ -52,7 +54,9 @@ export function punchFixEligibility(
   if (dateKey >= toDateKey(now)) {
     return {ok: false, reason: 'today', message: 'Today isn’t editable. Punch out from the home screen.'};
   }
-  const existing = requests.find(r => r.date.slice(0, 10) === dateKey && r.status.toLowerCase() !== 'rejected');
+  const existing = requests.find(
+    r => r.date.slice(0, 10) === dateKey && r.status.toLowerCase() !== 'rejected',
+  );
   if (existing) {
     return {
       ok: false,
@@ -67,7 +71,8 @@ export function punchFixEligibility(
     return {
       ok: false,
       reason: 'too-old',
-      message: 'Too long ago to ask from the app: punch-outs can be asked for up to 3 working days back. Talk to your manager.',
+      message:
+        'Too long ago to ask from the app: punch-outs can be asked for up to 3 working days back. Talk to your manager.',
     };
   }
   return {ok: true};
@@ -87,7 +92,11 @@ export function punchOutTimeError(dateKey: string, inTime: string | null | undef
 }
 
 /** A sensible starting time: the shift's end if that's after the punch-in, else an hour after it (but on the same day). */
-export function suggestedPunchOut(dateKey: string, inTime: string | null | undefined, shift?: ShiftWithDays | null) {
+export function suggestedPunchOut(
+  dateKey: string,
+  inTime: string | null | undefined,
+  shift?: ShiftWithDays | null,
+) {
   const inAt = atClock(dateKey, inTime);
   const end = atClock(dateKey, shift?.end_time);
   const pick = end && (!inAt || end > inAt) ? end : inAt ? new Date(inAt.getTime() + 60 * 60_000) : null;

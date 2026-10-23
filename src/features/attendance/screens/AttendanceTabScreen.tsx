@@ -18,6 +18,7 @@ import {employeeKeys, useEmployeeLeaves, useMonthAttendance} from '../../people/
 import {AttendanceTab} from '../../people/employee/tabs/AttendanceTab';
 import {AskPunchOutSheet} from '../AskPunchOutSheet';
 import {fixableDates, punchFixEligibility} from '../punchFix';
+import {useGraceRule} from '../../setup/useGrace';
 
 const currentMonth = () => toDateKey().slice(0, 7);
 
@@ -83,9 +84,17 @@ export function AttendanceTabScreen() {
   // The daily record only holds the first punch session; today, use the live punches instead.
   const live = useMemo(() => todayFromPunches(info?.punches), [info?.punches]);
   const now = useNow(live?.open ?? false, 60_000);
+  const grace = useGraceRule();
   const days = useMemo(() => {
     const records = (monthQuery.data ?? []).filter(r => !live || r.date !== live.record.date);
-    const built = buildMonth(month, live ? [...records, live.record] : records, leavesQuery.data ?? [], shift);
+    const built = buildMonth(
+      month,
+      live ? [...records, live.record] : records,
+      leavesQuery.data ?? [],
+      shift,
+      undefined,
+      grace,
+    );
     return live
       ? built.map(d =>
           d.dateKey === live.record.date
@@ -93,7 +102,7 @@ export function AttendanceTabScreen() {
             : d,
         )
       : built;
-  }, [month, monthQuery.data, leavesQuery.data, shift, live, now]);
+  }, [month, monthQuery.data, leavesQuery.data, shift, live, now, grace]);
   const allowed = useMemo(() => fixableDates(shift, holidays.data ?? []), [shift, holidays.data]);
 
   const ask = useMutation({

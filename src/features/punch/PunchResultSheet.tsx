@@ -54,7 +54,13 @@ export function PunchResultSheet({onRetry}: {onRetry: () => void}) {
             {Icon ? <Icon size={32} color={fg} /> : <ActivityIndicator color={fg} />}
           </View>
           <Text variant="h2" align="center" style={{marginTop: spacing.md}} accessibilityLiveRegion="polite">
-            {'pending' in o ? o.title : o.ok ? (o.mode === 'selfie' ? 'Face matched' : punchedTitle(o)) : o.title}
+            {'pending' in o
+              ? o.title
+              : o.ok
+              ? o.mode === 'selfie'
+                ? 'Face matched'
+                : punchedTitle(o)
+              : o.title}
           </Text>
           {'pending' in o ? (
             <Text tone="muted" align="center" style={{marginTop: 4}}>

@@ -181,3 +181,39 @@ export async function getAttendanceQr(companyId: string, branchId: number, depar
   }
   return data;
 }
+
+export type GraceSettings = {
+  /** Minutes after the shift start a punch-in may come and still not be late. */
+  graceMinutes: number;
+  /** How many days a month that grace may be used. */
+  graceDays: number;
+  /** As the company set it; meaning still to be agreed with the backend. */
+  overtimeCharges: string | null;
+};
+
+/** The company's grace settings (api/company/grace-settings/list). */
+export async function getGraceSettings(): Promise<GraceSettings> {
+  const {data} = await api.get<{
+    success?: boolean;
+    status?: boolean;
+    message?: string;
+    data?: Array<{label?: string; value?: string; status?: string}>;
+    formatted?: Record<string, string | undefined>;
+  }>('api/company/grace-settings/list');
+  const body = ensureOk(data);
+  const active = Object.fromEntries(
+    (body.data ?? [])
+      .filter(r => !r.status || r.status.toLowerCase() === 'active')
+      .map(r => [r.label, r.value]),
+  );
+  const v = (k: string) => body.formatted?.[k] ?? active[k];
+  const num = (k: string) => {
+    const n = Number(v(k));
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  };
+  return {
+    graceMinutes: num('grace_time'),
+    graceDays: num('grace_days'),
+    overtimeCharges: v('over_time_charges') ?? null,
+  };
+}

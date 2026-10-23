@@ -27,7 +27,16 @@ const label = (key: string) => {
   return d ? `${weekdayShort(d)}, ${formatDay(d)}` : '';
 };
 
-export function ApplyLeaveSheet({visible, onClose, balances, myLeaves, shift, holidays, sending, onSend}: Props) {
+export function ApplyLeaveSheet({
+  visible,
+  onClose,
+  balances,
+  myLeaves,
+  shift,
+  holidays,
+  sending,
+  onSend,
+}: Props) {
   const {colors, spacing, radius} = useTheme();
   const [typeId, setTypeId] = useState<number | null>(null);
   const [from, setFrom] = useState('');
@@ -47,7 +56,8 @@ export function ApplyLeaveSheet({visible, onClose, balances, myLeaves, shift, ho
 
   const type = balances.find(b => b.id === typeId);
   const days = from && to ? countLeaveDays(from, to, shift, holidays) : null;
-  const error = from && to ? leaveRequestError({typeId, from, to, workingDays: days?.working ?? 0}, myLeaves) : null;
+  const error =
+    from && to ? leaveRequestError({typeId, from, to, workingDays: days?.working ?? 0}, myLeaves) : null;
   const over = type?.left != null && days ? days.working - type.left : 0;
 
   const pick = (which: 'from' | 'to', key: string) => {
@@ -81,18 +91,24 @@ export function ApplyLeaveSheet({visible, onClose, balances, myLeaves, shift, ho
     ? {
         icon: CircleAlert,
         color: colors.warning,
-        text: `${days.working} working day${days.working === 1 ? '' : 's'}, ${over} more than your ${type!.left} ${shortName(
-          type!.name,
-        ).toLowerCase()} days left. Your manager decides.`,
+        text: `${days.working} working day${days.working === 1 ? '' : 's'}, ${over} more than your ${
+          type!.left
+        } ${shortName(type!.name).toLowerCase()} days left. Your manager decides.`,
       }
     : {
         icon: CalendarCheck,
         color: colors.success,
         text:
           `${days.working} working day${days.working === 1 ? '' : 's'}` +
-          (days.calendar > days.working ? ` (${days.calendar - days.working} off-day${days.calendar - days.working === 1 ? '' : 's'} not counted)` : '') +
+          (days.calendar > days.working
+            ? ` (${days.calendar - days.working} off-day${
+                days.calendar - days.working === 1 ? '' : 's'
+              } not counted)`
+            : '') +
           (type?.left != null
-            ? ` · ${type.left - days.working} of ${type.allowance} ${shortName(type.name).toLowerCase()} days left after this`
+            ? ` · ${type.left - days.working} of ${type.allowance} ${shortName(
+                type.name,
+              ).toLowerCase()} days left after this`
             : '') +
           (type && !type.paid ? ' · unpaid' : ''),
       };
@@ -119,7 +135,9 @@ export function ApplyLeaveSheet({visible, onClose, balances, myLeaves, shift, ho
                   <PressableScale
                     onPress={() => open(which)}
                     accessibilityRole="button"
-                    accessibilityLabel={`${which === 'from' ? 'From' : 'To'}, ${value ? label(value) : 'not set'}`}
+                    accessibilityLabel={`${which === 'from' ? 'From' : 'To'}, ${
+                      value ? label(value) : 'not set'
+                    }`}
                     style={{
                       marginTop: 6,
                       height: 48,

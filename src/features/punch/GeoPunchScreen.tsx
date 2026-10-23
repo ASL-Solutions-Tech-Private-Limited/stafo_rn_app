@@ -100,7 +100,13 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
   const branchName = branch?.branch_name ?? 'your branch';
   const canPunch = !!info && !!position && fence?.kind !== 'outside';
   const status = problem
-    ? {icon: CircleAlert, fg: colors.danger, bg: colors.dangerSoft, title: problem.title, sub: problem.message}
+    ? {
+        icon: CircleAlert,
+        fg: colors.danger,
+        bg: colors.dangerSoft,
+        title: problem.title,
+        sub: problem.message,
+      }
     : !position || !fence
     ? null
     : fence.kind === 'inside'
@@ -109,7 +115,9 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
         fg: colors.success,
         bg: colors.successSoft,
         title: `You’re inside ${branchName}`,
-        sub: `${formatDistance(fence.distanceM)} from the office pin · accuracy ±${Math.round(position.accuracy)} m`,
+        sub: `${formatDistance(fence.distanceM)} from the office pin · accuracy ±${Math.round(
+          position.accuracy,
+        )} m`,
       }
     : fence.kind === 'outside'
     ? {
@@ -131,7 +139,9 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
   const shiftFact = !shift
     ? null
     : direction === 'in'
-    ? `${shift.shift_name || 'Your shift'} starts at ${formatClock(shift.start_time)}. It’s ${formatTime(now)}, so you’re ${lateLabel(late)}.`
+    ? `${shift.shift_name || 'Your shift'} starts at ${formatClock(shift.start_time)}. It’s ${formatTime(
+        now,
+      )}, so you’re ${lateLabel(late)}.`
     : `${shift.shift_name || 'Your shift'} ends at ${formatClock(shift.end_time)}.`;
 
   return (
@@ -140,9 +150,7 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
       <MapView
         ref={map}
         style={{flex: 1}}
-        initialRegion={
-          centre ? {...centre, latitudeDelta: 0.006, longitudeDelta: 0.006} : DEFAULT_REGION
-        }
+        initialRegion={centre ? {...centre, latitudeDelta: 0.006, longitudeDelta: 0.006} : DEFAULT_REGION}
         showsUserLocation
         showsMyLocationButton={false}
         toolbarEnabled={false}
@@ -158,7 +166,11 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
                 fillColor="rgba(47,84,235,0.12)"
               />
             ) : null}
-            <Marker coordinate={centre} anchor={{x: 0.5, y: 0.5}} title={branchName} tracksViewChanges={false}>
+            <Marker
+              coordinate={centre}
+              anchor={{x: 0.5, y: 0.5}}
+              title={branchName}
+              tracksViewChanges={false}>
               <View
                 style={{
                   width: 36,
@@ -178,7 +190,12 @@ export function GeoPunchScreen({navigation, route}: AppScreenProps<'GeoPunch'>) 
       </MapView>
 
       <View style={{position: 'absolute', left: spacing.lg, top: insets.top + spacing.sm}}>
-        <IconButton icon={X} accessibilityLabel="Close" onPress={() => navigation.goBack()} variant="surface" />
+        <IconButton
+          icon={X}
+          accessibilityLabel="Close"
+          onPress={() => navigation.goBack()}
+          variant="surface"
+        />
       </View>
 
       <View

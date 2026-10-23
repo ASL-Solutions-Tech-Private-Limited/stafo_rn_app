@@ -44,7 +44,13 @@ export function checkFence(
   const lat = Number(branch?.latitude);
   const lng = Number(branch?.longitude);
   const radius = Number(branch?.radar);
-  if (!branch?.latitude || !branch?.longitude || !Number.isFinite(lat) || !Number.isFinite(lng) || !(radius > 0)) {
+  if (
+    !branch?.latitude ||
+    !branch?.longitude ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    !(radius > 0)
+  ) {
     return {kind: 'no-fence'};
   }
   const distanceM = metersBetween({latitude: lat, longitude: lng}, here);

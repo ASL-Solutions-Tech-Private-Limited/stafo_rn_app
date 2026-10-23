@@ -230,12 +230,16 @@ export function PayrollScreen({navigation}: AppScreenProps<'Payroll'>) {
             {paid.map((r, i) =>
               row(
                 r.employee,
-                `${MONTH_ONLY(month)} salary · ${r.slip?.state === 'ready' ? 'payslip ready' : 'payslip PDF failing on the server'}`,
+                `${MONTH_ONLY(month)} salary · ${
+                  r.slip?.state === 'ready' ? 'payslip ready' : 'payslip PDF failing on the server'
+                }`,
                 <Pressable
                   onPress={() =>
                     r.slip?.state === 'ready'
                       ? Linking.openURL(r.slip.url).catch(() => toast.error("Couldn't open the payslip."))
-                      : toast.error('The server couldn’t create this payslip PDF. Ask STAFO support to check it.')
+                      : toast.error(
+                          'The server couldn’t create this payslip PDF. Ask STAFO support to check it.',
+                        )
                   }
                   accessibilityRole="button"
                   accessibilityLabel={`Open ${r.employee.name}'s payslip`}

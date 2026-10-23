@@ -1,5 +1,14 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, AppState, Linking, Platform, Pressable, StatusBar, StyleSheet, View} from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Linking,
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  View,
+} from 'react-native';
 import {useIsFocused} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -132,7 +141,9 @@ export function QrPunchScreen({navigation, route}: AppScreenProps<'QrPunch'>) {
       ) : null}
 
       {/* The window: dim everything around the box. */}
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center'}]}>
+      <View
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, {alignItems: 'center', justifyContent: 'center'}]}>
         <View
           style={{
             width: BOX,
@@ -179,7 +190,15 @@ export function QrPunchScreen({navigation, route}: AppScreenProps<'QrPunch'>) {
 
       <View
         accessibilityLiveRegion="polite"
-        style={{position: 'absolute', left: 32, right: 32, top: '50%', marginTop: BOX / 2 + 32, alignItems: 'center', gap: 6}}>
+        style={{
+          position: 'absolute',
+          left: 32,
+          right: 32,
+          top: '50%',
+          marginTop: BOX / 2 + 32,
+          alignItems: 'center',
+          gap: 6,
+        }}>
         {blocked ? (
           <>
             <CameraOff size={32} color="#FFFFFF" />

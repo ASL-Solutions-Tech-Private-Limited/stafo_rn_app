@@ -173,7 +173,11 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
             ? `With ${company}, until ${formatTime(plan.stopAt)}.`
             : `${company} sees your location only while you’re punched in.`
         }>
-        <Row icon={Clock3} title="Stops by itself" sub="When you punch out, or 15 minutes after your shift if you forget" />
+        <Row
+          icon={Clock3}
+          title="Stops by itself"
+          sub="When you punch out, or 15 minutes after your shift if you forget"
+        />
         <Row
           icon={Smartphone}
           title="Survives a restart"
@@ -184,11 +188,25 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
           }
           divider
         />
-        <Row icon={BatteryMedium} title="Easy on battery" sub="Sends a point when you move, not every 30 seconds" divider />
-        <Row icon={WifiOff} title="Works offline" sub="Points are kept and sent when you’re back online" divider />
+        <Row
+          icon={BatteryMedium}
+          title="Easy on battery"
+          sub="Sends a point when you move, not every 30 seconds"
+          divider
+        />
+        <Row
+          icon={WifiOff}
+          title="Works offline"
+          sub="Points are kept and sent when you’re back online"
+          divider
+        />
         <View style={{gap: spacing.sm, marginTop: spacing.lg}}>
           {permission !== 'always' ? (
-            <Button title="Allow all the time" variant="secondary" onPress={() => StafoLocation.openSettings()} />
+            <Button
+              title="Allow all the time"
+              variant="secondary"
+              onPress={() => StafoLocation.openSettings()}
+            />
           ) : null}
           <Button
             title="Turn off sharing"
@@ -223,13 +241,30 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
 function Well({icon: Icon, fg, bg}: {icon: LucideIcon; fg: string; bg: string}) {
   return (
     <View
-      style={{width: 40, height: 40, borderRadius: 12, backgroundColor: bg, alignItems: 'center', justifyContent: 'center'}}>
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: bg,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
       <Icon size={20} color={fg} />
     </View>
   );
 }
 
-function Row({icon: Icon, title, sub, divider}: {icon: LucideIcon; title: string; sub: string; divider?: boolean}) {
+function Row({
+  icon: Icon,
+  title,
+  sub,
+  divider,
+}: {
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+  divider?: boolean;
+}) {
   const {colors, spacing} = useTheme();
   return (
     <View

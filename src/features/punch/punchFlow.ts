@@ -53,7 +53,11 @@ export function punchedOutcome(
   };
 }
 
-export const failed = (title: string, message: string, extra?: {settings?: boolean; retry?: boolean}): PunchOutcome => ({
+export const failed = (
+  title: string,
+  message: string,
+  extra?: {settings?: boolean; retry?: boolean},
+): PunchOutcome => ({
   ok: false,
   title,
   message,
@@ -65,7 +69,12 @@ export type Located = {ok: true; position: Position} | {ok: false; outcome: Punc
 /** A fresh, real fix for punching, or why there isn't one. */
 export async function locateForPunch(): Promise<Located> {
   if (!(await StafoLocation.isLocationServicesEnabled())) {
-    return {ok: false, outcome: failed('Location is off', 'Turn on location (GPS) on your phone, then try again.', {retry: true})};
+    return {
+      ok: false,
+      outcome: failed('Location is off', 'Turn on location (GPS) on your phone, then try again.', {
+        retry: true,
+      }),
+    };
   }
   const permission = await StafoLocation.requestPermission(false);
   if (permission === 'denied' || permission === 'undetermined') {
@@ -81,7 +90,9 @@ export async function locateForPunch(): Promise<Located> {
     if (position.mocked) {
       return {
         ok: false,
-        outcome: failed('Fake location detected', 'Turn off any mock-location app, then try again.', {retry: true}),
+        outcome: failed('Fake location detected', 'Turn off any mock-location app, then try again.', {
+          retry: true,
+        }),
       };
     }
     return {ok: true, position};
@@ -91,7 +102,10 @@ export async function locateForPunch(): Promise<Located> {
 }
 
 /** The "move closer" result for a punch outside the fence. */
-export function outsideOutcome(fence: Extract<FenceCheck, {kind: 'outside'}>, branchName: string): PunchOutcome {
+export function outsideOutcome(
+  fence: Extract<FenceCheck, {kind: 'outside'}>,
+  branchName: string,
+): PunchOutcome {
   return failed(
     `You’re ${formatDistance(fence.distanceM)} from ${branchName}`,
     `Punching works within ${formatDistance(fence.radiusM)} of your branch. Move closer and try again.`,

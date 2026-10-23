@@ -54,7 +54,13 @@ export function MyLeaveScreen({route}: AppScreenProps<'MyLeave'>) {
 
   const apply = useMutation({
     mutationFn: (p: {typeId: number; from: string; to: string; reason: string}) =>
-      applyForLeave({employee_id: myId, from_date: p.from, to_date: p.to, leave_type: p.typeId, reason: p.reason}),
+      applyForLeave({
+        employee_id: myId,
+        from_date: p.from,
+        to_date: p.to,
+        leave_type: p.typeId,
+        reason: p.reason,
+      }),
     onSuccess: () => {
       haptics.success();
       toast.success('Leave request sent');

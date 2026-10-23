@@ -41,6 +41,7 @@ import {DocumentsTab} from './tabs/DocumentsTab';
 import {LeaveTab} from './tabs/LeaveTab';
 import {OverviewTab} from './tabs/OverviewTab';
 import {SalaryTab} from './tabs/SalaryTab';
+import {useGraceRule} from '../../setup/useGrace';
 
 const MODE_LABEL = {geo: 'Geo', selfie: 'Selfie', 'qr code': 'QR'} as const;
 
@@ -119,16 +120,17 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
   const shift = entry?.shifts?.[0];
   const leaves = useMemo(() => leavesQuery.data ?? [], [leavesQuery.data]);
 
+  const grace = useGraceRule();
   const monthDays = useMemo(
-    () => buildMonth(month, monthQuery.data ?? [], leaves, shift),
-    [month, monthQuery.data, leaves, shift],
+    () => buildMonth(month, monthQuery.data ?? [], leaves, shift, undefined, grace),
+    [month, monthQuery.data, leaves, shift, grace],
   );
   const thisMonthSummary = useMemo(
     () =>
       thisMonthQuery.data
-        ? summarizeMonth(buildMonth(currentMonth(), thisMonthQuery.data, leaves, shift))
+        ? summarizeMonth(buildMonth(currentMonth(), thisMonthQuery.data, leaves, shift, undefined, grace))
         : undefined,
-    [thisMonthQuery.data, leaves, shift],
+    [thisMonthQuery.data, leaves, shift, grace],
   );
   const balances = useMemo(() => leaveBalances(leaves), [leaves]);
   const pendingLeave = leaves.find(l => l.status === 'pending');

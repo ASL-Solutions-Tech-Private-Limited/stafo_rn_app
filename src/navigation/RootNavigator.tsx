@@ -54,6 +54,7 @@ import {BillersScreen, BillResultScreen, BillsScreen, PayBillScreen} from '../fe
 import {BillHistoryScreen} from '../features/bbps/BillHistoryScreen';
 import {CelebrationsScreen} from '../features/home/screens/CelebrationsScreen';
 import {OnLeaveScreen} from '../features/home/screens/OnLeaveScreen';
+import {GraceSettingsScreen} from '../features/setup/GraceSettingsScreen';
 import {
   CompanyDocumentsScreen,
   CompanyProfileEditScreen,
@@ -112,6 +113,7 @@ const ROLE_ONLY: Partial<Record<keyof AppStackParamList, 'company' | 'employee'>
   SetupBranches: 'company',
   SetupBranchEdit: 'company',
   SetupShifts: 'company',
+  SetupGrace: 'company',
   SetupHolidays: 'company',
   SetupLeaveTypes: 'company',
   SetupDepartments: 'company',
@@ -179,6 +181,7 @@ const linking: LinkingOptions<AppStackParamList> = {
       SetupBranches: 'setup/branches',
       SetupBranchEdit: {path: 'setup/branch/:id?', parse: {id: Number}},
       SetupShifts: 'setup/shifts',
+      SetupGrace: 'setup/grace',
       SetupHolidays: 'setup/holidays',
       SetupLeaveTypes: 'setup/leave-types',
       SetupDepartments: 'setup/departments',
@@ -304,6 +307,11 @@ export function RootNavigator() {
           <AppStack.Screen
             name="SetupBranchEdit"
             component={BranchEditScreen}
+            options={{animation: 'slide_from_right'}}
+          />
+          <AppStack.Screen
+            name="SetupGrace"
+            component={GraceSettingsScreen}
             options={{animation: 'slide_from_right'}}
           />
           <AppStack.Screen
