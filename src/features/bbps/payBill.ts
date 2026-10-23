@@ -1,7 +1,6 @@
 import {useMutation} from '@tanstack/react-query';
 import {confirmBillPayment, startBillPayment, type FetchedBill, type Payer} from '../../api/endpoints/bbps';
-import {payuHash} from '../../api/endpoints/subscription';
-import {PAYU_HASH_PATH, PAYU_MERCHANT_KEY} from '../../config/features';
+import {PAYU_MERCHANT_KEY} from '../../config/features';
 import {openPayuCheckout} from '../../lib/payu';
 import {payuHashLocal} from '../../lib/payuHash';
 import {useSession} from '../../store/session';
@@ -55,6 +54,13 @@ export function usePayBill() {
         amount: p.amount,
         bill,
       });
+      if (!order.salt) {
+        // payBill must send the PayU salt (as api/hasgenerate does for plans); without it PayU can't be signed.
+        throw new Error(
+          'The server didn’t send the payment signature for this bill, so PayU can’t open. No money was taken.',
+        );
+      }
+      const salt = order.salt;
       const result = await openPayuCheckout({
         key: order.key || PAYU_MERCHANT_KEY,
         txnid: order.txnid,
@@ -64,11 +70,8 @@ export function usePayBill() {
         email: payer.email,
         phone: payer.phone,
         extra: {udf1: order.userId, udf2: order.userType, udf3: order.operatorCode},
-        // Same as plan payments: hash with the salt the server sent, else ask the server.
-        getHash: async (name, hashString) =>
-          order.salt
-            ? payuHashLocal(hashString, order.salt)
-            : payuHash(PAYU_HASH_PATH, name, hashString, order.txnid),
+        // Same as plan payments: hash with the salt the server sent with the order.
+        getHash: async (_name, hashString) => payuHashLocal(hashString, salt),
       });
       if (result.status === 'cancelled' || result.status === 'error') {
         return result;
