@@ -35,7 +35,9 @@ export function PayslipList({payslips}: {payslips: Payslip[]}) {
             onPress={() =>
               p.url
                 ? Linking.openURL(p.url).catch(() => toast.error('Couldn’t open the payslip.'))
-                : toast.error('This month is paid, but the server couldn’t create the PDF yet. Please try again later.')
+                : toast.error(
+                    'This month is paid, but the server couldn’t create the PDF yet. Please try again later.',
+                  )
             }
             accessibilityRole="link"
             accessibilityLabel={ready ? `Open payslip for ${label}` : `${label}, paid, PDF not available yet`}

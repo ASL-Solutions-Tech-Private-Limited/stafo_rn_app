@@ -203,3 +203,17 @@ export async function updateAttendance(
   });
   return ensureOk(data);
 }
+
+export type DayPunch = {id: number; punchIn: string | null; punchOut: string | null};
+
+/** Every punch-in / punch-out of one day ("yyyy-MM-dd"), oldest first, as the native app's day screen showed. */
+export async function getDayPunches(employeeId: number, date: string): Promise<DayPunch[]> {
+  const {data} = await api.post<{
+    status?: boolean;
+    message?: string;
+    data?: Array<{id: number; punch_in?: string | null; punch_out?: string | null}> | null;
+  }>('api/employee/punch-list', {employee_id: String(employeeId), date});
+  return (ensureOk(data).data ?? [])
+    .map(p => ({id: p.id, punchIn: p.punch_in ?? null, punchOut: p.punch_out ?? null}))
+    .sort((a, b) => (a.punchIn ?? '').localeCompare(b.punchIn ?? ''));
+}

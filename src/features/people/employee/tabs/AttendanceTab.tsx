@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Clock3,
   Info,
+  ListChecks,
   LogIn,
   LogOut,
   SquarePen,
@@ -30,6 +31,7 @@ import {useTheme} from '../../../../theme/ThemeProvider';
 import {dayWorkedMs, type CalendarDay, type CalendarDayKind} from '../../employeeInsights';
 import {RejectPunchSheet} from '../../../approvals/RejectPunchSheet';
 import {FEATURES} from '../../../../config/features';
+import {DayPunchesSheet} from '../DayPunchesSheet';
 import {EditDaySheet} from '../EditDaySheet';
 import {useSetMissedPunchStatus, useUpdateAttendance} from '../queries';
 import {SectionLabel} from '../parts';
@@ -96,6 +98,8 @@ export function AttendanceTab({
 }: Props) {
   const {colors, spacing, radius} = useTheme();
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  // Day whose full punch list is open (tap a present day again, or "See all punches").
+  const [punchesFor, setPunchesFor] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   // The day being edited, fixed when Edit is pressed so a refetch can't swap it.
   const [editing, setEditing] = useState<CalendarDay | null>(null);
@@ -171,6 +175,11 @@ export function AttendanceTab({
                   key={d.dateKey}
                   onPress={() => {
                     haptics.select();
+                    // A second tap on the selected day opens every punch of it, as in the native app.
+                    if (isSelected && d.record?.in_time) {
+                      setPunchesFor(d.dateKey);
+                      return;
+                    }
                     setSelectedKey(d.dateKey);
                   }}
                   accessibilityRole="button"
@@ -253,6 +262,22 @@ export function AttendanceTab({
                   value={dayWorkedMs(selected) ? formatDuration(dayWorkedMs(selected)) : '—'}
                 />
               </View>
+              <Pressable
+                onPress={() => {
+                  haptics.tap();
+                  setPunchesFor(selected.dateKey);
+                }}
+                accessibilityRole="button"
+                hitSlop={6}
+                style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm}}>
+                <ListChecks size={16} color={colors.primary} />
+                <Text variant="label" tone="primary" style={{flex: 1}}>
+                  See all punches
+                </Text>
+                <Text variant="caption" tone="subtle">
+                  or tap the day again
+                </Text>
+              </Pressable>
               {selected.record.punchin_image || selected.record.punchout_image ? (
                 <View style={{flexDirection: 'row', gap: spacing.sm}}>
                   {selected.record.punchin_image ? (
@@ -368,6 +393,7 @@ export function AttendanceTab({
         )}
       </View>
 
+      <DayPunchesSheet employeeId={employeeId} dateKey={punchesFor} onClose={() => setPunchesFor(null)} />
       <Modal
         visible={!!photo}
         transparent
@@ -478,7 +504,9 @@ function CorrectionCard({request, readOnly}: {request: MissedPunchRequest; readO
           <Text variant="title">Missed punch-out · {date ? formatDay(date) : request.date}</Text>
           <Text variant="caption" tone="muted" numberOfLines={2}>
             {request.in_time ? `In ${formatClock(request.in_time)} · ` : ''}
-            {request.out_time ? `${readOnly ? 'asked for' : 'asked out'} ${formatClock(request.out_time)}` : ''}
+            {request.out_time
+              ? `${readOnly ? 'asked for' : 'asked out'} ${formatClock(request.out_time)}`
+              : ''}
             {request.reason ? ` · "${request.reason}"` : ''}
           </Text>
         </View>
