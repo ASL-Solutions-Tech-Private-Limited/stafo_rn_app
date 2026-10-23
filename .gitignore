@@ -77,3 +77,6 @@ yarn-error.log
 # Release signing (keep out of git)
 android/keystore.properties
 *.jks
+
+# Local secrets (PayU salt)
+src/config/secrets.ts

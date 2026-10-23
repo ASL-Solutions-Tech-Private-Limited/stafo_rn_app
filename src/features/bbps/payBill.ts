@@ -1,6 +1,7 @@
 import {useMutation} from '@tanstack/react-query';
 import {confirmBillPayment, startBillPayment, type FetchedBill, type Payer} from '../../api/endpoints/bbps';
 import {PAYU_MERCHANT_KEY} from '../../config/features';
+import {PAYU_SALT} from '../../config/secrets';
 import {openPayuCheckout} from '../../lib/payu';
 import {payuHashLocal} from '../../lib/payuHash';
 import {useSession} from '../../store/session';
@@ -54,13 +55,11 @@ export function usePayBill() {
         amount: p.amount,
         bill,
       });
-      if (!order.salt) {
-        // payBill must send the PayU salt (as api/hasgenerate does for plans); without it PayU can't be signed.
-        throw new Error(
-          'The server didn’t send the payment signature for this bill, so PayU can’t open. No money was taken.',
-        );
+      // Server's salt if it sends one; otherwise the app's, as the native app did.
+      const salt = order.salt || PAYU_SALT;
+      if (!salt) {
+        throw new Error('Bill payments aren’t set up in this build (no PayU salt). No money was taken.');
       }
-      const salt = order.salt;
       const result = await openPayuCheckout({
         key: order.key || PAYU_MERCHANT_KEY,
         txnid: order.txnid,
@@ -70,7 +69,7 @@ export function usePayBill() {
         email: payer.email,
         phone: payer.phone,
         extra: {udf1: order.userId, udf2: order.userType, udf3: order.operatorCode},
-        // Same as plan payments: hash with the salt the server sent with the order.
+        // Hashed on the phone, like plan payments.
         getHash: async (_name, hashString) => payuHashLocal(hashString, salt),
       });
       if (result.status === 'cancelled' || result.status === 'error') {
