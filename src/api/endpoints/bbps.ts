@@ -6,8 +6,8 @@ import {api, ensureOk} from '../client';
  */
 
 /**
- * Where the BBPS routes live. The backend also has them under "api/v1/" on UAT;
- * switch this once that is deployed (on 23 Oct 2026 "api/v1/…" returned 404 on live).
+ * Where the BBPS routes live: "api/", the same paths the native app calls.
+ * ("api/v1/…" returned 404 on live on 23 Oct 2026.)
  */
 const BBPS = 'api/';
 
@@ -35,7 +35,7 @@ export async function getBillers(category: string): Promise<Biller[]> {
     success?: boolean;
     message?: string;
     data?: Array<{name: string; operator_code: string; category?: string}>;
-  }>(`${BBPS}getBiller`, {category});
+  }>(`${BBPS}getBiller`, {category, circle: ''});
   return (ensureOk(data).data ?? []).map((b, i) => ({id: i, name: b.name, operatorCode: b.operator_code}));
 }
 
