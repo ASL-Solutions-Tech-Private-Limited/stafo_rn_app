@@ -365,17 +365,21 @@ type ReportBody = {
 
 /** A user's bill payments, newest first, with totals by status. */
 export async function getBillReport(q: BillReportQuery): Promise<BillReport> {
-  const {data} = await api.post<ReportBody>(`${BBPS}bbpsReport`, {
-    search: q.search ?? '',
-    status: q.status ?? '',
-    category: q.category ?? '',
-    date_from: q.dateFrom ?? '',
-    date_to: q.dateTo ?? '',
-    date: q.date ?? '',
-    user_type: q.userType,
-    per_page: q.perPage ?? 20,
-    page: q.page,
-  });
+  // GET with query parameters (POST is rejected); empty filters are left out.
+  const params = Object.fromEntries(
+    Object.entries({
+      search: q.search,
+      status: q.status,
+      category: q.category,
+      date_from: q.dateFrom,
+      date_to: q.dateTo,
+      date: q.date,
+      user_type: q.userType,
+      per_page: q.perPage ?? 20,
+      page: q.page,
+    }).filter(([, v]) => v !== undefined && v !== ''),
+  );
+  const {data} = await api.get<ReportBody>(`${BBPS}bbpsReport`, {params});
   const d = ensureOk(data).data ?? {};
   const s = d.summary ?? {};
   const pick = (k: string) => ({
