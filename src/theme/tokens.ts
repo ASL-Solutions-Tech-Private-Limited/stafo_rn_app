@@ -1,39 +1,43 @@
 /**
  * STAFO design tokens.
  *
- * Brand: a confident royal blue with an indigo accent. Neutrals are cool
- * slate so the blue reads as the single source of emphasis. Every semantic
- * colour ships with a "soft" tint for badges, icon wells and banners.
+ * Brand, from the app icon: an emerald-to-ocean arc on deep slate. Actions use
+ * ocean teal; headers use the emerald-to-ocean gradient; dark mode sits on the
+ * icon's slate. Every semantic colour ships with a "soft" tint for badges,
+ * icon wells and banners.
  */
 
 const palette = {
-  blue50: '#EEF2FF',
-  blue100: '#DCE4FF',
-  blue200: '#B9C8FF',
-  blue400: '#6F8BFF',
-  blue500: '#4A6BFF',
-  blue600: '#2F54EB',
-  blue700: '#2140C4',
-  blue900: '#111F66',
-  indigo500: '#6C4DFF',
+  // Brand: the icon's arc runs emerald → ocean.
+  emerald500: '#10B070',
+  emerald700: '#0C8A58',
+  ocean50: '#E2F3F4',
+  ocean100: '#C6E7EA',
+  ocean400: '#2BB8A6',
+  ocean500: '#1596B0',
+  ocean600: '#0E7A9F',
+  ocean700: '#0A5E7B',
+  blue600: '#1574B3',
+  blue800: '#12588A',
 
+  // Neutrals: a touch of the icon's slate blue-green.
   slate0: '#FFFFFF',
-  slate25: '#FAFBFD',
-  slate50: '#F4F6FA',
-  slate100: '#EBEEF4',
-  slate200: '#DDE2EC',
-  slate300: '#C3CAD8',
-  slate400: '#97A0B3',
-  slate500: '#687288',
-  slate600: '#4B5468',
-  slate700: '#343B4D',
-  slate800: '#1E2433',
-  slate850: '#171C28',
-  slate900: '#10141E',
-  slate950: '#0A0D14',
+  slate25: '#F9FBFB',
+  slate50: '#F4F7F8',
+  slate100: '#E7EDF0',
+  slate200: '#DCE4E8',
+  slate300: '#C1CDD3',
+  slate400: '#8796A0',
+  slate500: '#5B6B76',
+  slate600: '#465560',
+  slate700: '#2C4050',
+  slate800: '#1E3242',
+  slate850: '#172A38',
+  slate900: '#122230',
+  slate950: '#0B1620',
 
-  green500: '#12B76A',
-  green600: '#039855',
+  green500: '#3DD68C',
+  green600: '#0E9F5E',
   amber500: '#F5A524',
   amber600: '#DC8A06',
   red500: '#F04438',
@@ -93,29 +97,29 @@ export const lightColors: ColorTokens = {
   textSubtle: palette.slate400,
   textOnPrimary: palette.slate0,
 
-  primary: palette.blue600,
-  primaryPressed: palette.blue700,
-  primarySoft: palette.blue50,
-  primaryAccent: palette.indigo500,
+  primary: palette.ocean600,
+  primaryPressed: palette.ocean700,
+  primarySoft: palette.ocean50,
+  primaryAccent: palette.emerald500,
 
   success: palette.green600,
-  successSoft: '#E6F7EE',
+  successSoft: '#E4F6EC',
   warning: palette.amber600,
   warningSoft: '#FEF5E4',
   danger: palette.red600,
   dangerSoft: '#FEECEA',
-  info: palette.sky500,
-  infoSoft: '#E6F6FE',
+  info: palette.blue600,
+  infoSoft: '#E3F1FA',
 
-  overlay: 'rgba(10, 13, 20, 0.45)',
+  overlay: 'rgba(11, 22, 32, 0.45)',
   skeleton: palette.slate100,
-  heroFrom: palette.blue600,
-  heroTo: palette.indigo500,
+  heroFrom: palette.emerald500,
+  heroTo: palette.blue600,
 
   accents: [
-    {fg: palette.blue600, bg: palette.blue50},
+    {fg: palette.ocean600, bg: palette.ocean50},
     {fg: palette.violet500, bg: '#F1ECFE'},
-    {fg: palette.green600, bg: '#E6F7EE'},
+    {fg: palette.green600, bg: '#E4F6EC'},
     {fg: palette.amber600, bg: '#FEF5E4'},
     {fg: palette.pink500, bg: '#FDEBF4'},
     {fg: palette.teal500, bg: '#E3F8F5'},
@@ -132,32 +136,33 @@ export const darkColors: ColorTokens = {
   border: palette.slate800,
   borderStrong: palette.slate700,
 
-  text: '#F3F5FA',
+  text: '#EAF2F5',
   textMuted: palette.slate400,
   textSubtle: palette.slate500,
-  textOnPrimary: palette.slate0,
+  // Light teal buttons take dark text in dark mode.
+  textOnPrimary: '#06211E',
 
-  primary: palette.blue500,
-  primaryPressed: palette.blue400,
-  primarySoft: 'rgba(74, 107, 255, 0.16)',
-  primaryAccent: palette.indigo500,
+  primary: palette.ocean400,
+  primaryPressed: '#4CCDBB',
+  primarySoft: 'rgba(43, 184, 166, 0.16)',
+  primaryAccent: palette.emerald500,
 
-  success: '#32D583',
+  success: palette.green500,
   successSoft: 'rgba(18, 183, 106, 0.16)',
   warning: '#FDB022',
   warningSoft: 'rgba(245, 165, 36, 0.16)',
   danger: '#F97066',
   dangerSoft: 'rgba(240, 68, 56, 0.16)',
-  info: '#36BFFA',
-  infoSoft: 'rgba(11, 165, 236, 0.16)',
+  info: '#4FB3E8',
+  infoSoft: 'rgba(21, 116, 179, 0.2)',
 
   overlay: 'rgba(0, 0, 0, 0.6)',
   skeleton: palette.slate800,
-  heroFrom: palette.blue700,
-  heroTo: '#4B2FD6',
+  heroFrom: palette.emerald700,
+  heroTo: palette.blue800,
 
   accents: [
-    {fg: palette.blue400, bg: 'rgba(74, 107, 255, 0.16)'},
+    {fg: palette.ocean400, bg: 'rgba(43, 184, 166, 0.16)'},
     {fg: '#A78BFA', bg: 'rgba(139, 92, 246, 0.16)'},
     {fg: '#32D583', bg: 'rgba(18, 183, 106, 0.16)'},
     {fg: '#FDB022', bg: 'rgba(245, 165, 36, 0.16)'},
@@ -214,14 +219,14 @@ export const radius = {
 
 export const shadows = {
   card: {
-    shadowColor: '#1B2559',
+    shadowColor: '#0B2A33',
     shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.06,
     shadowRadius: 12,
     elevation: 2,
   },
   raised: {
-    shadowColor: '#1B2559',
+    shadowColor: '#0B2A33',
     shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.12,
     shadowRadius: 24,

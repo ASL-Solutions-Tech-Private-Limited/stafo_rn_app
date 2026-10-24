@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, View} from 'react-native';
+import {Image, Pressable, View} from 'react-native';
 import {useMutation} from '@tanstack/react-query';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {ArrowRight, Building2, Phone, ShieldCheck, UserRoundSearch} from 'lucide-react-native';
@@ -8,6 +8,8 @@ import {BottomSheet, Button, Gradient, Screen, Text, TextField, toast} from '../
 import {askPushPermission} from '../../../lib/push';
 import type {AuthScreenProps} from '../../../navigation/types';
 import {useTheme} from '../../../theme/ThemeProvider';
+
+const STAFO_LOGO = require('../../../assets/stafo-logo.png');
 
 const MOBILE_PATTERN = /^[6-9]\d{9}$/;
 
@@ -57,21 +59,17 @@ export function LoginScreen({navigation, route}: AuthScreenProps<'Login'>) {
           paddingHorizontal: spacing.xxl,
           paddingBottom: spacing.huge + spacing.xxl,
         }}>
-        <View
+        <Image
+          source={STAFO_LOGO}
+          accessibilityLabel="STAFO"
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: radius.lg,
-            backgroundColor: 'rgba(255,255,255,0.18)',
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.3)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-          <Text variant="h2" tone="inverse">
-            S
-          </Text>
-        </View>
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            borderWidth: 3,
+            borderColor: 'rgba(255,255,255,0.35)',
+          }}
+        />
         <Text variant="display" tone="inverse" style={{marginTop: spacing.xxl}}>
           Welcome to STAFO
         </Text>
