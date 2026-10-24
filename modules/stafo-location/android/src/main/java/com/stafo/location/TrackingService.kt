@@ -2,6 +2,7 @@ package com.stafo.location
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.AlarmManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,6 +18,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
@@ -28,12 +30,15 @@ import com.google.android.gms.location.Priority
 import java.util.concurrent.Executors
 
 /**
- * Shares the employee's location while they're punched in. Unlike the old
+ * Shares the employee's location once they've agreed. Unlike the old
  * LocationForegroundService it:
- *  - runs only inside the window saved at punch-in, and stops itself at its end;
+ *  - runs only inside the window saved by the app, and stops itself at its end;
  *  - sends a point when they move (or a heartbeat when they stand still),
  *    never the same fix on a timer;
- *  - keeps points while offline and sends them in order later.
+ *  - keeps points while offline and sends them in order later;
+ *  - stays up like a delivery app's: a dismissed notification comes straight
+ *    back (Android 14+ lets people swipe it away), and if the app is swiped
+ *    from recents or the system kills the service, it restarts itself.
  */
 class TrackingService : Service() {
   private val fused by lazy { LocationServices.getFusedLocationProviderClient(this) }
@@ -52,6 +57,14 @@ class TrackingService : Service() {
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    if (intent?.action == ACTION_REPOST) {
+      // The notification was swiped away (or cleared with "Clear all"); put it back.
+      val cfg = config ?: TrackingStore.config(this)
+      if (cfg != null && cfg.isActive() && TrackingStore.running) {
+        getSystemService(NotificationManager::class.java).notify(NOTIFICATION_ID, notification(cfg))
+        return START_STICKY
+      }
+    }
     val saved = TrackingStore.config(this)
     if (saved == null || !saved.isActive() || !hasLocationPermission(this)) {
       finish()
@@ -129,10 +142,24 @@ class TrackingService : Service() {
   private fun finish() {
     val cfg = config
     if (cfg != null && !cfg.isActive()) TrackingStore.saveConfig(this, null)
+    finishing = true
     stopSelf()
   }
 
+  /** Set when we stop on purpose, so onDestroy doesn't bring us back. */
+  private var finishing = false
+
+  /** Swiped out of recents: some phones take the service down with the app, so come back shortly. */
+  override fun onTaskRemoved(rootIntent: Intent?) {
+    scheduleRestart(this, 2_000L)
+    super.onTaskRemoved(rootIntent)
+  }
+
   override fun onDestroy() {
+    // Killed while it should still be sharing (low memory, a battery saver): try again.
+    if (!finishing && TrackingStore.config(this)?.isActive() == true) {
+      scheduleRestart(this, 5_000L)
+    }
     TrackingStore.running = false
     main.removeCallbacks(stopAtEnd)
     fused.removeLocationUpdates(callback)
@@ -164,6 +191,15 @@ class TrackingService : Service() {
       .setCategory(NotificationCompat.CATEGORY_SERVICE)
       .setPriority(NotificationCompat.PRIORITY_LOW)
       .setContentIntent(open)
+      .setDeleteIntent(
+        PendingIntent.getService(
+          this,
+          1,
+          Intent(this, TrackingService::class.java).setAction(ACTION_REPOST),
+          PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        ),
+      )
+      .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
       .build()
   }
 
@@ -171,6 +207,20 @@ class TrackingService : Service() {
     private const val CHANNEL_ID = "stafo_location_sharing"
     private const val NOTIFICATION_ID = 4107
     private const val MAX_ACCURACY_M = 100f
+    private const val ACTION_REPOST = "com.stafo.location.REPOST_NOTIFICATION"
+
+    /** Starts the service again after a delay via the restart receiver (works after the app is swiped away). */
+    fun scheduleRestart(context: Context, delayMs: Long) {
+      val pending =
+        PendingIntent.getBroadcast(
+          context,
+          2,
+          Intent(context, RestartReceiver::class.java).setAction(RestartReceiver.ACTION_RESTART),
+          PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+      val alarms = context.getSystemService(AlarmManager::class.java) ?: return
+      alarms.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delayMs, pending)
+    }
 
     fun start(context: Context) {
       ContextCompat.startForegroundService(context, Intent(context, TrackingService::class.java))

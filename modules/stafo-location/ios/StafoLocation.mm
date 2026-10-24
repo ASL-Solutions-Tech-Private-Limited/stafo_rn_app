@@ -162,6 +162,16 @@ RCT_EXPORT_MODULE()
   [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 
+- (void)isIgnoringBatteryOptimizations:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  // iOS has no per-app battery optimisation to turn off.
+  resolve(@YES);
+}
+
+- (void)requestIgnoreBatteryOptimizations
+{
+}
+
 #pragma mark - One-off position
 
 - (void)getCurrentPosition:(double)timeoutMs

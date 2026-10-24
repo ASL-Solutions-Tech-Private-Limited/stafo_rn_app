@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.location.LocationManagerCompat
@@ -140,6 +141,21 @@ class StafoLocationModule(private val context: ReactApplicationContext) : Native
       Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
+  }
+
+  override fun isIgnoringBatteryOptimizations(promise: Promise) {
+    val power = context.getSystemService(PowerManager::class.java)
+    promise.resolve(Build.VERSION.SDK_INT < Build.VERSION_CODES.M || power?.isIgnoringBatteryOptimizations(context.packageName) == true)
+  }
+
+  @SuppressLint("BatteryLife")
+  override fun requestIgnoreBatteryOptimizations() {
+    // The direct prompt (one tap); if a phone doesn't offer it, the list of apps to pick STAFO from.
+    val direct =
+      Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, Uri.parse("package:${context.packageName}"))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    val list = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { context.startActivity(direct) }.onFailure { runCatching { context.startActivity(list) } }
   }
 
   override fun invalidate() {

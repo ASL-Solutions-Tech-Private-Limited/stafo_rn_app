@@ -81,3 +81,9 @@ export const stopTracking = () => Native.stopTracking();
 export const getTrackingState = () => Native.getTrackingState() as Promise<TrackingState>;
 
 export const openSettings = () => Native.openSettings();
+
+/** Whether the phone may kill the tracker to save battery (Android); iOS always resolves true. */
+export const isIgnoringBatteryOptimizations = () => Native.isIgnoringBatteryOptimizations();
+
+/** Asks to let STAFO run in the background without battery limits (Android). */
+export const requestIgnoreBatteryOptimizations = () => Native.requestIgnoreBatteryOptimizations();

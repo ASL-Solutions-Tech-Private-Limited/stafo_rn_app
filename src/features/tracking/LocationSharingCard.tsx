@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {AppState, View} from 'react-native';
+import {AppState, Platform, View} from 'react-native';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {
   BatteryMedium,
@@ -34,6 +34,25 @@ function usePermission() {
 }
 
 /**
+ * Android only: whether the phone may stop STAFO in the background to save
+ * battery. Phones like vivo, Xiaomi and Oppo do, which ends sharing when the
+ * user clears notifications or recent apps. Re-read when the app comes back.
+ */
+function useBatteryUnrestricted() {
+  const [ok, setOk] = useState(true);
+  useEffect(() => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    const read = () => StafoLocation.isIgnoringBatteryOptimizations().then(setOk, () => {});
+    read();
+    const sub = AppState.addEventListener('change', s => s === 'active' && read());
+    return () => sub.remove();
+  }, []);
+  return ok;
+}
+
+/**
  * On the employee home: the company's request to see their location (geo_status
  * "1"), or, once they've agreed ("2"), whether it's being shared right now.
  */
@@ -41,6 +60,7 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
   const {colors, spacing} = useTheme();
   const queryClient = useQueryClient();
   const [permission, setPermission] = usePermission();
+  const batteryOk = useBatteryUnrestricted();
   const [sheet, setSheet] = useState(false);
   const [confirmOff, setConfirmOff] = useState(false);
   const [wantOff, setWantOff] = useState(false);
@@ -148,6 +168,30 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
           </View>
           <ChevronRight size={18} color={colors.textSubtle} />
         </View>
+        {!blocked && !batteryOk ? (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.md,
+              marginTop: spacing.md,
+              paddingTop: spacing.md,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+            }}>
+            <BatteryMedium size={18} color={colors.warning} />
+            <Text variant="caption" tone="muted" style={{flex: 1}}>
+              Your phone may stop sharing when you clear notifications or recent apps.
+            </Text>
+            <Button
+              title="Fix"
+              size="sm"
+              variant="secondary"
+              fullWidth={false}
+              onPress={() => StafoLocation.requestIgnoreBatteryOptimizations()}
+            />
+          </View>
+        ) : null}
       </Card>
 
       <BottomSheet
@@ -188,7 +232,26 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
           sub="Points are kept and sent when you’re back online"
           divider
         />
+        {Platform.OS === 'android' ? (
+          <Row
+            icon={BatteryMedium}
+            title="Keeps going in the background"
+            sub={
+              batteryOk
+                ? 'Clearing notifications or recent apps won’t stop it'
+                : 'Let STAFO run without battery limits, or your phone may stop sharing when you clear notifications'
+            }
+            divider
+          />
+        ) : null}
         <View style={{gap: spacing.sm, marginTop: spacing.lg}}>
+          {!batteryOk ? (
+            <Button
+              title="Allow running in the background"
+              variant="secondary"
+              onPress={() => StafoLocation.requestIgnoreBatteryOptimizations()}
+            />
+          ) : null}
           {permission !== 'always' ? (
             <Button
               title="Allow all the time"

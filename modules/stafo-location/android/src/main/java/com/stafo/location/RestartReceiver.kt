@@ -5,11 +5,15 @@ import android.content.Context
 import android.content.Intent
 
 /**
- * After a restart or an app update, resumes sharing only if the window saved at
- * punch-in is still open. Punching out (or turning sharing off) clears it, so a
- * phone that restarts after the shift doesn't start tracking again.
+ * After a restart, an app update, or the service being killed, resumes sharing
+ * only if the saved window is still open. Turning sharing off clears it.
  */
 class RestartReceiver : BroadcastReceiver() {
+  companion object {
+    /** Sent by TrackingService.scheduleRestart after the app was swiped away or the service killed. */
+    const val ACTION_RESTART = "com.stafo.location.RESTART"
+  }
+
   override fun onReceive(context: Context, intent: Intent) {
     val config = TrackingStore.config(context) ?: return
     if (!config.isActive()) {
