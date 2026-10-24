@@ -92,7 +92,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // The native app shipped up to versionCode 17 (1.7.0); this rewrite continues from there.
-        versionCode 18
+        versionCode 19
         versionName "2.0.0"
     }
     signingConfigs {
