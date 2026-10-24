@@ -95,6 +95,8 @@ describe('distance ignores wobble and false trips while stopped', () => {
   const home = {lat: 26.4626116, lng: 84.4373476};
   const at = (min: number) => new Date(Date.UTC(2026, 9, 24, 2, 30) + min * 60_000).toISOString();
   const row = (min: number, dLat: number, dLng = 0) => ({
+    id: min,
+    employee_id: 217,
     latitude: String(home.lat + dLat),
     longitude: String(home.lng + dLng),
     created_at: at(min),

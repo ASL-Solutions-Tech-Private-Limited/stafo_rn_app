@@ -16,10 +16,8 @@ import type {LocationPermission} from 'stafo-location';
 import {answerLocationRequest} from '../../api/endpoints/punch';
 import type {EmployeeInfo} from '../../api/types';
 import {BottomSheet, Button, Card, ConfirmDialog, LiveDot, Text, toast} from '../../components/ui';
-import {formatTime} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import {useTheme} from '../../theme/ThemeProvider';
-import {getTodayAttendance} from '../attendance/attendanceState';
 import {queryKeys} from '../home/queries';
 import {planTracking} from './trackingPlan';
 import {syncTracking} from './useTrackingSync';
@@ -83,9 +81,9 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
         <View style={{flexDirection: 'row', gap: spacing.md}}>
           <Well icon={MapPinned} fg={colors.info} bg={colors.infoSoft} />
           <View style={{flex: 1}}>
-            <Text variant="title">{company} wants to see your location while you work</Text>
+            <Text variant="title">{company} wants to see your location</Text>
             <Text variant="caption" tone="muted" style={{marginTop: 2}}>
-              Only between punch-in and punch-out. Stops by itself at the end of your shift.
+              Shared all the time once you allow it, punched in or not. You can turn it off any time.
             </Text>
           </View>
         </View>
@@ -117,15 +115,9 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
 
   const plan = planTracking(info);
   const blocked = permission === 'denied' || permission === 'undetermined';
-  const punchedIn = getTodayAttendance(info.punches).state === 'punched-in';
   const line = blocked
     ? {title: 'Location access is off', sub: 'Sharing is paused. Turn it on in Settings.'}
-    : plan.track
-    ? {title: 'Sharing your location', sub: `With ${company} until ${formatTime(plan.stopAt)}`}
-    : {
-        title: 'Location sharing is on',
-        sub: punchedIn ? 'Your shift has ended, so nothing is shared' : 'Starts when you punch in',
-      };
+    : {title: 'Sharing your location', sub: `With ${company}, all the time. Tap to turn off.`};
 
   return (
     <>
@@ -168,22 +160,18 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
           }
         }}
         title={plan.track ? 'Sharing your location' : 'Location sharing'}
-        subtitle={
-          plan.track
-            ? `With ${company}, until ${formatTime(plan.stopAt)}.`
-            : `${company} sees your location only while you’re punched in.`
-        }>
+        subtitle={`${company} sees your location all the time, punched in or not, until you turn this off.`}>
         <Row
           icon={Clock3}
-          title="Stops by itself"
-          sub="When you punch out, or 15 minutes after your shift if you forget"
+          title="Always on"
+          sub="Keeps sharing after punch-out and on days off, until you turn it off"
         />
         <Row
           icon={Smartphone}
           title="Survives a restart"
           sub={
             permission === 'always'
-              ? 'Only picks up again if you’re still punched in during your shift'
+              ? 'Picks up again by itself after the phone restarts'
               : 'Allow location “all the time” so it can pick up again after a restart'
           }
           divider
