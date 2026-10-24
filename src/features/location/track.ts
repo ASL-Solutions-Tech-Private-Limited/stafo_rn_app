@@ -172,6 +172,38 @@ function mergeStops(stops: Stop[]): Stop[] {
   return merged;
 }
 
+/** Steps shorter than this (m) between moving fixes are GPS wobble, not travel. */
+const MIN_STEP_M = 15;
+
+/**
+ * The path actually travelled: while someone is at a stop, their fixes wobble
+ * (and now and then jump far away and drift back), so each stop becomes one
+ * point at its centre; between stops, steps under MIN_STEP_M are dropped.
+ */
+export function travelPath(points: GeoPoint[], stops: Stop[]): GeoPoint[] {
+  const out: GeoPoint[] = [];
+  let s = 0;
+  for (const p of points) {
+    while (s < stops.length && p.at.getTime() > stops[s].end.getTime()) {
+      s++;
+    }
+    const stop = stops[s];
+    if (stop && p.at.getTime() >= stop.start.getTime()) {
+      const centre = {latitude: stop.latitude, longitude: stop.longitude, at: stop.start, battery: p.battery};
+      const prev = out[out.length - 1];
+      if (!prev || prev.at.getTime() !== stop.start.getTime()) {
+        out.push(centre);
+      }
+      continue;
+    }
+    const prev = out[out.length - 1];
+    if (!prev || metersBetween(prev, p) >= MIN_STEP_M) {
+      out.push(p);
+    }
+  }
+  return out;
+}
+
 /** Time between the first and last fix that wasn't spent at a stop. */
 export function movingMs(points: GeoPoint[], stops: Stop[]) {
   if (points.length < 2) {
@@ -188,6 +220,8 @@ export function isLive(last: GeoPoint | undefined, now = new Date()) {
 
 export type TrackSummary = {
   points: GeoPoint[];
+  /** What to draw and measure: stops as single points, wobble removed. */
+  path: GeoPoint[];
   last?: GeoPoint;
   live: boolean;
   distanceM: number;
@@ -202,11 +236,13 @@ export function summarizeTrack(raw: RawGeoPoint[], now = new Date()): TrackSumma
   const stops = findStops(points);
   const last = points[points.length - 1];
   const lastStop = stops[stops.length - 1];
+  const path = travelPath(points, stops);
   return {
     points,
+    path,
     last,
     live: isLive(last, now),
-    distanceM: distanceMeters(points),
+    distanceM: distanceMeters(path),
     stops,
     movingMs: movingMs(points, stops),
     stoppedSince: lastStop && last && lastStop.end.getTime() === last.at.getTime() ? lastStop.start : null,

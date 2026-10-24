@@ -127,17 +127,17 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
         showsCompass={false}
         toolbarEnabled={false}
         onMapReady={() => fit(false)}>
-        {points.length > 1 ? (
+        {(summary?.path ?? points).length > 1 ? (
           <>
             <Polyline
-              coordinates={points}
+              coordinates={summary?.path ?? points}
               strokeColor="#FFFFFF"
               strokeWidth={9}
               lineJoin="round"
               lineCap="round"
             />
             <Polyline
-              coordinates={points}
+              coordinates={summary?.path ?? points}
               strokeColor={colors.primary}
               strokeWidth={5}
               lineJoin="round"
