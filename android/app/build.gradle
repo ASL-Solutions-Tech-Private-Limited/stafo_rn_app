@@ -100,6 +100,12 @@ android {
         // The native app shipped up to versionCode 17 (1.7.0); this rewrite continues from there.
         versionCode 20
         versionName "2.0.0"
+        // A debug APK with the JS packed in (-PbundleDebugJs) is for testers' phones: no
+        // dev menu, and no attempts to reach Metro (they clutter Chucker with failed calls).
+        buildConfigField "boolean", "BUNDLED_JS", project.hasProperty("bundleDebugJs") ? "true" : "false"
+    }
+    buildFeatures {
+        buildConfig true
     }
     signingConfigs {
         debug {
