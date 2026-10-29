@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {Animated, Dimensions, Keyboard, Modal, Platform, Pressable, ScrollView, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {DIALOG_WIDTH, useLayout} from '../../lib/layout';
 import {useTheme} from '../../theme/ThemeProvider';
 import {Text} from './Text';
 
@@ -23,6 +24,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 export function BottomSheet({visible, onClose, title, subtitle, children, onClosed}: Props) {
   const {colors, radius, spacing} = useTheme();
   const insets = useSafeAreaInsets();
+  const {isTablet} = useLayout();
   const translate = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdrop = useRef(new Animated.Value(0)).current;
   const [mounted, setMounted] = useState(visible);
@@ -76,6 +78,24 @@ export function BottomSheet({visible, onClose, title, subtitle, children, onClos
     }
   }, [visible, mounted, translate, backdrop]);
 
+  const content = (
+    <>
+      {title ? <Text variant="h2">{title}</Text> : null}
+      {subtitle ? (
+        <Text variant="bodyRegular" tone="muted" style={{marginTop: 4}}>
+          {subtitle}
+        </Text>
+      ) : null}
+      <ScrollView
+        style={{marginTop: title ? spacing.xl : 0, flexGrow: 0}}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}>
+        {children}
+      </ScrollView>
+    </>
+  );
+
   return (
     <Modal
       transparent
@@ -87,45 +107,65 @@ export function BottomSheet({visible, onClose, title, subtitle, children, onClos
       <Animated.View style={{flex: 1, backgroundColor: colors.overlay, opacity: backdrop}}>
         <Pressable style={{flex: 1}} onPress={onClose} accessibilityLabel="Close" />
       </Animated.View>
-      <Animated.View
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: keyboard,
-          maxHeight: SCREEN_HEIGHT * 0.92 - keyboard,
-          transform: [{translateY: translate}],
-          backgroundColor: colors.surface,
-          borderTopLeftRadius: radius.xxl,
-          borderTopRightRadius: radius.xxl,
-          paddingHorizontal: spacing.xl,
-          paddingTop: spacing.md,
-          paddingBottom: (keyboard ? 0 : insets.bottom) + spacing.xl,
-        }}>
+      {isTablet ? (
+        // On a tablet the sheet is a centred dialog: a full-width sheet would be a wall of empty space.
         <View
+          pointerEvents="box-none"
           style={{
-            alignSelf: 'center',
-            width: 40,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: colors.borderStrong,
-            marginBottom: spacing.lg,
-          }}
-        />
-        {title ? <Text variant="h2">{title}</Text> : null}
-        {subtitle ? (
-          <Text variant="bodyRegular" tone="muted" style={{marginTop: 4}}>
-            {subtitle}
-          </Text>
-        ) : null}
-        <ScrollView
-          style={{marginTop: title ? spacing.xl : 0, flexGrow: 0}}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          bounces={false}>
-          {children}
-        </ScrollView>
-      </Animated.View>
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: keyboard,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: spacing.xxl,
+          }}>
+          <Animated.View
+            style={{
+              width: '100%',
+              maxWidth: DIALOG_WIDTH,
+              maxHeight: '100%',
+              opacity: backdrop,
+              transform: [
+                {translateY: translate.interpolate({inputRange: [0, SCREEN_HEIGHT], outputRange: [0, 48]})},
+              ],
+              backgroundColor: colors.surface,
+              borderRadius: radius.xxl,
+              padding: spacing.xl,
+            }}>
+            {content}
+          </Animated.View>
+        </View>
+      ) : (
+        <Animated.View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: keyboard,
+            maxHeight: SCREEN_HEIGHT * 0.92 - keyboard,
+            transform: [{translateY: translate}],
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: radius.xxl,
+            borderTopRightRadius: radius.xxl,
+            paddingHorizontal: spacing.xl,
+            paddingTop: spacing.md,
+            paddingBottom: (keyboard ? 0 : insets.bottom) + spacing.xl,
+          }}>
+          <View
+            style={{
+              alignSelf: 'center',
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: colors.borderStrong,
+              marginBottom: spacing.lg,
+            }}
+          />
+          {content}
+        </Animated.View>
+      )}
     </Modal>
   );
 }

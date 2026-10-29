@@ -33,7 +33,7 @@ type Props = {
   tab: EmployeeTab;
   onTab: (tab: EmployeeTab) => void;
   onAction: (action: HeaderAction) => void;
-  onBack: () => void;
+  onBack?: () => void;
   onMore: () => void;
 };
 
@@ -114,7 +114,9 @@ export function EmployeeHeader(props: Props) {
       }}>
       <View
         style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg}}>
-        <IconButton icon={ArrowLeft} size={40} accessibilityLabel="Back" onPress={props.onBack} />
+        {props.onBack ? (
+          <IconButton icon={ArrowLeft} size={40} accessibilityLabel="Back" onPress={props.onBack} />
+        ) : null}
         <Avatar name={props.name} uri={props.photo} size={44} />
         <View style={{flex: 1, minWidth: 0}}>
           <Text variant="h3" numberOfLines={1}>

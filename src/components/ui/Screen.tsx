@@ -10,6 +10,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {CONTENT_MAX_WIDTH, useLayout} from '../../lib/layout';
 import {useTheme} from '../../theme/ThemeProvider';
 
 type Props = {
@@ -22,6 +23,8 @@ type Props = {
   statusBar?: 'light' | 'dark' | 'auto';
   contentStyle?: StyleProp<ViewStyle>;
   refreshControl?: ScrollViewProps['refreshControl'];
+  /** Use the full width on a tablet instead of a centred reading column. */
+  wide?: boolean;
 };
 
 export function Screen({
@@ -33,8 +36,12 @@ export function Screen({
   statusBar = 'auto',
   contentStyle,
   refreshControl,
+  wide,
 }: Props) {
   const {colors, dark} = useTheme();
+  const {isTablet} = useLayout();
+  const column: ViewStyle | null =
+    isTablet && !wide ? {width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center'} : null;
   const insets = useSafeAreaInsets();
   const barStyle =
     statusBar === 'auto' ? (dark ? 'light-content' : 'dark-content') : (`${statusBar}-content` as const);
@@ -47,14 +54,14 @@ export function Screen({
   const body = scroll ? (
     <ScrollView
       style={{flex: 1}}
-      contentContainerStyle={[{flexGrow: 1}, padding, contentStyle]}
+      contentContainerStyle={[{flexGrow: 1}, padding, contentStyle, column]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       refreshControl={refreshControl}>
       {children}
     </ScrollView>
   ) : (
-    <View style={[{flex: 1}, padding, contentStyle]}>{children}</View>
+    <View style={[{flex: 1}, padding, contentStyle, column]}>{children}</View>
   );
 
   return (

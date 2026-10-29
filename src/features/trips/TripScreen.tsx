@@ -20,6 +20,7 @@ import {formatTime, toDateKey} from '../../lib/date';
 import {useNow} from '../../lib/useNow';
 import type {AppScreenProps} from '../../navigation/types';
 import {useSession} from '../../store/session';
+import {useColumn} from '../../lib/layout';
 import {useTheme} from '../../theme/ThemeProvider';
 import {BadgeMarker, DEFAULT_REGION, EDGE_PADDING, NowMarker} from '../location/mapParts';
 import {LIVE_REFRESH_MS, useDeleteTrip, useTrip, useTripRoute} from './queries';
@@ -45,6 +46,7 @@ import {
 
 /** One trip: route map, totals, the start / halt / end timeline, and the next step. */
 export function TripScreen({navigation, route}: AppScreenProps<'Trip'>) {
+  const column = useColumn();
   const {id} = route.params;
   const {colors, spacing, radius, dark} = useTheme();
   const insets = useSafeAreaInsets();
@@ -178,7 +180,7 @@ export function TripScreen({navigation, route}: AppScreenProps<'Trip'>) {
           borderTopLeftRadius: radius.xxl,
           borderTopRightRadius: radius.xxl,
         }}
-        contentContainerStyle={{padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl}}
+        contentContainerStyle={[{padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.xxxl}, column]}
         refreshControl={
           <RefreshControl
             refreshing={trip.isRefetching}

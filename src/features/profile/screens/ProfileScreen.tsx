@@ -54,6 +54,7 @@ import {
 import {APP_ENV} from '../../../config/env';
 import {formatDay, parseServerDate} from '../../../lib/date';
 import {haptics} from '../../../lib/haptics';
+import {useColumn} from '../../../lib/layout';
 import type {AppStackParamList} from '../../../navigation/types';
 import {signOut, useSession} from '../../../store/session';
 import {useTheme, useThemePreference, type ThemePreference} from '../../../theme/ThemeProvider';
@@ -73,6 +74,7 @@ const COLLAPSE_END = 210;
 
 export function ProfileScreen() {
   const {colors, spacing, dark} = useTheme();
+  const column = useColumn();
   const role = useSession(s => s.role);
   const [confirmOut, setConfirmOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -109,7 +111,7 @@ export function ProfileScreen() {
         contentContainerStyle={{paddingBottom: spacing.xxxl}}>
         {isCompany ? <CompanyProfile scrollY={scrollY} /> : <EmployeeProfile scrollY={scrollY} />}
 
-        <View style={{paddingHorizontal: spacing.lg}}>
+        <View style={[{paddingHorizontal: spacing.lg}, column]}>
           <Reveal index={2}>
             {isCompany ? (
               <LinkSection

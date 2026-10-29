@@ -86,6 +86,7 @@ import {ModuleScreen} from '../features/modules/screens/ModuleScreen';
 import {EmployeeDetailScreen} from '../features/people/employee/EmployeeDetailScreen';
 import {PeopleTabScreen} from '../features/people/screens/PeopleTabScreen';
 import {ProfileScreen} from '../features/profile/screens/ProfileScreen';
+import {useLayout} from '../lib/layout';
 import {storage, StorageKeys} from '../lib/storage';
 import {useSession} from '../store/session';
 import {useTheme} from '../theme/ThemeProvider';
@@ -212,11 +213,16 @@ const linking: LinkingOptions<AppStackParamList> = {
   },
 };
 
+// Tablets get the tabs as a rail on the left (see TabBar).
+const tabOptions = (isTablet: boolean) =>
+  ({headerShown: false, animation: 'shift', tabBarPosition: isTablet ? 'left' : 'bottom'} as const);
+
 const renderTabBar = (props: React.ComponentProps<typeof TabBar>) => <TabBar {...props} />;
 
 function EmployeeTabNavigator() {
+  const {isTablet} = useLayout();
   return (
-    <EmployeeTabs.Navigator tabBar={renderTabBar} screenOptions={{headerShown: false, animation: 'shift'}}>
+    <EmployeeTabs.Navigator tabBar={renderTabBar} screenOptions={tabOptions(isTablet)}>
       <EmployeeTabs.Screen name="Home" component={EmployeeHomeScreen} />
       <EmployeeTabs.Screen name="Attendance" component={AttendanceTabScreen} />
       <EmployeeTabs.Screen name="Apps" component={AppsScreen} />
@@ -226,8 +232,9 @@ function EmployeeTabNavigator() {
 }
 
 function CompanyTabNavigator() {
+  const {isTablet} = useLayout();
   return (
-    <CompanyTabs.Navigator tabBar={renderTabBar} screenOptions={{headerShown: false, animation: 'shift'}}>
+    <CompanyTabs.Navigator tabBar={renderTabBar} screenOptions={tabOptions(isTablet)}>
       <CompanyTabs.Screen name="Home" component={CompanyHomeScreen} />
       <CompanyTabs.Screen name="People" component={PeopleTabScreen} />
       <CompanyTabs.Screen name="Apps" component={AppsScreen} />

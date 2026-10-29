@@ -1,5 +1,6 @@
 package com.stafo.app
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -16,6 +17,10 @@ class MainActivity : ReactActivity() {
     // Keep the native splash on screen until JS calls BootSplash.hide().
     RNBootSplash.init(this, R.style.BootTheme)
     super.onCreate(savedInstanceState)
+    // Phones stay portrait, like on iPhone; tablets (sw600dp and up) can rotate.
+    if (resources.configuration.smallestScreenWidthDp < 600) {
+      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
   }
 
   /**

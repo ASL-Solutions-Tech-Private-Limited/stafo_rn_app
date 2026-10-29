@@ -9,6 +9,7 @@ import {
   Fingerprint,
   MapPin,
   MapPinned,
+  MapPinOff,
   QrCode,
   ScanFace,
   UserCheck,
@@ -290,7 +291,7 @@ export function ShiftSheet({
   );
 }
 
-export type MoreAction = 'edit' | 'mode' | 'shift' | 'selfie' | 'location' | 'active';
+export type MoreAction = 'edit' | 'mode' | 'shift' | 'selfie' | 'location' | 'stop-location' | 'active';
 
 export function MoreSheet({
   visible,
@@ -300,6 +301,7 @@ export function MoreSheet({
   shiftLabel,
   hasSelfie,
   geoLabel,
+  geo,
   active,
   onAction,
   onClosed,
@@ -312,6 +314,8 @@ export function MoreSheet({
   shiftLabel: string;
   hasSelfie: boolean;
   geoLabel: string;
+  /** "0" off, "1" requested, "2" sharing. */
+  geo: string;
   active: boolean;
   onAction: (action: MoreAction) => void;
 }) {
@@ -365,6 +369,20 @@ export function MoreSheet({
       title: 'Live location',
       subtitle: geoLabel,
     },
+    ...(geo === '1' || geo === '2'
+      ? [
+          {
+            key: 'stop-location' as const,
+            icon: MapPinOff,
+            fg: colors.danger,
+            bg: colors.dangerSoft,
+            title: geo === '2' ? 'Stop live tracking' : 'Cancel location request',
+            subtitle:
+              geo === '2' ? 'Their phone stops sharing its location' : 'Withdraw the request you sent',
+            danger: true,
+          },
+        ]
+      : []),
     active
       ? {
           key: 'active',

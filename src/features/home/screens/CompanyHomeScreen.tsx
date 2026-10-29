@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
 import {ChevronRight, CircleAlert, ShieldAlert} from 'lucide-react-native';
-import {Button, Card, EmptyState, Reveal, SectionHeader, Text} from '../../../components/ui';
+import {Button, Card, Columns, EmptyState, Reveal, SectionHeader, Text} from '../../../components/ui';
 import type {CompanyTabProps} from '../../../navigation/types';
 import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
@@ -83,72 +83,86 @@ export function CompanyHomeScreen({navigation}: CompanyTabProps<'Home'>) {
           )}
         </Reveal>
       }>
-      {data && !verified ? (
-        <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
-          <Card
-            onPress={() => rootNavigation.navigate('VerifyCompany')}
-            elevated={false}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              backgroundColor: colors.warningSoft,
-              borderColor: colors.warningSoft,
-              borderRadius: radius.lg,
-            }}>
-            <ShieldAlert size={22} color={colors.warning} />
-            <View style={{flex: 1}}>
-              <Text variant="title">Verify your company</Text>
-              <Text variant="caption" tone="muted">
-                Complete KYC to add employees and unlock every module.
-              </Text>
-            </View>
-            <ChevronRight size={18} color={colors.warning} />
-          </Card>
-        </Reveal>
-      ) : null}
+      {/* Side by side on a wide tablet: what needs doing on the left, who's away on the right. */}
+      <Columns
+        main={
+          <>
+            {data && !verified ? (
+              <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
+                <Card
+                  onPress={() => rootNavigation.navigate('VerifyCompany')}
+                  elevated={false}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.md,
+                    backgroundColor: colors.warningSoft,
+                    borderColor: colors.warningSoft,
+                    borderRadius: radius.lg,
+                  }}>
+                  <ShieldAlert size={22} color={colors.warning} />
+                  <View style={{flex: 1}}>
+                    <Text variant="title">Verify your company</Text>
+                    <Text variant="caption" tone="muted">
+                      Complete KYC to add employees and unlock every module.
+                    </Text>
+                  </View>
+                  <ChevronRight size={18} color={colors.warning} />
+                </Card>
+              </Reveal>
+            ) : null}
 
-      {approvals.counts.all ? (
-        <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
-          <WaitingCard
-            counts={approvals.counts}
-            onOpen={kind => rootNavigation.navigate('Approvals', kind ? {filter: kind} : undefined)}
-          />
-        </Reveal>
-      ) : null}
+            {approvals.counts.all ? (
+              <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
+                <WaitingCard
+                  counts={approvals.counts}
+                  onOpen={kind => rootNavigation.navigate('Approvals', kind ? {filter: kind} : undefined)}
+                />
+              </Reveal>
+            ) : null}
 
-      <Reveal index={2} style={section}>
-        <SectionHeader title="Manage" actionLabel="All apps" onAction={() => navigation.navigate('Apps')} />
-        <ShortcutGrid ids={HOME_SHORTCUTS.company} />
-      </Reveal>
+            <Reveal index={2} style={section}>
+              <SectionHeader
+                title="Manage"
+                actionLabel="All apps"
+                onAction={() => navigation.navigate('Apps')}
+              />
+              <ShortcutGrid ids={HOME_SHORTCUTS.company} />
+            </Reveal>
 
-      {banners.data?.length ? (
-        <Reveal index={3} style={{marginTop: spacing.xxl}}>
-          <BannerCarousel banners={banners.data} />
-        </Reveal>
-      ) : null}
+            {banners.data?.length ? (
+              <Reveal index={3} style={{marginTop: spacing.xxl}}>
+                <BannerCarousel banners={banners.data} />
+              </Reveal>
+            ) : null}
+          </>
+        }
+        side={
+          <>
+            <Reveal index={4} style={section}>
+              <SectionHeader
+                title="On leave today"
+                subtitle={onLeave.length ? `${onLeave.length} away` : undefined}
+                actionLabel="View all"
+                onAction={() => rootNavigation.navigate('OnLeave')}
+              />
+              <OnLeaveStrip entries={onLeave} />
+            </Reveal>
 
-      <Reveal index={4} style={section}>
-        <SectionHeader
-          title="On leave today"
-          subtitle={onLeave.length ? `${onLeave.length} away` : undefined}
-          actionLabel="View all"
-          onAction={() => rootNavigation.navigate('OnLeave')}
-        />
-        <OnLeaveStrip entries={onLeave} />
-      </Reveal>
-
-      <Reveal index={5} style={section}>
-        <SectionHeader
-          title="Celebrations"
-          subtitle="Birthdays and work anniversaries"
-          actionLabel="View all"
-          onAction={() => rootNavigation.navigate('Celebrations')}
-        />
-        <CelebrationsStrip
-          items={buildCelebrations(data?.birthday, data?.annyversary ?? data?.anniversary)}
-        />
-      </Reveal>
+            <Reveal index={5} style={section}>
+              <SectionHeader
+                title="Celebrations"
+                subtitle="Birthdays and work anniversaries"
+                actionLabel="View all"
+                onAction={() => rootNavigation.navigate('Celebrations')}
+              />
+              <CelebrationsStrip
+                items={buildCelebrations(data?.birthday, data?.annyversary ?? data?.anniversary)}
+              />
+            </Reveal>
+          </>
+        }
+      />
     </HomeLayout>
   );
 }

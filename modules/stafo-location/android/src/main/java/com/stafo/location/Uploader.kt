@@ -37,6 +37,7 @@ object Uploader {
       }
     }
     TrackingStore.saveQueue(context, queue)
+    DebugLog.d(context, "upload: $result, ${queue.size} still queued")
     if (result != Result.SENT) {
       TrackingStore.setLastError(context, if (result == Result.UNAUTHORISED) "Signed out" else lastError)
     }

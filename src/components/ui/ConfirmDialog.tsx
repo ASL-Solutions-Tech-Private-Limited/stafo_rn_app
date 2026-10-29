@@ -37,7 +37,14 @@ export function ConfirmDialog({
         style={{flex: 1, backgroundColor: colors.overlay, justifyContent: 'center', padding: spacing.xxl}}
         onPress={onCancel}>
         <Pressable
-          style={{backgroundColor: colors.surface, borderRadius: radius.xxl, padding: spacing.xxl}}
+          style={{
+            width: '100%',
+            maxWidth: 440,
+            alignSelf: 'center',
+            backgroundColor: colors.surface,
+            borderRadius: radius.xxl,
+            padding: spacing.xxl,
+          }}
           accessibilityViewIsModal>
           {Icon && (
             <View

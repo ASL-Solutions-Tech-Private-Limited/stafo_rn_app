@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {Pressable, View} from 'react-native';
+import {Image, Pressable, View} from 'react-native';
 import type {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import Animated, {ReduceMotion, useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Fingerprint, House, LayoutGrid, UserRound, Users, type LucideIcon} from 'lucide-react-native';
 import {Text} from '../components/ui';
 import {haptics} from '../lib/haptics';
+import {useLayout} from '../lib/layout';
 import {useTheme} from '../theme/ThemeProvider';
 
 const ICONS: Record<string, LucideIcon> = {
@@ -19,7 +20,81 @@ const ICONS: Record<string, LucideIcon> = {
 const PILL_WIDTH = 58;
 const PILL_HEIGHT = 32;
 
-export function TabBar({state, descriptors, navigation}: BottomTabBarProps) {
+export function TabBar(props: BottomTabBarProps) {
+  const {isTablet} = useLayout();
+  return isTablet ? <SideRail {...props} /> : <BottomBar {...props} />;
+}
+
+const STAFO_LOGO = require('../assets/stafo-logo.png');
+
+/** On a tablet the tabs sit in a rail down the left edge. */
+function SideRail({state, descriptors, navigation}: BottomTabBarProps) {
+  const {colors, spacing} = useTheme();
+  const insets = useSafeAreaInsets();
+  return (
+    <View
+      accessibilityRole="tablist"
+      style={{
+        width: 96 + insets.left,
+        paddingLeft: insets.left,
+        paddingTop: insets.top + spacing.xl,
+        paddingBottom: insets.bottom + spacing.lg,
+        alignItems: 'center',
+        gap: spacing.sm,
+        backgroundColor: colors.surface,
+        borderRightWidth: 1,
+        borderRightColor: colors.border,
+      }}>
+      <Image
+        source={STAFO_LOGO}
+        style={{width: 48, height: 48, borderRadius: 24, marginBottom: spacing.xl}}
+        accessibilityIgnoresInvertColors
+      />
+      {state.routes.map((route, index) => {
+        const focused = state.index === index;
+        const label = descriptors[route.key].options.title ?? route.name;
+        const Icon = ICONS[route.name] ?? House;
+        const onPress = () => {
+          const event = navigation.emit({type: 'tabPress', target: route.key, canPreventDefault: true});
+          if (!focused && !event.defaultPrevented) {
+            haptics.select();
+            navigation.navigate(route.name, route.params);
+          }
+        };
+        return (
+          <Pressable
+            key={route.key}
+            onPress={onPress}
+            accessibilityRole="tab"
+            accessibilityState={{selected: focused}}
+            accessibilityLabel={label}
+            style={{
+              width: 76,
+              paddingVertical: 10,
+              borderRadius: 16,
+              alignItems: 'center',
+              gap: 4,
+              backgroundColor: focused ? colors.primarySoft : 'transparent',
+            }}>
+            <Icon
+              size={24}
+              color={focused ? colors.primary : colors.textSubtle}
+              strokeWidth={focused ? 2.3 : 2}
+            />
+            <Text
+              variant="caption"
+              tone={focused ? 'primary' : 'subtle'}
+              style={focused ? {fontFamily: 'PlusJakartaSans-Bold'} : null}>
+              {label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function BottomBar({state, descriptors, navigation}: BottomTabBarProps) {
   const {colors, spacing, shadows, dark} = useTheme();
   const insets = useSafeAreaInsets();
   const [rowWidth, setRowWidth] = useState(0);

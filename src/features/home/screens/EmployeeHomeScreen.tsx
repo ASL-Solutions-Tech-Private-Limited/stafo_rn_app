@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {CircleAlert} from 'lucide-react-native';
-import {Button, Card, EmptyState, Reveal, SectionHeader} from '../../../components/ui';
+import {Button, Card, Columns, EmptyState, Reveal, SectionHeader} from '../../../components/ui';
 import type {EmployeeTabProps} from '../../../navigation/types';
 import {useSession} from '../../../store/session';
 import {useTheme} from '../../../theme/ThemeProvider';
@@ -75,46 +75,58 @@ export function EmployeeHomeScreen({navigation}: EmployeeTabProps<'Home'>) {
           )}
         </Reveal>
       }>
-      {info && (info.geo_status === '1' || info.geo_status === '2') ? (
-        <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
-          <LocationSharingCard info={info} companyName={companyName} />
-        </Reveal>
-      ) : null}
+      {/* Side by side on a wide tablet: what needs doing on the left, who's away on the right. */}
+      <Columns
+        main={
+          <>
+            {info && (info.geo_status === '1' || info.geo_status === '2') ? (
+              <Reveal index={1} style={{paddingHorizontal: spacing.lg, marginTop: spacing.lg}}>
+                <LocationSharingCard info={info} companyName={companyName} />
+              </Reveal>
+            ) : null}
 
-      <Reveal index={1} style={section}>
-        <SectionHeader
-          title="Quick actions"
-          actionLabel="All apps"
-          onAction={() => navigation.navigate('Apps')}
-        />
-        <ShortcutGrid ids={HOME_SHORTCUTS.employee} />
-      </Reveal>
+            <Reveal index={1} style={section}>
+              <SectionHeader
+                title="Quick actions"
+                actionLabel="All apps"
+                onAction={() => navigation.navigate('Apps')}
+              />
+              <ShortcutGrid ids={HOME_SHORTCUTS.employee} />
+            </Reveal>
 
-      {banners.data?.length ? (
-        <Reveal index={2} style={{marginTop: spacing.xxl}}>
-          <BannerCarousel banners={banners.data} />
-        </Reveal>
-      ) : null}
+            {banners.data?.length ? (
+              <Reveal index={2} style={{marginTop: spacing.xxl}}>
+                <BannerCarousel banners={banners.data} />
+              </Reveal>
+            ) : null}
+          </>
+        }
+        side={
+          <>
+            <Reveal index={3} style={section}>
+              <SectionHeader
+                title="On leave"
+                subtitle="Teammates who are away"
+                actionLabel="View all"
+                onAction={() => navigation.getParent()?.navigate('OnLeave')}
+              />
+              <OnLeaveStrip entries={dashboard.data?.employeesOnLeave ?? []} />
+            </Reveal>
 
-      <Reveal index={3} style={section}>
-        <SectionHeader
-          title="On leave"
-          subtitle="Teammates who are away"
-          actionLabel="View all"
-          onAction={() => navigation.getParent()?.navigate('OnLeave')}
-        />
-        <OnLeaveStrip entries={dashboard.data?.employeesOnLeave ?? []} />
-      </Reveal>
-
-      <Reveal index={4} style={section}>
-        <SectionHeader
-          title="Celebrations"
-          subtitle="Birthdays and work anniversaries"
-          actionLabel="View all"
-          onAction={() => navigation.getParent()?.navigate('Celebrations')}
-        />
-        <CelebrationsStrip items={buildCelebrations(dashboard.data?.birthday, dashboard.data?.annyversary)} />
-      </Reveal>
+            <Reveal index={4} style={section}>
+              <SectionHeader
+                title="Celebrations"
+                subtitle="Birthdays and work anniversaries"
+                actionLabel="View all"
+                onAction={() => navigation.getParent()?.navigate('Celebrations')}
+              />
+              <CelebrationsStrip
+                items={buildCelebrations(dashboard.data?.birthday, dashboard.data?.annyversary)}
+              />
+            </Reveal>
+          </>
+        }
+      />
       <PunchResultSheet onRetry={punch.start} />
     </HomeLayout>
   );

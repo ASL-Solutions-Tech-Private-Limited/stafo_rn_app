@@ -35,6 +35,7 @@ import {
 import {formatDay, parseServerDate, toDateKey} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
+import {useColumn} from '../../lib/layout';
 import {useTheme} from '../../theme/ThemeProvider';
 import {ChoiceChips, DateButton, IconWell} from '../setup/parts';
 import {
@@ -58,6 +59,7 @@ const dayText = (key?: string | null) => {
 };
 
 export function LeadScreen({navigation, route}: AppScreenProps<'Lead'>) {
+  const column = useColumn();
   const {id} = route.params;
   const {colors, spacing, radius} = useTheme();
   const insets = useSafeAreaInsets();
@@ -127,12 +129,10 @@ export function LeadScreen({navigation, route}: AppScreenProps<'Lead'>) {
       </View>
 
       <ScrollView
-        contentContainerStyle={{
-          padding: spacing.lg,
-          paddingTop: spacing.sm,
-          gap: spacing.md,
-          paddingBottom: 120,
-        }}
+        contentContainerStyle={[
+          {padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.md, paddingBottom: 120},
+          column,
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={leads.isRefetching || followUps.isRefetching}
