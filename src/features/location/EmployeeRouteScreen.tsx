@@ -7,6 +7,7 @@ import {employeePhotoUrl} from '../../api/endpoints/people';
 import {
   Avatar,
   Button,
+  ConfirmDialog,
   CalendarSheet,
   IconButton,
   LiveDot,
@@ -27,6 +28,7 @@ import {haptics} from '../../lib/haptics';
 import {useNow} from '../../lib/useNow';
 import type {AppScreenProps} from '../../navigation/types';
 import {useTheme} from '../../theme/ThemeProvider';
+import {useStopLiveLocation} from '../people/employee/queries';
 import {usePeopleOnDate} from '../people/queries';
 import {
   BadgeMarker,
@@ -60,6 +62,9 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
   const employee = people.people.find(p => p.employee.id === id)?.employee;
   const name = employee?.name ?? route.params.name ?? 'Employee';
   const phone = (employee?.phone ?? '').replace(/\D/g, '').slice(-10);
+  const sharing = employee?.geo_status === '2';
+  const stopLocation = useStopLiveLocation(id);
+  const [confirmStop, setConfirmStop] = useState(false);
 
   const summary = track.data;
   const points = summary?.points ?? [];
@@ -343,8 +348,32 @@ export function EmployeeRouteScreen({navigation, route}: AppScreenProps<'Employe
               ))}
             </>
           )}
+
+          {sharing ? (
+            <Button
+              title="Stop live tracking"
+              icon={MapPinOff}
+              variant="danger"
+              style={{marginTop: spacing.xl}}
+              onPress={() => setConfirmStop(true)}
+            />
+          ) : null}
         </ScrollView>
       </View>
+      <ConfirmDialog
+        visible={confirmStop}
+        icon={MapPinOff}
+        destructive
+        title={`Stop tracking ${name.split(' ')[0]}'s location?`}
+        message={`${
+          name.split(' ')[0]
+        }'s phone stops sharing its location. You can send a new request any time.`}
+        confirmLabel="Stop"
+        cancelLabel="Keep"
+        loading={stopLocation.isPending}
+        onCancel={() => setConfirmStop(false)}
+        onConfirm={() => stopLocation.mutate(undefined, {onSettled: () => setConfirmStop(false)})}
+      />
       <CalendarSheet
         visible={picking}
         value={date}

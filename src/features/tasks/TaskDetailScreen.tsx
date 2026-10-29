@@ -41,6 +41,7 @@ import {formatDay, formatRange, parseServerDate} from '../../lib/date';
 import {haptics} from '../../lib/haptics';
 import type {AppScreenProps} from '../../navigation/types';
 import {useSession} from '../../store/session';
+import {useColumn} from '../../lib/layout';
 import {useTheme} from '../../theme/ThemeProvider';
 import {useEmployeeDetails} from '../home/queries';
 import {IconWell} from '../setup/parts';
@@ -71,6 +72,7 @@ import {
 const STATUSES: TaskStatus[] = ['pending', 'in-progress', 'completed'];
 
 export function TaskDetailScreen({navigation, route}: AppScreenProps<'TaskDetail'>) {
+  const column = useColumn();
   const {id} = route.params;
   const {colors, spacing, radius} = useTheme();
   const insets = useSafeAreaInsets();
@@ -174,7 +176,7 @@ export function TaskDetailScreen({navigation, route}: AppScreenProps<'TaskDetail
       </View>
 
       <ScrollView
-        contentContainerStyle={{padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.md}}
+        contentContainerStyle={[{padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.md}, column]}
         keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl

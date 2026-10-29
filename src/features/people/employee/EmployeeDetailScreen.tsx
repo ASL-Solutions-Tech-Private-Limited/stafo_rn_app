@@ -1,12 +1,14 @@
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Linking, RefreshControl, ScrollView, StatusBar, View} from 'react-native';
 import {useQueryClient} from '@tanstack/react-query';
-import {MapPinned, UserCheck, UserX} from 'lucide-react-native';
+import {MapPinned, MapPinOff, UserCheck, UserX} from 'lucide-react-native';
 import type {LocalImage} from '../../../api/endpoints/employee';
 import {employeePhotoUrl} from '../../../api/endpoints/people';
 import {ConfirmDialog, Reveal, toast} from '../../../components/ui';
 import {formatClock, toDateKey} from '../../../lib/date';
-import type {AppScreenProps} from '../../../navigation/types';
+import {useNavigation} from '@react-navigation/native';
+import type {AppScreenProps, AppStackParamList} from '../../../navigation/types';
+import {useColumn} from '../../../lib/layout';
 import {useTheme} from '../../../theme/ThemeProvider';
 import {buildMonth, leaveBalances, summarizeMonth} from '../employeeInsights';
 import {usePeopleOnDate} from '../queries';
@@ -21,6 +23,7 @@ import {
   useMonthAttendance,
   usePayslips,
   useRequestLiveLocation,
+  useStopLiveLocation,
   useSetAttendanceMode,
   useSetEmployeeActive,
   useShifts,
@@ -49,14 +52,25 @@ function currentMonth() {
   return toDateKey().slice(0, 7);
 }
 
-type Confirm = 'location' | 'active' | null;
+type Confirm = 'location' | 'stop-location' | 'active' | null;
 type Sheet = 'mode' | 'shift' | 'more' | 'selfie' | 'selfie-preview' | 'selfie-reject' | null;
 
 export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'EmployeeDetail'>) {
-  const {id} = route.params;
+  return <EmployeeDetail {...route.params} onBack={() => navigation.goBack()} />;
+}
+
+type DetailProps = AppStackParamList['EmployeeDetail'] & {
+  /** Left out when the detail is a pane next to the People list on a tablet. */
+  onBack?: () => void;
+};
+
+/** One employee: a screen of its own on a phone, the right-hand pane of People on a tablet. */
+export function EmployeeDetail({id, name: linkedName, tab: linkedTabName, open, onBack}: DetailProps) {
+  const navigation = useNavigation();
   const {colors, spacing, dark} = useTheme();
+  const column = useColumn();
   const queryClient = useQueryClient();
-  const linkedTab = EMPLOYEE_TABS.find(t => t.toLowerCase() === route.params.tab?.toLowerCase());
+  const linkedTab = EMPLOYEE_TABS.find(t => t.toLowerCase() === linkedTabName?.toLowerCase());
   const [tab, setTab] = useState<EmployeeTab>(linkedTab ?? 'Overview');
   // A new link to an already-open screen only updates params; follow its tab.
   useEffect(() => {
@@ -65,7 +79,7 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
     }
   }, [linkedTab]);
   // Opened from "Add reference selfie" after adding someone: go straight to the selfie sheet.
-  const openSelfie = route.params.open === 'selfie';
+  const openSelfie = open === 'selfie';
   useEffect(() => {
     if (openSelfie) {
       const t = setTimeout(() => setSheet('selfie'), 450);
@@ -112,10 +126,11 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
   const setMode = useSetAttendanceMode(id);
   const assign = useAssignShift(id);
   const requestLocation = useRequestLiveLocation(id);
+  const stopLocation = useStopLiveLocation(id);
   const setActive = useSetEmployeeActive(id);
   const uploadSelfie = useUploadReferenceSelfie(id);
 
-  const name = profile?.name ?? entry?.name ?? route.params.name ?? 'Employee';
+  const name = profile?.name ?? entry?.name ?? linkedName ?? 'Employee';
   const firstName = name.split(' ')[0];
   const shift = entry?.shifts?.[0];
   const leaves = useMemo(() => leavesQuery.data ?? [], [leavesQuery.data]);
@@ -222,6 +237,10 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
           setConfirm('location');
         }
         break;
+      case 'stop-location':
+        setSheet(null);
+        setConfirm('stop-location');
+        break;
       case 'edit':
         setSheet(null);
         navigation.navigate('EditEmployee', {id, name});
@@ -250,12 +269,12 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
         tab={tab}
         onTab={setTab}
         onAction={onHeaderAction}
-        onBack={() => navigation.goBack()}
+        onBack={onBack}
         onMore={() => setSheet('more')}
       />
 
       <ScrollView
-        contentContainerStyle={{padding: spacing.lg, paddingBottom: spacing.huge}}
+        contentContainerStyle={[{padding: spacing.lg, paddingBottom: spacing.huge}, column]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -338,6 +357,7 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
         shiftLabel={shiftLabel}
         hasSelfie={hasSelfie}
         geoLabel={geoLabel}
+        geo={geo}
         active={active}
         onAction={action => closeThen(() => onHeaderAction(action))}
         onClosed={runAfterClose}
@@ -387,6 +407,22 @@ export function EmployeeDetailScreen({navigation, route}: AppScreenProps<'Employ
         loading={requestLocation.isPending}
         onCancel={() => setConfirm(null)}
         onConfirm={() => requestLocation.mutate(undefined, {onSettled: () => setConfirm(null)})}
+      />
+      <ConfirmDialog
+        visible={confirm === 'stop-location'}
+        icon={MapPinOff}
+        destructive
+        title={geo === '2' ? `Stop tracking ${firstName}'s location?` : 'Cancel the location request?'}
+        message={
+          geo === '2'
+            ? `${firstName}'s phone stops sharing its location. You can send a new request any time.`
+            : `${firstName} won't be asked to share their location any more.`
+        }
+        confirmLabel={geo === '2' ? 'Stop' : 'Withdraw'}
+        cancelLabel="Keep"
+        loading={stopLocation.isPending}
+        onCancel={() => setConfirm(null)}
+        onConfirm={() => stopLocation.mutate(undefined, {onSettled: () => setConfirm(null)})}
       />
       <ConfirmDialog
         visible={confirm === 'active'}

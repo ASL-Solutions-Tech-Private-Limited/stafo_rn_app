@@ -151,6 +151,19 @@ export async function requestLiveLocation(employeeId: number) {
   return ensureOk(data);
 }
 
+/**
+ * Turn the employee's live location off (geo_status "0"), or withdraw a request
+ * they haven't answered. Their phone stops on its next upload once the server
+ * refuses points, or when they next open STAFO.
+ */
+export async function stopLiveLocation(employeeId: number) {
+  const {data} = await api.post<BasicResponse>('api/update-geo-status', {
+    employee_id: String(employeeId),
+    geo_status: '0',
+  });
+  return ensureOk(data);
+}
+
 export async function setEmployeeActive(employeeId: number, active: boolean) {
   const {data} = await api.post<BasicResponse>('api/employees-status-change', {
     id: String(employeeId),

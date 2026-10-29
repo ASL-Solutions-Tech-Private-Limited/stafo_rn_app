@@ -53,6 +53,12 @@ react {
 
     /* Autolinking */
     autolinkLibrariesWithApp()
+
+    // `-PbundleDebugJs` packs the JS into a debug APK, so it runs on a phone without Metro
+    // (a shareable debug build with Chucker). Without it, debug loads JS from Metro as usual.
+    if (project.hasProperty("bundleDebugJs")) {
+        debuggableVariants = []
+    }
 }
 
 /**
@@ -92,7 +98,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         // The native app shipped up to versionCode 17 (1.7.0); this rewrite continues from there.
-        versionCode 19
+        versionCode 20
         versionName "2.0.0"
     }
     signingConfigs {

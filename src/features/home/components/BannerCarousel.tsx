@@ -1,14 +1,19 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {FlatList, Image, useWindowDimensions, View} from 'react-native';
 import type {Banner} from '../../../api/endpoints/dashboard';
+import {useLayout} from '../../../lib/layout';
 import {useTheme} from '../../../theme/ThemeProvider';
 
 const AUTO_ADVANCE_MS = 5000;
 
 export function BannerCarousel({banners}: {banners: Banner[]}) {
   const {colors, spacing, radius} = useTheme();
-  const {width} = useWindowDimensions();
-  const itemWidth = width - spacing.lg * 2;
+  // Sized from where it sits, not the window: on a tablet it shares the row with a rail or a column.
+  const window = useWindowDimensions();
+  const [width, setWidth] = useState(window.width);
+  const {isTablet} = useLayout();
+  // On a tablet a full-width banner would fill the screen; show a few side by side instead.
+  const itemWidth = Math.min(width - spacing.lg * 2, isTablet ? 480 : Infinity);
   const [index, setIndex] = useState(0);
   const [aspectRatio, setAspectRatio] = useState(2.4);
   const listRef = useRef<FlatList<Banner>>(null);
@@ -46,7 +51,7 @@ export function BannerCarousel({banners}: {banners: Banner[]}) {
   }
 
   return (
-    <View>
+    <View onLayout={e => setWidth(e.nativeEvent.layout.width)}>
       <FlatList
         ref={listRef}
         data={banners}

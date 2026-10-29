@@ -21,7 +21,8 @@ const toneToColor = (tone: Tone, c: ColorTokens) =>
     success: c.success,
     warning: c.warning,
     danger: c.danger,
-    inverse: c.textOnPrimary,
+    // White on the brand gradient headers (light and dark).
+    inverse: '#FFFFFF',
   }[tone]);
 
 export function Text({variant = 'body', tone = 'default', color, align, style, ...rest}: TextProps) {

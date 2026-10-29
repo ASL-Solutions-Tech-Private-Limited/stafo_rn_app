@@ -86,6 +86,14 @@ class TrackingService : Service() {
       return START_NOT_STICKY
     }
     TrackingStore.running = true
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+      ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) !=
+      PackageManager.PERMISSION_GRANTED
+    ) {
+      // Runs and shows its notification, but gets no location once STAFO is in the background.
+      TrackingStore.setLastError(this, "Location allowed only while using the app")
+      DebugLog.d(this, "start: no background location permission")
+    }
     requestUpdates()
     main.removeCallbacks(stopAtEnd)
     main.postDelayed(stopAtEnd, (saved.stopAt - System.currentTimeMillis()).coerceAtLeast(0))
@@ -113,14 +121,27 @@ class TrackingService : Service() {
       return
     }
     // A fix this rough is what drew phantom trips on the company's map.
-    if (location.hasAccuracy() && location.accuracy > MAX_ACCURACY_M) return
+    if (location.hasAccuracy() && location.accuracy > MAX_ACCURACY_M) {
+      DebugLog.d(this, "skip: accuracy ${location.accuracy}m > ${MAX_ACCURACY_M}m")
+      return
+    }
 
     val last = TrackingStore.lastPoint(this)
     val moved =
       last == null ||
         distance(last.latitude, last.longitude, location.latitude, location.longitude) >= cfg.minDistanceM
     val due = last == null || now - last.at >= cfg.heartbeatMs
-    if (!moved && !due) return
+    val movedM = last?.let { distance(it.latitude, it.longitude, location.latitude, location.longitude) }
+    val sinceS = last?.let { (now - it.at) / 1000 }
+    if (!moved && !due) {
+      DebugLog.d(this, "skip: moved ${movedM?.toInt()}m, ${sinceS}s since last point")
+      return
+    }
+    DebugLog.d(
+      this,
+      "record: ${if (moved) "moved" else "heartbeat"} (moved ${movedM?.toInt()}m, ${sinceS}s since last point) " +
+        "${location.latitude},${location.longitude}",
+    )
 
     val point = QueuedPoint(location.latitude, location.longitude, battery(), now)
     TrackingStore.saveLastPoint(this, point)

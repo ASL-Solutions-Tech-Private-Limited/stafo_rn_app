@@ -1,6 +1,7 @@
 import React, {useMemo, useState} from 'react';
 import {FlatList, Pressable, RefreshControl, ScrollView, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   CalendarDays,
   ChevronLeft,
@@ -36,7 +37,9 @@ import {
   weekdayShort,
 } from '../../../lib/date';
 import {haptics} from '../../../lib/haptics';
+import {LIST_PANE_WIDTH, useLayout} from '../../../lib/layout';
 import {useTheme} from '../../../theme/ThemeProvider';
+import {EmployeeDetail} from '../employee/EmployeeDetailScreen';
 import {GROUP_OF, type DayStatusKind, type StatusGroup} from '../dayStatus';
 import {usePeopleOnDate, type PersonDay} from '../queries';
 
@@ -90,6 +93,10 @@ export function PeopleTabScreen() {
   const [query, setQuery] = useState('');
   const [calendarOpen, setCalendarOpen] = useState(false);
   const isToday = date === today;
+  // A wide tablet shows the list and the chosen employee side by side.
+  const {wide} = useLayout();
+  const insets = useSafeAreaInsets();
+  const [picked, setPicked] = useState<number | null>(null);
 
   const {query: people, people: rows, counts} = usePeopleOnDate(date);
 
@@ -105,6 +112,16 @@ export function PeopleTabScreen() {
           (r.employee.emp_id ?? '').toLowerCase().includes(q),
       );
   }, [rows, filter, query]);
+
+  const selected = wide ? visible.find(r => r.employee.id === picked) ?? visible[0] : undefined;
+  const open = (row: Row) => {
+    if (wide) {
+      haptics.select();
+      setPicked(row.employee.id);
+    } else {
+      rootNavigation.navigate('EmployeeDetail', {id: row.employee.id, name: row.employee.name});
+    }
+  };
 
   const changeDate = (next: string) => {
     haptics.select();
@@ -241,63 +258,107 @@ export function PeopleTabScreen() {
     </View>
   );
 
-  return (
-    <Screen safeBottom={false}>
-      <FlatList
-        data={people.isPending ? [] : visible}
-        keyExtractor={r => String(r.employee.id)}
-        contentContainerStyle={{padding: spacing.lg, paddingBottom: spacing.xxxl, gap: spacing.md}}
-        ListHeaderComponent={header}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={people.isRefetching && !people.isPlaceholderData}
-            onRefresh={() => {
-              people.refetch();
-            }}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
+  const list = (
+    <FlatList
+      data={people.isPending ? [] : visible}
+      keyExtractor={r => String(r.employee.id)}
+      contentContainerStyle={{
+        padding: spacing.lg,
+        paddingTop: spacing.lg + (wide ? insets.top : 0),
+        paddingBottom: spacing.xxxl,
+        gap: spacing.md,
+      }}
+      ListHeaderComponent={header}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={people.isRefetching && !people.isPlaceholderData}
+          onRefresh={() => {
+            people.refetch();
+          }}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+      renderItem={({item, index}) => (
+        <Reveal index={Math.min(index, 8)}>
+          <PersonRow
+            row={item}
+            selected={item.employee.id === selected?.employee.id}
+            onPress={() => open(item)}
           />
-        }
-        renderItem={({item, index}) => (
-          <Reveal index={Math.min(index, 8)}>
-            <PersonRow row={item} />
-          </Reveal>
-        )}
-        ListEmptyComponent={
-          people.isPending ? (
-            <View style={{gap: spacing.md}}>
-              {[0, 1, 2, 3].map(i => (
-                <Skeleton key={i} height={76} radius={20} />
-              ))}
-            </View>
-          ) : people.isError ? (
-            <Card>
-              <EmptyState
-                compact
-                icon={CircleAlert}
-                title="Couldn't load your team"
-                message={people.error.message}
-                action={
-                  <Button title="Try again" size="sm" fullWidth={false} onPress={() => people.refetch()} />
-                }
+        </Reveal>
+      )}
+      ListEmptyComponent={
+        people.isPending ? (
+          <View style={{gap: spacing.md}}>
+            {[0, 1, 2, 3].map(i => (
+              <Skeleton key={i} height={76} radius={20} />
+            ))}
+          </View>
+        ) : people.isError ? (
+          <Card>
+            <EmptyState
+              compact
+              icon={CircleAlert}
+              title="Couldn't load your team"
+              message={people.error.message}
+              action={
+                <Button title="Try again" size="sm" fullWidth={false} onPress={() => people.refetch()} />
+              }
+            />
+          </Card>
+        ) : (
+          <Card>
+            <EmptyState
+              compact
+              icon={UsersRound}
+              title={query ? 'No matches' : 'Nobody here'}
+              message={
+                query ? `No employee matches "${query}".` : 'No employees have this status for the day.'
+              }
+            />
+          </Card>
+        )
+      }
+    />
+  );
+
+  return (
+    <Screen safeBottom={false} safeTop={!wide} wide={wide}>
+      {wide ? (
+        <View style={{flex: 1, flexDirection: 'row'}}>
+          <View
+            style={{
+              width: LIST_PANE_WIDTH,
+              borderRightWidth: 1,
+              borderRightColor: colors.border,
+              backgroundColor: colors.surface,
+            }}>
+            {list}
+          </View>
+          <View style={{flex: 1, minWidth: 0}}>
+            {selected ? (
+              <EmployeeDetail
+                key={selected.employee.id}
+                id={selected.employee.id}
+                name={selected.employee.name}
               />
-            </Card>
-          ) : (
-            <Card>
-              <EmptyState
-                compact
-                icon={UsersRound}
-                title={query ? 'No matches' : 'Nobody here'}
-                message={
-                  query ? `No employee matches "${query}".` : 'No employees have this status for the day.'
-                }
-              />
-            </Card>
-          )
-        }
-      />
+            ) : (
+              <View style={{flex: 1, justifyContent: 'center', padding: spacing.xxl}}>
+                <EmptyState
+                  icon={UsersRound}
+                  title="Pick someone"
+                  message="Their attendance, leave and salary show here."
+                />
+              </View>
+            )}
+          </View>
+        </View>
+      ) : (
+        list
+      )}
       <CalendarSheet
         visible={calendarOpen}
         value={date}
@@ -309,9 +370,8 @@ export function PeopleTabScreen() {
   );
 }
 
-function PersonRow({row}: {row: Row}) {
+function PersonRow({row, selected, onPress}: {row: Row; selected?: boolean; onPress: () => void}) {
   const {colors, spacing} = useTheme();
-  const navigation = useNavigation();
   const {employee, status} = row;
   const look = STATUS_LOOK[status.kind];
   const shift = employee.shifts?.[0];
@@ -333,8 +393,12 @@ function PersonRow({row}: {row: Row}) {
 
   return (
     <Card
-      onPress={() => navigation.navigate('EmployeeDetail', {id: employee.id, name: employee.name})}
-      style={{flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md}}
+      onPress={onPress}
+      style={[
+        {flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md},
+        selected && {backgroundColor: colors.primarySoft, borderColor: colors.primary},
+      ]}
+      accessibilityState={selected ? {selected} : undefined}
       accessibilityLabel={`${employee.name}, ${look.label}, ${detail}. Open details`}>
       <Avatar name={employee.name} uri={employeePhotoUrl(employee)} size={48} />
       <View style={{flex: 1, minWidth: 0}}>

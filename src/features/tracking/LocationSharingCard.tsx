@@ -64,6 +64,8 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
   const [sheet, setSheet] = useState(false);
   const [confirmOff, setConfirmOff] = useState(false);
   const [wantOff, setWantOff] = useState(false);
+  // Allow was tapped but location is only "while using": waiting for "all the time".
+  const [needsAlways, setNeedsAlways] = useState(false);
   const company = companyName || 'Your company';
   const status = String(info.geo_status ?? '0');
 
@@ -75,13 +77,26 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
         if (granted === 'denied' || granted === 'undetermined') {
           throw new Error('Turn on location access for STAFO first, then tap Allow again.');
         }
+        // "While using" stops sharing as soon as the phone closes STAFO in the
+        // background (the notification stays, but no location comes). Don't accept
+        // until it's "all the time".
+        if (granted !== 'always') {
+          return 'needs-always' as const;
+        }
       }
       await answerLocationRequest(info.id, allow);
       if (!allow) {
         await StafoLocation.stopTracking();
       }
+      return 'done' as const;
     },
-    onSuccess: async (_, allow) => {
+    onSuccess: async (result, allow) => {
+      if (result === 'needs-always') {
+        haptics.select();
+        setNeedsAlways(true);
+        return;
+      }
+      setNeedsAlways(false);
       haptics.success();
       toast.success(allow ? 'Thanks! Sharing starts when you punch in.' : `${company} has been told.`);
       await queryClient.invalidateQueries({queryKey: queryKeys.employeeDashboard});
@@ -94,6 +109,42 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
       toast.error(e.message);
     },
   });
+
+  // Back from Settings with "Allow all the time": finish accepting by itself.
+  const {mutate: answerMutate, isPending: answerPending} = answer;
+  useEffect(() => {
+    if (needsAlways && permission === 'always' && status === '1' && !answerPending) {
+      answerMutate(true);
+    }
+  }, [needsAlways, permission, status, answerPending, answerMutate]);
+
+  const alwaysSheet = (
+    <BottomSheet
+      visible={needsAlways && status === '1'}
+      onClose={() => setNeedsAlways(false)}
+      title="One more step"
+      subtitle={`Set STAFO's location to “Allow all the time”. With “While using the app”, sharing stops as soon as your phone closes STAFO in the background.`}>
+      <Row
+        icon={Smartphone}
+        title={Platform.OS === 'ios' ? 'Location → Always' : 'Permissions → Location'}
+        sub={
+          Platform.OS === 'ios'
+            ? 'In Settings, tap Location and choose Always'
+            : 'In Settings, tap Permissions → Location → Allow all the time'
+        }
+      />
+      <Row
+        icon={MapPinned}
+        title="Come back to STAFO"
+        sub={`Sharing with ${company} starts by itself`}
+        divider
+      />
+      <View style={{gap: spacing.sm, marginTop: spacing.lg}}>
+        <Button title="Open settings" onPress={() => StafoLocation.openSettings()} />
+        <Button title="Later" variant="ghost" onPress={() => setNeedsAlways(false)} />
+      </View>
+    </BottomSheet>
+  );
 
   if (status === '1') {
     return (
@@ -125,6 +176,7 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
             onPress={() => answer.mutate(true)}
           />
         </View>
+        {alwaysSheet}
       </Card>
     );
   }
@@ -134,9 +186,17 @@ export function LocationSharingCard({info, companyName}: {info: EmployeeInfo; co
   }
 
   const plan = planTracking(info);
-  const blocked = permission === 'denied' || permission === 'undetermined';
-  const line = blocked
+  const off = permission === 'denied' || permission === 'undetermined';
+  // Only "while using": the phone stops giving STAFO a location once it's in the background.
+  const notAlways = permission === 'while-in-use';
+  const blocked = off || notAlways;
+  const line = off
     ? {title: 'Location access is off', sub: 'Sharing is paused. Turn it on in Settings.'}
+    : notAlways
+    ? {
+        title: 'Sharing stops when STAFO is closed',
+        sub: 'Set location to “Allow all the time”. Tap to fix.',
+      }
     : {title: 'Sharing your location', sub: `With ${company}, all the time. Tap to turn off.`};
 
   return (

@@ -4,6 +4,7 @@ export {BottomSheet} from './BottomSheet';
 export {Button} from './Button';
 export {CalendarSheet} from './CalendarSheet';
 export {Card} from './Card';
+export {Columns} from './Columns';
 export {ConfirmDialog} from './ConfirmDialog';
 export {EmptyState} from './EmptyState';
 export {Gradient} from './Gradient';

@@ -10,6 +10,7 @@ import {
   getSalarySlip,
   getShifts,
   requestLiveLocation,
+  stopLiveLocation,
   setAttendanceMode,
   setEmployeeActive,
   setLeaveStatus,
@@ -188,6 +189,14 @@ export function useRequestLiveLocation(employeeId: number) {
     () => requestLiveLocation(employeeId),
     () => [employeeKeys.profile(employeeId)],
     'Location request sent',
+  );
+}
+
+export function useStopLiveLocation(employeeId: number) {
+  return useAdminAction(
+    () => stopLiveLocation(employeeId),
+    () => [employeeKeys.profile(employeeId), ['people']],
+    'Live location turned off',
   );
 }
 

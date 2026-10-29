@@ -91,7 +91,7 @@ export function HomeLayout({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.textOnPrimary}
+            tintColor="#FFFFFF"
             colors={[colors.primary]}
             progressViewOffset={insets.top + 8}
           />
