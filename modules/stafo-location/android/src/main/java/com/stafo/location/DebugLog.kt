@@ -5,7 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.util.Log
 
 /** Logcat lines (tag StafoTracking) in debug builds only: release builds never log locations. */
-internal object DebugLog {
+object DebugLog {
   private const val TAG = "StafoTracking"
 
   fun d(context: Context, message: String) {
